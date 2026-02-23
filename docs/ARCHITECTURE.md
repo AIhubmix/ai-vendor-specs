@@ -1,464 +1,272 @@
-# proxy-specs 三层架构设计
+# proxy-specs 架构设计
 
-## 概述
+## 定位
 
-proxy-specs 采用分层设计，根据 AI 服务商规范的获取难度和自动化程度，将其分为三个层级（Tier）。
+proxy-specs 是一个 **API 规范存储与同步库**，收集各主流 AI 协议的原始规范，作为下游工具（自动化测试、Playground）的权威标准来源。
+
+项目本身不包含任何业务逻辑，只做两件事：**同步规范**、**存储规范**。
+
+---
+
+## 目录结构
+
+协议优先的二级目录结构：`<协议>/<变体>/`
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│ Tier 1: 有完整 OpenAPI 规范                                 │
-│ ✅ 可完全自动同步                                           │
-├────────────────────────────────────────────────────────────┤
-│ • OpenAI Official                                          │
-│ • Azure OpenAI                                             │
-│ • Cohere                                                   │
-└────────────────────────────────────────────────────────────┘
-         ↓ 直接下载 OpenAPI/JSON 规范
-
-┌────────────────────────────────────────────────────────────┐
-│ Tier 2: 有可转换规范                                        │
-│ ⚠️  需要格式转换，半自动同步                                │
-├────────────────────────────────────────────────────────────┤
-│ • Google Gemini    (Discovery → OpenAPI)                  │
-│ • Google Vertex AI (Discovery → OpenAPI)                  │
-│ • AWS Bedrock      (Botocore → OpenAPI, 待实现)            │
-└────────────────────────────────────────────────────────────┘
-         ↓ 下载 + 转换脚本
-
-┌────────────────────────────────────────────────────────────┐
-│ Tier 3: 仅有文档                                            │
-│ ❌ 需要手动维护，基于配置生成                                │
-├────────────────────────────────────────────────────────────┤
-│ • Anthropic Claude (手动维护)                              │
-│ • 百度文心         (配置生成)                              │
-│ • 阿里通义         (配置生成)                              │
-│ • 腾讯混元         (配置生成)                              │
-└────────────────────────────────────────────────────────────┘
-         ↓ JSON 配置 + 生成脚本
+proxy-specs/
+├── openai/
+│   ├── official/           # OpenAI 官方规范
+│   │   ├── openapi.yml
+│   │   └── metadata.json
+│   └── azure/              # Azure OpenAI（OpenAI 协议变体）
+│       ├── openapi.json
+│       └── metadata.json
+│
+├── anthropic/
+│   ├── official/           # Anthropic Claude 直连（手动维护）
+│   │   ├── openapi.yml
+│   │   └── metadata.json
+│   └── bedrock/            # Claude on AWS Bedrock（手动维护）
+│       ├── openapi.yml
+│       └── metadata.json
+│
+├── cohere/
+│   └── official/           # Cohere 原生协议
+│       ├── openapi.yml
+│       └── metadata.json
+│
+├── gemini/
+│   └── official/           # Google Gemini 原生协议（AI Studio）
+│       ├── discovery.json  # Google Discovery 格式（原生规范）
+│       └── metadata.json
+│
+├── vertex/
+│   └── official/           # Google Vertex AI 原生协议
+│       ├── discovery.json  # Google Discovery 格式（原生规范）
+│       └── metadata.json
+│
+└── scripts/
+    ├── sync/               # 同步脚本
+    │   ├── openai-official.sh
+    │   ├── openai-azure.sh
+    │   ├── anthropic-bedrock.sh
+    │   ├── cohere-official.sh
+    │   ├── gemini-official.sh
+    │   └── vertex-official.sh
+    ├── convert/            # 格式转换工具（备用）
+    │   └── discovery-to-openapi.js
+    ├── sync-all.sh
+    ├── validate-all.sh
+    └── utils.sh
 ```
 
 ---
 
-## Tier 1: 完整 OpenAPI 规范
+## 分层设计（Tier）
 
-### 特点
-- ✅ 厂商提供完整的 OpenAPI/Swagger 规范文件
-- ✅ 可通过 HTTP 直接下载
-- ✅ 支持完全自动同步
-- ✅ 规范质量高，与官方 API 一致
+根据规范来源的自动化程度，分为三层：
 
-### 支持的服务
+```
+┌────────────────────────────────────────────────────────────┐
+│ Tier 1: 有完整 OpenAPI 规范，直接下载                       │
+│ ✅ 完全自动同步                                             │
+├────────────────────────────────────────────────────────────┤
+│ • openai/official    (OpenAPI 3.1 YAML)                    │
+│ • openai/azure       (OpenAPI 3.0 JSON)                    │
+│ • cohere/official    (OpenAPI 3.0 YAML)                    │
+└────────────────────────────────────────────────────────────┘
 
-#### OpenAI Official
-- **规范来源**: https://github.com/openai/openai-openapi
+┌────────────────────────────────────────────────────────────┐
+│ Tier 2: Google Discovery 格式，自动下载                     │
+│ ✅ 自动同步（Discovery JSON 即原生规范，无需转换）          │
+├────────────────────────────────────────────────────────────┤
+│ • gemini/official    (Google Discovery JSON)               │
+│ • vertex/official    (Google Discovery JSON)               │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ Tier 3: 无机器可读规范，手动维护                            │
+│ ❌ 需要人工更新                                             │
+├────────────────────────────────────────────────────────────┤
+│ • anthropic/official (基于官方文档手动编写)                │
+│ • anthropic/bedrock  (基于 AWS 文档手动编写)               │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Tier 1：完整 OpenAPI 规范
+
+### openai/official
+- **规范来源**: Stainless（OpenAI 官方）
 - **格式**: OpenAPI 3.1 (YAML)
 - **同步脚本**: `scripts/sync/openai-official.sh`
-- **自动同步**: ✅
+- **URL**: `https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml`
 
-#### Azure OpenAI
-- **规范来源**: https://github.com/Azure/azure-rest-api-specs
+### openai/azure
+- **规范来源**: Azure REST API Specs 仓库
 - **格式**: OpenAPI 3.0 (JSON)
 - **同步脚本**: `scripts/sync/openai-azure.sh`
-- **自动同步**: ✅
+- **说明**: Request body 与 OpenAI 完全一致，仅 URL 结构和认证头不同，因此归入 openai/ 协议目录
 
-#### Cohere
-- **规范来源**: https://github.com/cohere-ai/cohere-typescript
+### cohere/official
+- **规范来源**: cohere-ai/cohere-typescript 仓库（Fern 生成）
 - **格式**: OpenAPI 3.0 (YAML)
 - **同步脚本**: `scripts/sync/cohere-official.sh`
-- **自动同步**: ✅
+- **说明**: Cohere 使用自身原生协议（`/v1/chat`），与 OpenAI 协议结构不同，独立目录
 
-### 实现方式
+### 同步实现
 
 ```bash
-#!/bin/bash
-# 示例：OpenAI Official 同步脚本
+# Tier 1 同步脚本模式
+source "$(dirname "$0")/../utils.sh"
 
-SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
+SPEC_URL="https://..."
 PROTOCOL="openai"
 PROVIDER="official"
 OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
 
-# 下载规范
+mkdir -p "$OUTPUT_DIR"
 download_spec "$SPEC_URL" "$OUTPUT_DIR/openapi.yml"
-
-# 创建元数据
 create_metadata "$PROTOCOL" "$PROVIDER" "OpenAI Official" \
     "openapi-3.1" "$SPEC_URL" "$OUTPUT_DIR/openapi.yml" true
 ```
 
 ---
 
-## Tier 2: 可转换规范
+## Tier 2：Google Discovery 格式
 
-### 特点
-- ⚠️  厂商提供非 OpenAPI 格式的规范
-- ⚠️  需要格式转换（Discovery、Botocore 等）
-- ⚠️  半自动同步（下载 + 转换）
-- ✅ 可通过工具自动转换为 OpenAPI
+Google 使用自有的 Discovery 格式描述 API，Discovery JSON 即原生规范，直接存储，无需转换为 OpenAPI。
 
-### 支持的服务
+### gemini/official
+- **规范来源**: `https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta`
+- **格式**: Google Discovery JSON
+- **同步脚本**: `scripts/sync/gemini-official.sh`
+- **网络要求**: 需能访问 `generativelanguage.googleapis.com`
+- **说明**: Gemini 原生 API，endpoint 为 `/{version}/models/{model}:generateContent`，与 OpenAI 协议有根本性差异
 
-#### Google Gemini
-- **规范来源**: https://generativelanguage.googleapis.com/$discovery/rest
-- **原始格式**: Google Discovery Format
-- **目标格式**: OpenAPI 3.0
-- **转换工具**: `scripts/convert/discovery-to-openapi.js`
-- **同步脚本**: `scripts/sync/google-gemini.sh`
-- **自动同步**: ✅（下载 + 转换）
-
-#### Google Vertex AI
-- **规范来源**: https://aiplatform.googleapis.com/$discovery/rest
-- **原始格式**: Google Discovery Format
-- **目标格式**: OpenAPI 3.0
-- **转换工具**: `scripts/convert/discovery-to-openapi.js`
-- **同步脚本**: `scripts/sync/google-vertex.sh`
-- **自动同步**: ✅（下载 + 转换）
-
-#### AWS Bedrock（待实现）
-- **规范来源**: AWS Botocore
-- **原始格式**: Botocore Service Definition
-- **目标格式**: OpenAPI 3.0
-- **转换工具**: 待开发
-- **自动同步**: 🚧 开发中
-
-### 实现方式
-
-```bash
-#!/bin/bash
-# 示例：Google Gemini 同步脚本
-
-# 1. 下载 Discovery 格式
-SPEC_URL='https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'
-download_spec "$SPEC_URL" "$OUTPUT_DIR/discovery.json"
-
-# 2. 转换为 OpenAPI
-node scripts/convert/discovery-to-openapi.js \
-    "$OUTPUT_DIR/discovery.json" \
-    "$OUTPUT_DIR/openapi.yml"
-
-# 3. 创建元数据（保留两种格式）
-create_metadata "$PROTOCOL" "$PROVIDER" "Google Gemini" \
-    "google-discovery" "$SPEC_URL" "$OUTPUT_DIR/discovery.json" true
-```
-
-### 转换工具
-
-**Discovery to OpenAPI Converter** (`scripts/convert/discovery-to-openapi.js`)
-
-- 输入: Google Discovery Format JSON
-- 输出: OpenAPI 3.0 YAML
-- 功能:
-  - 转换 schemas
-  - 转换 resources → paths
-  - 转换 methods → operations
-  - 转换 authentication
+### vertex/official
+- **规范来源**: `https://raw.githubusercontent.com/googleapis/discovery-artifact-manager/master/discoveries/aiplatform.v1.json`（GitHub 镜像，fallback 到 `aiplatform.googleapis.com`）
+- **格式**: Google Discovery JSON
+- **同步脚本**: `scripts/sync/vertex-official.sh`
 
 ---
 
-## Tier 3: 仅有文档
+## Tier 3：手动维护规范
 
-### 特点
-- ❌ 厂商未提供机器可读的规范文件
-- ❌ 仅有人类可读的 API 文档网页
-- ⚠️  需要手动维护或基于配置生成
-- 📝 规范可能不完整，需要定期更新
+### anthropic/official
+- **文档来源**: https://docs.anthropic.com/en/api/messages
+- **格式**: OpenAPI 3.0 (YAML)，手动编写
+- **autoSync**: `false`
+- **更新方式**: 参照官方文档变更，人工修改 `anthropic/official/openapi.yml`
 
-### 支持的服务
-
-#### Anthropic Claude
-- **文档**: https://docs.anthropic.com/en/api/messages
-- **维护方式**: 完全手动维护
-- **规范位置**: `anthropic/official/openapi.yml`
-- **自动同步**: ❌
-- **更新频率**: 手动，跟随官方文档变更
-
-#### 百度文心 (ERNIE)
-- **文档**: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
-- **维护方式**: 基于配置生成
-- **配置文件**: `scripts/configs/baidu-ernie.json`
-- **生成脚本**: `scripts/sync/baidu-ernie.sh`
-- **自动同步**: ⚠️  半自动（需更新配置）
-
-#### 阿里通义 (Qwen)
-- **文档**: https://help.aliyun.com/zh/dashscope/developer-reference/api-details
-- **维护方式**: 基于配置生成
-- **配置文件**: `scripts/configs/alibaba-qwen.json`
-- **生成脚本**: `scripts/sync/alibaba-qwen.sh`
-- **自动同步**: ⚠️  半自动（需更新配置）
-
-#### 腾讯混元 (Hunyuan)
-- **文档**: https://cloud.tencent.com/document/product/1729
-- **维护方式**: 基于配置生成
-- **配置文件**: `scripts/configs/tencent-hunyuan.json`（待创建）
-- **自动同步**: ⚠️  半自动（需更新配置）
-
-### 实现方式
-
-#### 方式 1: 完全手动维护（推荐用于复杂 API）
-
-直接编写和维护 OpenAPI 规范文件，参考官方文档：
-
-```yaml
-# anthropic/official/openapi.yml
-openapi: 3.0.0
-info:
-  title: Anthropic API
-  version: 2023-06-01
-
-paths:
-  /v1/messages:
-    post:
-      summary: Create a message
-      requestBody:
-        content:
-          application/json:
-            schema:
-              # 手动编写完整的 schema
-```
-
-**优点**:
-- 完全控制规范内容
-- 可包含详细的描述和示例
-- 适合复杂 API
-
-**缺点**:
-- 工作量大
-- 需要定期手动更新
-
-#### 方式 2: 基于配置生成（推荐用于简单 API）
-
-创建 JSON 配置文件，描述 API 端点和参数：
-
-```json
-{
-  "provider": "baidu-ernie",
-  "protocol": "baidu",
-  "baseUrl": "https://aip.baidubce.com",
-  "endpoints": [
-    {
-      "path": "/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions",
-      "method": "POST",
-      "summary": "创建对话补全",
-      "requestBody": { ... },
-      "responses": { ... }
-    }
-  ]
-}
-```
-
-然后运行生成脚本：
-
-```bash
-node scripts/convert/docs-to-openapi.js scripts/configs/baidu-ernie.json
-```
-
-**优点**:
-- 结构化配置，易于维护
-- 可快速生成基础规范
-- 适合简单、规范的 API
-
-**缺点**:
-- 生成的规范可能不够详细
-- 仍需手动维护配置文件
-
-#### 方式 3: 爬虫 + AI 辅助（实验性）
-
-使用爬虫抓取 API 文档，结合 AI 模型提取信息：
-
-```javascript
-// 伪代码示例
-const docs = await crawlAPIDocs('https://docs.example.com/api');
-const endpoints = await extractWithAI(docs); // 使用 GPT/Claude 提取
-const openapi = generateOpenAPI(endpoints);
-```
-
-**优点**:
-- 减少手动工作
-- 可定期自动更新
-
-**缺点**:
-- 准确性依赖 AI 和文档质量
-- 需要人工审核
-- 可能违反网站使用条款
-
-**建议**: 目前仅用于辅助，不作为主要方式
+### anthropic/bedrock
+- **文档来源**: https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html
+- **格式**: OpenAPI 3.0 (YAML)，手动编写
+- **autoSync**: `false`
+- **与 anthropic/official 的区别**:
+  - 服务器: `https://bedrock-runtime.{region}.amazonaws.com`
+  - Endpoint: `/model/{modelId}/invoke`（非 `/v1/messages`）
+  - 认证: AWS SigV4（非 `x-api-key` 头）
+  - 请求体需额外包含 `anthropic_version: "bedrock-2023-05-31"` 字段
+  - 通过 AWS SDK 调用，SDK 自动处理签名和区域路由
 
 ---
 
-## 目录结构
+## metadata.json 规范
 
-```
-proxy-specs/
-├── openai/
-│   ├── official/           # Tier 1: 自动同步
-│   │   ├── openapi.yml
-│   │   └── metadata.json
-│   └── azure/              # Tier 1: 自动同步
-│       ├── openapi.json
-│       └── metadata.json
-│
-├── google/
-│   ├── gemini/             # Tier 2: 下载 + 转换
-│   │   ├── discovery.json  # 原始格式
-│   │   ├── openapi.yml     # 转换后
-│   │   └── metadata.json
-│   └── vertex/             # Tier 2: 下载 + 转换
-│
-├── cohere/
-│   └── official/           # Tier 1: 自动同步
-│
-├── baidu/
-│   └── ernie/              # Tier 3: 配置生成
-│       ├── openapi.yml
-│       └── metadata.json
-│
-├── alibaba/
-│   └── qwen/               # Tier 3: 配置生成
-│
-├── anthropic/
-│   └── official/           # Tier 3: 手动维护
-│
-└── scripts/
-    ├── sync/               # 各层级的同步脚本
-    ├── convert/            # 格式转换工具
-    └── configs/            # Tier 3 配置文件
-```
+每个协议目录下必须包含 `metadata.json`：
 
----
-
-## 元数据标准
-
-每个规范都包含 `metadata.json`，标明其层级和维护方式：
-
-### Tier 1 示例
 ```json
 {
   "protocol": "openai",
   "provider": "official",
   "displayName": "OpenAI Official",
+  "version": "2026-02-23",
   "specFormat": "openapi-3.1",
-  "source": "https://...",
-  "autoSync": true,          // ✅ 自动同步
-  "tier": 1
+  "source": "https://app.stainless.com/...",
+  "lastSynced": "2026-02-23T13:39:24Z",
+  "hash": "sha256:3db95073...",
+  "autoSync": true
 }
 ```
 
-### Tier 2 示例
-```json
-{
-  "protocol": "google",
-  "provider": "gemini",
-  "specFormat": "google-discovery",
-  "convertedFormat": "openapi-3.0",  // 转换后格式
-  "autoSync": true,                  // ✅ 可自动转换
-  "tier": 2
-}
-```
+字段说明：
 
-### Tier 3 示例
-```json
-{
-  "protocol": "baidu",
-  "provider": "ernie",
-  "specFormat": "openapi-3.0",
-  "source": "manual-from-docs",       // 手动维护
-  "autoSync": false,                  // ❌ 需要人工更新
-  "tier": 3,
-  "note": "基于配置生成，需定期对照官方文档更新"
-}
-```
+| 字段 | 说明 |
+|------|------|
+| `protocol` | 协议名称，与顶级目录名一致 |
+| `provider` | 变体名称，与二级目录名一致 |
+| `specFormat` | 原始规范格式（`openapi-3.0`, `openapi-3.1`, `google-discovery`） |
+| `hash` | 规范文件的 sha256，用于检测变更 |
+| `autoSync` | 是否支持自动同步 |
 
 ---
 
-## GitHub Actions 同步策略
-
-```yaml
-name: Sync Specs Daily
-
-on:
-  schedule:
-    - cron: '0 0 * * *'  # 每天同步
-
-jobs:
-  sync:
-    steps:
-      # Tier 1 + Tier 2: 自动同步
-      - name: Sync auto-sync specs
-        run: bash scripts/sync-all.sh
-
-      # Tier 3: 仅生成（不推送）
-      - name: Generate Tier 3 specs
-        run: |
-          bash scripts/sync/baidu-ernie.sh
-          bash scripts/sync/alibaba-qwen.sh
-
-      # 提交变更（仅 Tier 1/2）
-      - name: Commit if changed
-        run: |
-          if git diff --quiet openai/ google/ cohere/; then
-            echo "No Tier 1/2 changes"
-          else
-            git commit -m "chore: auto-sync Tier 1/2 specs"
-            git push
-          fi
-```
-
----
-
-## 使用建议
-
-### 集成到项目
+## 同步流程
 
 ```bash
-# 方式 1: Git Submodule
-git submodule add https://github.com/your-org/proxy-specs.git vendor-specs
-
-# 方式 2: NPM
-npm install proxy-specs
-
-# 方式 3: 直接下载
-curl -L https://github.com/your-org/proxy-specs/archive/v1.0.0.tar.gz | tar xz
+bash scripts/sync-all.sh
 ```
 
-### 选择合适的规范
+执行顺序（显式，避免依赖字母排序）：
 
-```go
-// Tier 1: 优先使用，质量最高
-spec := loadSpec("vendor-specs/openai/official/openapi.yml")
-
-// Tier 2: 可用，但注意转换可能有小问题
-spec := loadSpec("vendor-specs/google/gemini/openapi.yml")
-
-// Tier 3: 谨慎使用，可能不完整或过时
-spec := loadSpec("vendor-specs/baidu/ernie/openapi.yml")
-// 建议: 对照官方文档验证关键 API
-```
-
-### 贡献指南
-
-- **Tier 1**: 提 issue 报告同步问题
-- **Tier 2**: 提 PR 改进转换脚本
-- **Tier 3**: 提 PR 更新配置文件或手动维护的规范
+1. `openai-official.sh`
+2. `openai-azure.sh`
+3. `anthropic-official.sh`（如存在）
+4. `cohere-official.sh`
+5. `gemini-official.sh`
+6. `vertex-official.sh`
 
 ---
 
-## 未来计划
+## 验证
 
-1. **Tier 2 扩展**
-   - 实现 AWS Bedrock Botocore 转换
-   - 支持更多 Discovery 格式 API
+```bash
+bash scripts/validate-all.sh
+```
 
-2. **Tier 3 改进**
-   - 开发更智能的文档爬虫
-   - AI 辅助规范生成
-   - 自动变更检测（对比文档版本）
+检查每个协议目录：
+- `openapi.yml` 或 `openapi.json` 文件存在
+- `metadata.json` 文件存在且格式正确
 
-3. **质量保证**
-   - 添加规范验证测试
-   - 对比实际 API 响应
-   - 集成 Compliance Testing Framework
+---
 
-4. **社区贡献**
-   - 接受社区提交的新规范
-   - 建立规范审核流程
-   - 提供规范质量评分
+## 下游消费方与 One API 关系
+
+### proxy-specs 不是 one-api 的运行时依赖
+
+one-api 的适配器层是硬编码的 Go 代码，不从本仓库动态加载规范。规范描述的是"API 长什么样"，适配器做的是"怎么在两种格式之间转换"——后者无法从前者自动推导。
+
+one-api 适配器按转换复杂度分为两类：
+
+**A 类（仅 URL + 认证头不同）**
+- Azure OpenAI：URL 改为 `/openai/deployments/{model}/...`，认证改为 `api-key` 头，请求体原样传递
+
+**C 类（完整协议转换）**
+- Gemini：`messages[]→contents[]`，角色映射（`assistant→model`），endpoint 完全不同，约 76 处转换
+- Anthropic：system message 提取为独立字段，token 参数名不同
+- Cohere：`messages[]→message+chat_history[]`，`top_p→p`，`assistant→CHATBOT`
+
+这也是协议目录设计的依据：Azure 请求体与 OpenAI 完全相同，归入 `openai/azure/`；Gemini/Cohere 结构性不同，各自独立协议目录。
+
+### proxy-specs 的实际作用
+
+```
+proxy-specs (规范库)
+       │
+       ├── openai/official/openapi.yml ──► 自动化测试项目
+       │                                     契约测试：验证 one-api 响应符合 OpenAI 标准
+       │                                     spec 变更 → hash 更新 → CI 感知 → 人工 review
+       │
+       └── openai/official/openapi.yml ──► Playground 项目
+                                             Schema 驱动参数表单，无需硬编码参数列表
+                                             新参数 → spec 更新 → 构建时自动生成新控件
+                                                  │
+                                                  ▼
+                                             one-api（chat 接口统一入口）
+```
+
+详见：
+- [TESTING-INTEGRATION.md](./TESTING-INTEGRATION.md) — 契约测试：schema 校验、必填字段断言、枚举值验证
+- [PLAYGROUND-INTEGRATION.md](./PLAYGROUND-INTEGRATION.md) — 控件映射、约束校验、参数描述内联展示

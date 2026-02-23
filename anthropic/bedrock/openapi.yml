@@ -1,0 +1,340 @@
+openapi: 3.0.0
+info:
+  title: Anthropic Claude on AWS Bedrock
+  version: bedrock-2023-05-31
+  description: |
+    Anthropic Claude models accessed via AWS Bedrock Runtime.
+
+    Key differences from Anthropic's direct API (anthropic/official):
+    - Server: AWS Bedrock Runtime regional endpoint
+    - Endpoint: /model/{modelId}/invoke (vs /v1/messages)
+    - Authentication: AWS SigV4 (vs x-api-key header)
+    - Request body: same Anthropic Messages format, but requires
+      `anthropic_version: "bedrock-2023-05-31"` field instead of the
+      `anthropic-version` request header used in the direct API
+
+servers:
+  - url: https://bedrock-runtime.{region}.amazonaws.com
+    variables:
+      region:
+        default: us-east-1
+        description: AWS region (e.g. us-east-1, us-west-2, eu-west-1)
+
+security:
+  - awsSigV4: []
+
+paths:
+  /model/{modelId}/invoke:
+    post:
+      operationId: invokeModel
+      summary: Invoke a Claude model (non-streaming)
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          description: |
+            Bedrock model ID for Claude, e.g.:
+            - anthropic.claude-3-5-sonnet-20241022-v2:0
+            - anthropic.claude-3-5-haiku-20241022-v1:0
+            - us.anthropic.claude-3-7-sonnet-20250219-v1:0
+            - us.anthropic.claude-sonnet-4-20250514-v1:0
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Bad request
+        '403':
+          description: Access denied (check IAM permissions for bedrock:InvokeModel)
+        '404':
+          description: Model not found or not enabled in this region
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal server error
+
+  /model/{modelId}/invoke-with-response-stream:
+    post:
+      operationId: invokeModelWithResponseStream
+      summary: Invoke a Claude model (streaming)
+      parameters:
+        - name: modelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeRequest'
+      responses:
+        '200':
+          description: Server-sent event stream
+          content:
+            application/vnd.amazon.eventstream:
+              schema:
+                $ref: '#/components/schemas/StreamEvent'
+
+components:
+  securitySchemes:
+    awsSigV4:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        AWS Signature Version 4. Headers computed by AWS SDK:
+        Authorization, X-Amz-Date, X-Amz-Security-Token (if using STS).
+        Service: bedrock, Action: bedrock:InvokeModel
+
+  schemas:
+    InvokeRequest:
+      type: object
+      required:
+        - anthropic_version
+        - messages
+        - max_tokens
+      properties:
+        anthropic_version:
+          type: string
+          enum: [bedrock-2023-05-31]
+          description: Must be "bedrock-2023-05-31" (replaces the anthropic-version header used in the direct API)
+        messages:
+          type: array
+          description: Conversation history. Must alternate user/assistant, starting with user.
+          items:
+            $ref: '#/components/schemas/Message'
+        system:
+          description: System prompt. Either a plain string or an array of content blocks.
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: '#/components/schemas/ContentBlock'
+        max_tokens:
+          type: integer
+          minimum: 1
+          description: Maximum tokens to generate (required, no default)
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Sampling temperature. Default 1.0.
+        top_p:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Nucleus sampling threshold.
+        top_k:
+          type: integer
+          minimum: 0
+          description: Top-k sampling. Only sample from the top K options.
+        stop_sequences:
+          type: array
+          items:
+            type: string
+          description: Custom stop sequences.
+        stream:
+          type: boolean
+          description: Enable streaming. Use /invoke-with-response-stream endpoint instead.
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+          description: Tool definitions available to the model.
+        tool_choice:
+          $ref: '#/components/schemas/ToolChoice'
+        thinking:
+          $ref: '#/components/schemas/Thinking'
+        anthropic_beta:
+          type: array
+          items:
+            type: string
+          description: Beta features to enable (e.g. ["interleaved-thinking-2025-05-14"])
+
+    Message:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          description: Message content. Either a plain string or an array of content blocks.
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: '#/components/schemas/ContentBlock'
+
+    ContentBlock:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [text, image, tool_use, tool_result, thinking, redacted_thinking]
+        text:
+          type: string
+          description: For type=text
+        source:
+          type: object
+          description: For type=image
+          properties:
+            type:
+              type: string
+              enum: [base64, url]
+            media_type:
+              type: string
+              enum: [image/jpeg, image/png, image/gif, image/webp]
+            data:
+              type: string
+        id:
+          type: string
+          description: For type=tool_use or tool_result
+        name:
+          type: string
+          description: For type=tool_use
+        input:
+          type: object
+          description: For type=tool_use
+        tool_use_id:
+          type: string
+          description: For type=tool_result
+        content:
+          description: For type=tool_result
+        thinking:
+          type: string
+          description: For type=thinking (extended thinking)
+        data:
+          type: string
+          description: For type=redacted_thinking
+
+    Tool:
+      type: object
+      required:
+        - name
+        - input_schema
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        input_schema:
+          type: object
+          description: JSON Schema for the tool input parameters
+
+    ToolChoice:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [auto, any, tool]
+        name:
+          type: string
+          description: Required when type=tool, specifies which tool to use
+
+    Thinking:
+      type: object
+      required:
+        - type
+        - budget_tokens
+      properties:
+        type:
+          type: string
+          enum: [enabled, disabled]
+        budget_tokens:
+          type: integer
+          minimum: 1024
+          description: Token budget for extended thinking
+
+    Response:
+      type: object
+      required:
+        - id
+        - type
+        - role
+        - content
+        - model
+        - stop_reason
+        - usage
+      properties:
+        id:
+          type: string
+          description: Unique response ID (msg_*)
+        type:
+          type: string
+          enum: [message]
+        role:
+          type: string
+          enum: [assistant]
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentBlock'
+        model:
+          type: string
+          description: Model ID that generated the response
+        stop_reason:
+          type: string
+          enum: [end_turn, max_tokens, stop_sequence, tool_use]
+        stop_sequence:
+          type: string
+          nullable: true
+        usage:
+          $ref: '#/components/schemas/Usage'
+
+    Usage:
+      type: object
+      required:
+        - input_tokens
+        - output_tokens
+      properties:
+        input_tokens:
+          type: integer
+        output_tokens:
+          type: integer
+        cache_creation_input_tokens:
+          type: integer
+        cache_read_input_tokens:
+          type: integer
+
+    StreamEvent:
+      type: object
+      description: |
+        Server-sent event stream. Each event has a `type` field:
+        - message_start: initial message metadata
+        - content_block_start: start of a content block
+        - content_block_delta: incremental content
+        - content_block_stop: end of a content block
+        - message_delta: updates to stop_reason/stop_sequence/usage
+        - message_stop: end of stream
+      properties:
+        type:
+          type: string
+          enum:
+            - message_start
+            - content_block_start
+            - content_block_delta
+            - content_block_stop
+            - message_delta
+            - message_stop
+        index:
+          type: integer
+        delta:
+          type: object

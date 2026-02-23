@@ -7,12 +7,9 @@
     "openai/**/*.yml",
     "openai/**/*.json",
     "anthropic/**/*.yml",
-    "google/**/*.json",
-    "google/**/*.yml",
     "cohere/**/*.yml",
-    "baidu/**/*.yml",
-    "alibaba/**/*.yml",
-    "tencent/**/*.yml",
+    "gemini/**/*.json",
+    "vertex/**/*.json",
     "**/metadata.json"
   ],
   "scripts": {
