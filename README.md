@@ -59,6 +59,44 @@ azureSpec := loadSpec("specs/openai/azure/openapi.yml")
 geminiSpec := loadSpec("specs/google/gemini/discovery.json")
 ```
 
+## 文档
+
+- [架构设计](./docs/ARCHITECTURE.md) - 三层架构详细说明
+- [使用指南](./docs/USAGE.md) - 集成方式和使用示例
+- [One API 集成指南](./docs/INTEGRATION-WITH-ONE-API.md) - 如何在 One API 中使用 proxy-specs
+- [One API 架构参考](./docs/ONE-API-ARCHITECTURE.md) - One API 架构设计和最佳实践
+
+## 典型应用场景
+
+### AI 代理服务
+
+proxy-specs 特别适合用于 AI 代理服务（如 [One API](https://github.com/songquanpeng/one-api)）：
+
+- **多厂商适配器**: 基于规范开发标准化的适配器
+- **请求验证**: 使用规范验证请求参数
+- **动态路由**: 根据规范自动注册 API 端点
+- **计费系统**: 从规范中提取定价信息
+
+### SDK 生成
+
+使用 OpenAPI Generator 生成多语言 SDK：
+
+```bash
+openapi-generator-cli generate \
+    -i specs/openai/official/openapi.yml \
+    -g python \
+    -o sdk/openai-python
+```
+
+### API 文档
+
+使用 Redoc 生成交互式文档：
+
+```bash
+redocly build-docs specs/openai/official/openapi.yml \
+    --output docs/openai.html
+```
+
 ## 贡献
 
 欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
