@@ -139,8 +139,7 @@ OpenAI 新增参数（如 `reasoning_effort`）→ spec 每日自动更新 → P
 
 - [架构设计](./docs/ARCHITECTURE.md) — 目录结构、分层设计、同步流程、与 one-api 的关系
 - [使用指南](./docs/USAGE.md) — 集成方式、加载规范、典型场景代码示例
-- [自动化测试集成](./docs/TESTING-INTEGRATION.md) — 契约测试：schema 校验、必填字段、枚举值验证、变更感知
-- [Playground 集成](./docs/PLAYGROUND-INTEGRATION.md) — Schema 驱动表单：控件映射、约束校验、参数描述内联
+- [规范来源](./docs/SOURCES.md) — 各协议规范的官方来源地址和同步方法
 
 ---
 
