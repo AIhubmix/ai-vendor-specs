@@ -1,0 +1,39 @@
+{
+  "name": "proxy-specs",
+  "version": "1.0.0",
+  "description": "Universal AI Protocol Specifications for Proxy Services",
+  "main": "index.js",
+  "files": [
+    "openai/**/*.yml",
+    "anthropic/**/*.yml",
+    "google/**/*.json",
+    "google/**/*.yml",
+    "baidu/**/*.yml",
+    "alibaba/**/*.yml",
+    "tencent/**/*.yml",
+    "**/metadata.json"
+  ],
+  "scripts": {
+    "sync": "bash scripts/sync-all.sh",
+    "validate": "bash scripts/validate-all.sh"
+  },
+  "keywords": [
+    "ai",
+    "openai",
+    "gemini",
+    "claude",
+    "api",
+    "specs",
+    "openapi",
+    "proxy",
+    "llm"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/proxy-specs.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@apidevtools/swagger-cli": "^4.0.4"
+  }
+}

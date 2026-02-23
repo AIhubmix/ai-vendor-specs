@@ -1,0 +1,11 @@
+{
+  "protocol": "anthropic",
+  "provider": "official",
+  "displayName": "Anthropic Claude",
+  "version": "2023-06-01",
+  "specFormat": "openapi-3.0",
+  "source": "manual",
+  "lastSynced": "2026-02-22T18:53:08Z",
+  "autoSync": false,
+  "note": "Manually maintained based on https://docs.anthropic.com/en/api/messages"
+}
