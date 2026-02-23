@@ -1,6 +1,7 @@
 {
-  "provider": "alibaba-qwen",
   "protocol": "alibaba",
+  "provider": "qwen",
+  "displayName": "Alibaba Qwen (通义千问)",
   "baseUrl": "https://dashscope.aliyuncs.com/api/v1",
   "docsUrl": "https://help.aliyun.com/zh/dashscope/developer-reference/api-details",
   "endpoints": [

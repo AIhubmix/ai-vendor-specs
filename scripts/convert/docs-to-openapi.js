@@ -54,12 +54,17 @@ function extractAPIInfo(html, endpoint) {
 }
 
 async function generateOpenAPI(config) {
+    // 构建 API 标题
+    const protocol = config.protocol || 'unknown';
+    const provider = config.provider || 'unknown';
+    const displayName = config.displayName || `${protocol}/${provider}`;
+
     const openapi = {
         openapi: '3.0.0',
         info: {
-            title: `${config.provider} API`,
+            title: `${displayName} API`,
             version: '1.0.0',
-            description: `Generated from ${config.docsUrl}`
+            description: `Generated from ${config.docsUrl || 'configuration'}`
         },
         servers: [{
             url: config.baseUrl

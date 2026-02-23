@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: baidu-ernie API
+  title: Baidu ERNIE (文心一言) API
   version: 1.0.0
   description: Generated from https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
 servers:

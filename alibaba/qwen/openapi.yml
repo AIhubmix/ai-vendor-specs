@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: alibaba-qwen API
+  title: Alibaba Qwen (通义千问) API
   version: 1.0.0
   description: Generated from https://help.aliyun.com/zh/dashscope/developer-reference/api-details
 servers:

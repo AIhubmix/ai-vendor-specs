@@ -1,6 +1,7 @@
 {
-  "provider": "baidu-ernie",
   "protocol": "baidu",
+  "provider": "ernie",
+  "displayName": "Baidu ERNIE (文心一言)",
   "baseUrl": "https://aip.baidubce.com",
   "docsUrl": "https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t",
   "endpoints": [
