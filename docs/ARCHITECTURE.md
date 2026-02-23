@@ -266,7 +266,3 @@ proxy-specs (规范库)
                                                   ▼
                                              one-api（chat 接口统一入口）
 ```
-
-详见：
-- [TESTING-INTEGRATION.md](./TESTING-INTEGRATION.md) — 契约测试：schema 校验、必填字段断言、枚举值验证
-- [PLAYGROUND-INTEGRATION.md](./PLAYGROUND-INTEGRATION.md) — 控件映射、约束校验、参数描述内联展示

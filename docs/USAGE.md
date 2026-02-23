@@ -137,8 +137,6 @@ const valid = validate(oneApiResponse);
 assert(valid, JSON.stringify(validate.errors));
 ```
 
-完整指南见 [TESTING-INTEGRATION.md](./TESTING-INTEGRATION.md)。
-
 ### 场景 2: Schema 驱动 UI（Playground 项目）
 
 从 spec 提取参数定义，自动渲染参数表单：
@@ -153,8 +151,6 @@ Object.entries(requestSchema.properties).forEach(([name, prop]) => {
     renderFormField(name, prop);
 });
 ```
-
-完整指南见 [PLAYGROUND-INTEGRATION.md](./PLAYGROUND-INTEGRATION.md)。
 
 ### 场景 3: 变更感知
 

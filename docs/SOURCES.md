@@ -451,7 +451,6 @@ jobs:
 
 - [架构设计](./ARCHITECTURE.md) - Tier 分层说明
 - [使用指南](./USAGE.md) - 如何加载规范
-- [测试集成](./TESTING-INTEGRATION.md) - 如何用于契约测试
 
 ---
 
