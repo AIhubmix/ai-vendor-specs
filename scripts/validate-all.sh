@@ -26,8 +26,13 @@ for protocol_dir in */; do
             continue
         fi
 
-        # 检查规范文件
-        if ! ls "$provider_dir"/*.yml "$provider_dir"/*.json &>/dev/null; then
+        # 检查规范文件（YAML 或 JSON，但不是 metadata.json）
+        spec_found=false
+        if ls "$provider_dir"/*.yml &>/dev/null || ls "$provider_dir"/openapi.json &>/dev/null || ls "$provider_dir"/discovery.json &>/dev/null; then
+            spec_found=true
+        fi
+
+        if [ "$spec_found" = false ]; then
             echo "❌ $full_path: 缺少规范文件"
             ((errors++))
             continue

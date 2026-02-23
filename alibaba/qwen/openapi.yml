@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: alibaba-qwen API
+  version: 1.0.0
+  description: Generated from https://help.aliyun.com/zh/dashscope/developer-reference/api-details
+servers:
+  - url: https://dashscope.aliyuncs.com/api/v1
+paths:
+  /services/aigc/text-generation/generation:
+    post:
+      summary: 创建文本生成
+      description: 通义千问文本生成接口
+      operationId: createCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+                - input
+              properties:
+                model:
+                  type: string
+                  example: qwen-turbo
+                input:
+                  type: object
+                  properties:
+                    messages:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          role:
+                            type: string
+                          content:
+                            type: string
+                parameters:
+                  type: object
+                  properties:
+                    result_format:
+                      type: string
+                      enum:
+                        - text
+                        - message
+      responses:
+        '200':
+          description: 成功响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  output:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                  usage:
+                    type: object
+                    properties:
+                      input_tokens:
+                        type: integer
+                      output_tokens:
+                        type: integer
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: API Key

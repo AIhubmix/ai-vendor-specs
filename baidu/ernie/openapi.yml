@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: baidu-ernie API
+  version: 1.0.0
+  description: Generated from https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
+servers:
+  - url: https://aip.baidubce.com
+paths:
+  /rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions:
+    post:
+      summary: 创建对话补全
+      description: 文心一言对话接口
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - messages
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum:
+                          - user
+                          - assistant
+                      content:
+                        type: string
+                temperature:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                top_p:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                stream:
+                  type: boolean
+      responses:
+        '200':
+          description: 成功响应
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  created:
+                    type: integer
+                  result:
+                    type: string
+                  usage:
+                    type: object
+                    properties:
+                      prompt_tokens:
+                        type: integer
+                      completion_tokens:
+                        type: integer
+                      total_tokens:
+                        type: integer

@@ -3,20 +3,20 @@ set -e
 
 source "$(dirname "$0")/../utils.sh"
 
-echo "🔄 同步 Google Gemini 规范..."
+echo "🔄 同步 Google Vertex AI 规范..."
 
-SPEC_URL='https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'
+SPEC_URL='https://aiplatform.googleapis.com/$discovery/rest?version=v1'
 PROTOCOL="google"
-PROVIDER="gemini"
+PROVIDER="vertex"
 OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
 
-mkdir -p "$OUTPUT_DIR/scripts"
+mkdir -p "$OUTPUT_DIR"
 
 if download_spec "$SPEC_URL" "$OUTPUT_DIR/discovery.json"; then
     create_metadata \
         "$PROTOCOL" \
         "$PROVIDER" \
-        "Google Gemini" \
+        "Google Vertex AI" \
         "google-discovery" \
         "$SPEC_URL" \
         "$OUTPUT_DIR/discovery.json" \
@@ -34,7 +34,7 @@ if download_spec "$SPEC_URL" "$OUTPUT_DIR/discovery.json"; then
         echo "⚠️  未安装 Node.js，跳过转换"
     fi
 
-    echo "✅ Google Gemini 规范同步完成"
+    echo "✅ Google Vertex AI 规范同步完成"
 else
     echo "❌ 同步失败"
     exit 0
