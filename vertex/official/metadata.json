@@ -5,7 +5,7 @@
   "version": "2026-02-24",
   "specFormat": "google-discovery",
   "source": "https://raw.githubusercontent.com/googleapis/discovery-artifact-manager/master/discoveries/aiplatform.v1.json",
-  "lastSynced": "2026-02-23T16:52:58Z",
+  "lastSynced": "2026-02-24T01:44:47Z",
   "hash": "sha256:8dd2cdc611b527903705e54bcd265a85a6b5f436c36725b3ff9338d1a5e48546",
   "autoSync": true
 }
