@@ -1,5 +1,4 @@
 {
-  "kind": "discovery#restDescription",
   "schemas": {
     "ListOperationsResponse": {
       "id": "ListOperationsResponse",
@@ -705,6 +704,10 @@
         "timeRangeFilter": {
           "description": "Optional. Filter search results to a specific time range. If customers set a start time, they must set an end time (and vice versa).",
           "$ref": "Interval"
+        },
+        "searchTypes": {
+          "description": "Optional. The set of search types to enable. If not set, web search is enabled by default.",
+          "$ref": "SearchTypes"
         }
       }
     },
@@ -724,6 +727,33 @@
           "format": "google-datetime"
         }
       }
+    },
+    "SearchTypes": {
+      "id": "SearchTypes",
+      "description": "Different types of search that can be enabled on the GoogleSearch tool.",
+      "type": "object",
+      "properties": {
+        "webSearch": {
+          "description": "Optional. Setting this field enables web search. Only text results are returned.",
+          "$ref": "WebSearch"
+        },
+        "imageSearch": {
+          "description": "Optional. Setting this field enables image search. Image bytes are returned.",
+          "$ref": "ImageSearch"
+        }
+      }
+    },
+    "WebSearch": {
+      "id": "WebSearch",
+      "description": "Standard web search for grounding and related configurations.",
+      "type": "object",
+      "properties": {}
+    },
+    "ImageSearch": {
+      "id": "ImageSearch",
+      "description": "Image search for grounding and related configurations.",
+      "type": "object",
+      "properties": {}
     },
     "ComputerUse": {
       "id": "ComputerUse",
@@ -1648,6 +1678,10 @@
           "description": "Grounding chunk from the web.",
           "$ref": "Web"
         },
+        "image": {
+          "description": "Optional. Grounding chunk from image search.",
+          "$ref": "Image"
+        },
         "retrievedContext": {
           "description": "Optional. Grounding chunk from context retrieved by the file search tool.",
           "$ref": "RetrievedContext"
@@ -1671,6 +1705,29 @@
         "title": {
           "description": "Output only. Title of the chunk.",
           "readOnly": true,
+          "type": "string"
+        }
+      }
+    },
+    "Image": {
+      "id": "Image",
+      "description": "Chunk from image search.",
+      "type": "object",
+      "properties": {
+        "sourceUri": {
+          "description": "The web page URI for attribution.",
+          "type": "string"
+        },
+        "imageUri": {
+          "description": "The image asset URL.",
+          "type": "string"
+        },
+        "title": {
+          "description": "The title of the web page that the image is from.",
+          "type": "string"
+        },
+        "domain": {
+          "description": "The root domain of the web page that the image is from, e.g. \"example.com\".",
           "type": "string"
         }
       }
@@ -4509,20 +4566,6 @@
       }
     }
   },
-  "auth": {
-    "oauth2": {
-      "scopes": {
-        "https://www.googleapis.com/auth/devstorage.read_only": {
-          "description": "View your data in Google Cloud Storage"
-        }
-      }
-    }
-  },
-  "ownerName": "Google",
-  "version": "v1beta",
-  "name": "generativelanguage",
-  "rootUrl": "https://generativelanguage.googleapis.com/",
-  "canonicalName": "Generative Language",
   "resources": {
     "batches": {
       "methods": {
@@ -6622,22 +6665,39 @@
       }
     }
   },
+  "ownerName": "Google",
+  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
+  "version": "v1beta",
+  "kind": "discovery#restDescription",
+  "rootUrl": "https://generativelanguage.googleapis.com/",
+  "protocol": "rest",
   "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/",
-  "servicePath": "",
-  "discoveryVersion": "v1",
-  "fullyEncodeReservedExpansion": true,
-  "id": "generativelanguage:v1beta",
+  "batchPath": "batch",
+  "name": "generativelanguage",
+  "basePath": "",
+  "ownerDomain": "google.com",
   "icons": {
     "x16": "http://www.google.com/images/icons/product/search-16.gif",
     "x32": "http://www.google.com/images/icons/product/search-32.gif"
   },
-  "batchPath": "batch",
-  "version_module": true,
-  "ownerDomain": "google.com",
-  "basePath": "",
+  "discoveryVersion": "v1",
+  "servicePath": "",
   "title": "Generative Language API",
-  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
+  "auth": {
+    "oauth2": {
+      "scopes": {
+        "https://www.googleapis.com/auth/devstorage.read_only": {
+          "description": "View your data in Google Cloud Storage"
+        }
+      }
+    }
+  },
+  "canonicalName": "Generative Language",
+  "baseUrl": "https://generativelanguage.googleapis.com/",
+  "fullyEncodeReservedExpansion": true,
   "documentationLink": "https://developers.generativeai.google/api",
+  "version_module": true,
+  "revision": "20260224",
   "parameters": {
     "access_token": {
       "type": "string",
@@ -6715,7 +6775,5 @@
       "location": "query"
     }
   },
-  "baseUrl": "https://generativelanguage.googleapis.com/",
-  "revision": "20260223",
-  "protocol": "rest"
+  "id": "generativelanguage:v1beta"
 }
