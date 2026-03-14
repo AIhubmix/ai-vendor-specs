@@ -1,6 +1,6 @@
 {
   "name": "proxy-specs",
-  "version": "1.0.0",
+  "version": "1.20260314.0",
   "description": "Universal AI Protocol Specifications for Proxy Services",
   "main": "index.js",
   "files": [
