@@ -2,10 +2,10 @@
   "protocol": "openai",
   "provider": "azure",
   "displayName": "Azure OpenAI",
-  "version": "2026-03-27",
+  "version": "2026-03-28",
   "specFormat": "openapi-3.0",
   "source": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable/2024-10-21/inference.json",
-  "lastSynced": "2026-03-27T00:23:10Z",
+  "lastSynced": "2026-03-28T00:21:58Z",
   "hash": "sha256:8efc665c79a5a5e7d3137d9378da074d9956d042150a1d0a6ffc6ba95cc1bf47",
   "autoSync": true
 }
