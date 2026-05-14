@@ -1,98 +1,5 @@
 {
-  "documentationLink": "https://developers.generativeai.google/api",
-  "protocol": "rest",
-  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
-  "canonicalName": "Generative Language",
-  "ownerDomain": "google.com",
-  "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/",
-  "batchPath": "batch",
-  "id": "generativelanguage:v1beta",
-  "version": "v1beta",
-  "servicePath": "",
-  "rootUrl": "https://generativelanguage.googleapis.com/",
-  "revision": "20260511",
-  "name": "generativelanguage",
-  "version_module": true,
   "title": "Gemini API",
-  "basePath": "",
-  "baseUrl": "https://generativelanguage.googleapis.com/",
-  "parameters": {
-    "access_token": {
-      "type": "string",
-      "description": "OAuth access token.",
-      "location": "query"
-    },
-    "alt": {
-      "type": "string",
-      "description": "Data format for response.",
-      "default": "json",
-      "enum": [
-        "json",
-        "media",
-        "proto"
-      ],
-      "enumDescriptions": [
-        "Responses with Content-Type of application/json",
-        "Media download with context-dependent Content-Type",
-        "Responses with Content-Type of application/x-protobuf"
-      ],
-      "location": "query"
-    },
-    "callback": {
-      "type": "string",
-      "description": "JSONP",
-      "location": "query"
-    },
-    "fields": {
-      "type": "string",
-      "description": "Selector specifying which fields to include in a partial response.",
-      "location": "query"
-    },
-    "key": {
-      "type": "string",
-      "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
-      "location": "query"
-    },
-    "oauth_token": {
-      "type": "string",
-      "description": "OAuth 2.0 token for the current user.",
-      "location": "query"
-    },
-    "prettyPrint": {
-      "type": "boolean",
-      "description": "Returns response with indentations and line breaks.",
-      "default": "true",
-      "location": "query"
-    },
-    "quotaUser": {
-      "type": "string",
-      "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters.",
-      "location": "query"
-    },
-    "upload_protocol": {
-      "type": "string",
-      "description": "Upload protocol for media (e.g. \"raw\", \"multipart\").",
-      "location": "query"
-    },
-    "uploadType": {
-      "type": "string",
-      "description": "Legacy upload protocol for media (e.g. \"media\", \"multipart\").",
-      "location": "query"
-    },
-    "$.xgafv": {
-      "type": "string",
-      "description": "V1 error format.",
-      "enum": [
-        "1",
-        "2"
-      ],
-      "enumDescriptions": [
-        "v1 error format",
-        "v2 error format"
-      ],
-      "location": "query"
-    }
-  },
   "resources": {
     "batches": {
       "methods": {
@@ -2228,7 +2135,19 @@
       }
     }
   },
+  "rootUrl": "https://generativelanguage.googleapis.com/",
+  "baseUrl": "https://generativelanguage.googleapis.com/",
+  "protocol": "rest",
+  "fullyEncodeReservedExpansion": true,
+  "version": "v1beta",
+  "id": "generativelanguage:v1beta",
+  "servicePath": "",
+  "kind": "discovery#restDescription",
+  "batchPath": "batch",
   "ownerName": "Google",
+  "name": "generativelanguage",
+  "revision": "20260513",
+  "basePath": "",
   "icons": {
     "x16": "http://www.google.com/images/icons/product/search-16.gif",
     "x32": "http://www.google.com/images/icons/product/search-32.gif"
@@ -2242,8 +2161,89 @@
       }
     }
   },
-  "kind": "discovery#restDescription",
+  "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/",
+  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
   "discoveryVersion": "v1",
+  "version_module": true,
+  "documentationLink": "https://developers.generativeai.google/api",
+  "ownerDomain": "google.com",
+  "parameters": {
+    "access_token": {
+      "type": "string",
+      "description": "OAuth access token.",
+      "location": "query"
+    },
+    "alt": {
+      "type": "string",
+      "description": "Data format for response.",
+      "default": "json",
+      "enum": [
+        "json",
+        "media",
+        "proto"
+      ],
+      "enumDescriptions": [
+        "Responses with Content-Type of application/json",
+        "Media download with context-dependent Content-Type",
+        "Responses with Content-Type of application/x-protobuf"
+      ],
+      "location": "query"
+    },
+    "callback": {
+      "type": "string",
+      "description": "JSONP",
+      "location": "query"
+    },
+    "fields": {
+      "type": "string",
+      "description": "Selector specifying which fields to include in a partial response.",
+      "location": "query"
+    },
+    "key": {
+      "type": "string",
+      "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+      "location": "query"
+    },
+    "oauth_token": {
+      "type": "string",
+      "description": "OAuth 2.0 token for the current user.",
+      "location": "query"
+    },
+    "prettyPrint": {
+      "type": "boolean",
+      "description": "Returns response with indentations and line breaks.",
+      "default": "true",
+      "location": "query"
+    },
+    "quotaUser": {
+      "type": "string",
+      "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters.",
+      "location": "query"
+    },
+    "upload_protocol": {
+      "type": "string",
+      "description": "Upload protocol for media (e.g. \"raw\", \"multipart\").",
+      "location": "query"
+    },
+    "uploadType": {
+      "type": "string",
+      "description": "Legacy upload protocol for media (e.g. \"media\", \"multipart\").",
+      "location": "query"
+    },
+    "$.xgafv": {
+      "type": "string",
+      "description": "V1 error format.",
+      "enum": [
+        "1",
+        "2"
+      ],
+      "enumDescriptions": [
+        "v1 error format",
+        "v2 error format"
+      ],
+      "location": "query"
+    }
+  },
   "schemas": {
     "ListOperationsResponse": {
       "id": "ListOperationsResponse",
@@ -2545,7 +2545,7 @@
           "type": "string"
         },
         "response": {
-          "description": "Required. The function response in JSON object format. Callers can use any keys of their choice that fit the function's syntax to return the function output, e.g. \"output\", \"result\", etc. In particular, if the function call failed to execute, the response can have an \"error\" key to return error details to the model.",
+          "description": "Required. The function response in JSON object format. Callers can use any keys of their choice that fit the function's syntax to return the function output, e.g. \"output\", \"result\", etc. In particular, if the function call failed to execute, the response can have an \"error\" key to return error details to the model. Multimedia can be included by using a subobject containing a single \"$ref\" key whose value is the `inline_data.display_name` of a `FunctionResponsePart` holding the multimedia. See https://ai.google.dev/gemini-api/docs/function-calling#multimodal.",
           "type": "object",
           "additionalProperties": {
             "type": "any",
@@ -3510,6 +3510,10 @@
             "MEDIA_RESOLUTION_MEDIUM",
             "MEDIA_RESOLUTION_HIGH"
           ]
+        },
+        "responseFormat": {
+          "description": "Optional. Configuration for the response output format. Allows specifying output configuration per modality (text, audio, image) in a flat structure.",
+          "$ref": "ResponseFormatConfig"
         }
       }
     },
@@ -3629,6 +3633,192 @@
         "imageSize": {
           "description": "Optional. Specifies the size of generated images. Supported values are `512`, `1K`, `2K`, `4K`. If not specified, the model will use default value `1K`.",
           "type": "string"
+        }
+      }
+    },
+    "ResponseFormatConfig": {
+      "id": "ResponseFormatConfig",
+      "description": "Configuration for the response output format. This is a flat object where each optional sub-field configures a specific output modality.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Optional. Text output format configuration.",
+          "$ref": "TextResponseFormat"
+        },
+        "audio": {
+          "description": "Optional. Audio output format configuration.",
+          "$ref": "AudioResponseFormat"
+        },
+        "image": {
+          "description": "Optional. Image output format configuration.",
+          "$ref": "ImageResponseFormat"
+        }
+      }
+    },
+    "TextResponseFormat": {
+      "id": "TextResponseFormat",
+      "description": "Configuration for text output format.",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "description": "Optional. The MIME type of the text output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "JSON output format.",
+            "Plain text output format."
+          ],
+          "enum": [
+            "MIME_TYPE_UNSPECIFIED",
+            "APPLICATION_JSON",
+            "TEXT_PLAIN"
+          ]
+        },
+        "schema": {
+          "description": "Optional. The JSON schema that the output should conform to. Only applicable when mime_type is APPLICATION_JSON.",
+          "type": "any"
+        }
+      }
+    },
+    "AudioResponseFormat": {
+      "id": "AudioResponseFormat",
+      "description": "Configuration for audio output format.",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "description": "Optional. The MIME type of the audio output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "MP3 audio format.",
+            "OGG Opus audio format.",
+            "Raw PCM (L16) audio format.",
+            "WAV audio format.",
+            "A-law audio format.",
+            "Mu-law audio format."
+          ],
+          "enum": [
+            "MIME_TYPE_UNSPECIFIED",
+            "AUDIO_MP3",
+            "AUDIO_OGG_OPUS",
+            "AUDIO_L16",
+            "AUDIO_WAV",
+            "AUDIO_ALAW",
+            "AUDIO_MULAW"
+          ]
+        },
+        "delivery": {
+          "description": "Optional. The delivery mode for the audio output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "Audio data is returned inline in the response.",
+            "Audio data is returned as a URI."
+          ],
+          "enum": [
+            "DELIVERY_UNSPECIFIED",
+            "INLINE",
+            "URI"
+          ]
+        },
+        "sampleRate": {
+          "description": "Optional. Sample rate in Hz.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "bitRate": {
+          "description": "Optional. Bit rate in bits per second (bps). Only applicable for compressed formats (MP3, Opus).",
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "ImageResponseFormat": {
+      "id": "ImageResponseFormat",
+      "description": "Configuration for image output format.",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "description": "Optional. The MIME type of the image output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "JPEG image format."
+          ],
+          "enum": [
+            "MIME_TYPE_UNSPECIFIED",
+            "IMAGE_JPEG"
+          ]
+        },
+        "delivery": {
+          "description": "Optional. The delivery mode for the image output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "Image data is returned inline in the response.",
+            "Image data is returned as a URI."
+          ],
+          "enum": [
+            "DELIVERY_UNSPECIFIED",
+            "INLINE",
+            "URI"
+          ]
+        },
+        "aspectRatio": {
+          "description": "Optional. The aspect ratio for the image output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "1:1 aspect ratio.",
+            "2:3 aspect ratio.",
+            "3:2 aspect ratio.",
+            "3:4 aspect ratio.",
+            "4:3 aspect ratio.",
+            "4:5 aspect ratio.",
+            "5:4 aspect ratio.",
+            "9:16 aspect ratio.",
+            "16:9 aspect ratio.",
+            "21:9 aspect ratio.",
+            "1:8 aspect ratio.",
+            "8:1 aspect ratio.",
+            "1:4 aspect ratio.",
+            "4:1 aspect ratio."
+          ],
+          "enum": [
+            "ASPECT_RATIO_UNSPECIFIED",
+            "ASPECT_RATIO_ONE_BY_ONE",
+            "ASPECT_RATIO_TWO_BY_THREE",
+            "ASPECT_RATIO_THREE_BY_TWO",
+            "ASPECT_RATIO_THREE_BY_FOUR",
+            "ASPECT_RATIO_FOUR_BY_THREE",
+            "ASPECT_RATIO_FOUR_BY_FIVE",
+            "ASPECT_RATIO_FIVE_BY_FOUR",
+            "ASPECT_RATIO_NINE_BY_SIXTEEN",
+            "ASPECT_RATIO_SIXTEEN_BY_NINE",
+            "ASPECT_RATIO_TWENTY_ONE_BY_NINE",
+            "ASPECT_RATIO_ONE_BY_EIGHT",
+            "ASPECT_RATIO_EIGHT_BY_ONE",
+            "ASPECT_RATIO_ONE_BY_FOUR",
+            "ASPECT_RATIO_FOUR_BY_ONE"
+          ]
+        },
+        "imageSize": {
+          "description": "Optional. The size of the image output.",
+          "type": "string",
+          "enumDescriptions": [
+            "Default value. This value is unused.",
+            "512px image size.",
+            "1K image size.",
+            "2K image size.",
+            "4K image size."
+          ],
+          "enum": [
+            "IMAGE_SIZE_UNSPECIFIED",
+            "IMAGE_SIZE_FIVE_TWELVE",
+            "IMAGE_SIZE_ONE_K",
+            "IMAGE_SIZE_TWO_K",
+            "IMAGE_SIZE_FOUR_K"
+          ]
         }
       }
     },
@@ -7571,5 +7761,5 @@
       }
     }
   },
-  "fullyEncodeReservedExpansion": true
+  "canonicalName": "Generative Language"
 }
