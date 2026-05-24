@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "ai-vendor-specs",
-  "description": "Internal: curated upstream AI API specifications + overlay declarations. Consumed by aihubmix-openapi (and other downstreams) to compose final gateway specs. NOT published to npm.",
-  "generatedAt": "2026-05-24T11:34:11Z",
+  "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
+  "generatedAt": "2026-05-24T12:01:50Z",
   "repository": "AIhubmix/ai-vendor-specs",
   "upstream": {
     "anthropic/bedrock": {

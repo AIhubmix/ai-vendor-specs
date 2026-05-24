@@ -2,7 +2,7 @@
   "name": "ai-vendor-specs",
   "version": "1.0.0",
   "private": true,
-  "description": "Internal: curated upstream AI API specifications + overlay declarations. Consumed by aihubmix-openapi (and other downstreams) to compose final gateway specs. NOT published to npm.",
+  "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
   "main": "scripts/overlay/apply.js",
   "scripts": {
     "sync": "bash scripts/sync-all.sh",
