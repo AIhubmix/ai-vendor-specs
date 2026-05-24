@@ -51,14 +51,6 @@ jobs:
           git commit -m "chore: auto-sync specs $(date +%Y-%m-%d)"
           git push
 
-      - name: Create release
-        if: steps.changes.outputs.changed == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="1.$(date +%Y%m%d).0"
-          npm version $VERSION --no-git-tag-version
-          git add package.json
-          git commit -m "chore: bump to $VERSION"
-          git tag "v$VERSION"
-          git push --tags
+      # NOTE: Daily sync no longer auto-bumps the package version. Releases are
+      # cut explicitly by the maintainer via `git tag v0.x.y && git push --tags`
+      # or by running .github/workflows/publish-npm.yml manually.
