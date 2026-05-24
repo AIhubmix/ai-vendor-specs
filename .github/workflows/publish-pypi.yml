@@ -18,6 +18,7 @@ jobs:
     if: github.repository == 'AIhubmix/ai-vendor-specs'
     runs-on: ubuntu-latest
     permissions:
+      contents: read    # for actions/checkout to read the repo
       id-token: write   # PyPI trusted-publisher (OIDC) — no token needed once configured
     steps:
       - uses: actions/checkout@v4
