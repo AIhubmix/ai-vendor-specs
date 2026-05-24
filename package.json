@@ -1,7 +1,6 @@
 {
-  "name": "ai-vendor-specs",
-  "version": "1.0.0",
-  "private": true,
+  "name": "@aihubmix/ai-vendor-specs",
+  "version": "0.1.0",
   "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
   "main": "scripts/overlay/apply.js",
   "scripts": {
@@ -9,8 +8,20 @@
     "validate": "bash scripts/validate-all.sh",
     "manifest": "node scripts/build-manifest.js",
     "drift": "node scripts/check-drift.js",
-    "resolve": "node scripts/overlay/apply.js"
+    "resolve": "node scripts/overlay/apply.js",
+    "build-site": "node scripts/build-site.js"
   },
+  "files": [
+    "scripts/overlay/",
+    "scripts/build-manifest.js",
+    "scripts/notify.js",
+    "upstream/",
+    "manifest.json",
+    "README.md",
+    "README.zh-CN.md",
+    "README.ja.md",
+    "LICENSE"
+  ],
   "keywords": [
     "ai",
     "openai",
@@ -21,17 +32,31 @@
     "vertex",
     "azure",
     "bedrock",
+    "xai",
+    "grok",
     "openapi",
+    "openapi-3",
+    "discovery",
     "api-specs",
-    "internal"
+    "llm",
+    "ai-gateway"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/AIhubmix/ai-vendor-specs.git"
   },
-  "license": "UNLICENSED",
-  "devDependencies": {
-    "@apidevtools/swagger-cli": "^4.0.4",
+  "homepage": "https://github.com/AIhubmix/ai-vendor-specs#readme",
+  "bugs": {
+    "url": "https://github.com/AIhubmix/ai-vendor-specs/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
     "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-cli": "^4.0.4"
   }
 }

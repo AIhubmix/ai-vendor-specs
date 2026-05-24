@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "name": "ai-vendor-specs",
+  "name": "@aihubmix/ai-vendor-specs",
   "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
-  "generatedAt": "2026-05-24T12:01:50Z",
+  "generatedAt": "2026-05-24T12:10:44Z",
   "repository": "AIhubmix/ai-vendor-specs",
   "upstream": {
     "anthropic/bedrock": {
