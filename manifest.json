@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "ai-vendor-specs",
   "description": "Internal: curated upstream AI API specifications + overlay declarations. Consumed by aihubmix-openapi (and other downstreams) to compose final gateway specs. NOT published to npm.",
-  "generatedAt": "2026-05-24T11:28:03Z",
-  "repository": "your-org/ai-vendor-specs",
+  "generatedAt": "2026-05-24T11:34:11Z",
+  "repository": "AIhubmix/ai-vendor-specs",
   "upstream": {
     "anthropic/bedrock": {
       "protocol": "anthropic",
@@ -15,8 +15,8 @@
       "base": "avs://anthropic/official",
       "overlayPath": "upstream/anthropic/bedrock/overlay.yml",
       "uri": "avs://anthropic/bedrock",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/anthropic/bedrock/overlay.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/anthropic/bedrock/overlay.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/anthropic/bedrock/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/anthropic/bedrock/overlay.yml"
     },
     "anthropic/official": {
       "protocol": "anthropic",
@@ -29,8 +29,8 @@
       "sourceUrl": "https://storage.googleapis.com/stainless-sdk-openapi-specs/anthropic/anthropic-945e3a57b7a6fa5974baf70845ebafdb25f185625f6e2fab98dc034e44d14a5a.yml",
       "specPath": "upstream/anthropic/official/openapi.yml",
       "uri": "avs://anthropic/official",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/anthropic/official/openapi.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/anthropic/official/openapi.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/anthropic/official/openapi.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/anthropic/official/openapi.yml"
     },
     "cohere/official": {
       "protocol": "cohere",
@@ -43,8 +43,8 @@
       "sourceUrl": "https://raw.githubusercontent.com/cohere-ai/cohere-developer-experience/main/cohere-openapi.yaml",
       "specPath": "upstream/cohere/official/openapi.yml",
       "uri": "avs://cohere/official",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/cohere/official/openapi.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/cohere/official/openapi.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/cohere/official/openapi.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/cohere/official/openapi.yml"
     },
     "gemini/official": {
       "protocol": "gemini",
@@ -57,8 +57,8 @@
       "sourceUrl": "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",
       "specPath": "upstream/gemini/official/discovery.json",
       "uri": "avs://gemini/official",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/gemini/official/discovery.json",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/gemini/official/discovery.json"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/gemini/official/discovery.json",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/gemini/official/discovery.json"
     },
     "openai/azure": {
       "protocol": "openai",
@@ -71,8 +71,8 @@
       "sourceUrl": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable/2024-10-21/inference.json",
       "specPath": "upstream/openai/azure/openapi.json",
       "uri": "avs://openai/azure",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/azure/openapi.json",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/azure/openapi.json"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/azure/openapi.json",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/azure/openapi.json"
     },
     "openai/azure-preview": {
       "protocol": "openai",
@@ -85,8 +85,8 @@
       "sourceUrl": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview/2025-04-01-preview/inference.json",
       "specPath": "upstream/openai/azure-preview/openapi.json",
       "uri": "avs://openai/azure-preview",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/azure-preview/openapi.json",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/azure-preview/openapi.json"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/azure-preview/openapi.json",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/azure-preview/openapi.json"
     },
     "openai/deepseek": {
       "protocol": "openai",
@@ -98,8 +98,8 @@
       "base": "avs://openai/official",
       "overlayPath": "upstream/openai/deepseek/overlay.yml",
       "uri": "avs://openai/deepseek",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/deepseek/overlay.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/deepseek/overlay.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/deepseek/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/deepseek/overlay.yml"
     },
     "openai/groq": {
       "protocol": "openai",
@@ -111,8 +111,8 @@
       "base": "avs://openai/official",
       "overlayPath": "upstream/openai/groq/overlay.yml",
       "uri": "avs://openai/groq",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/groq/overlay.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/groq/overlay.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/groq/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/groq/overlay.yml"
     },
     "openai/official": {
       "protocol": "openai",
@@ -125,8 +125,8 @@
       "sourceUrl": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",
       "specPath": "upstream/openai/official/openapi.yml",
       "uri": "avs://openai/official",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/official/openapi.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/official/openapi.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/official/openapi.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/official/openapi.yml"
     },
     "openai/together": {
       "protocol": "openai",
@@ -138,8 +138,8 @@
       "base": "avs://openai/official",
       "overlayPath": "upstream/openai/together/overlay.yml",
       "uri": "avs://openai/together",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/together/overlay.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/together/overlay.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/together/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/together/overlay.yml"
     },
     "openai/xai": {
       "protocol": "openai",
@@ -151,8 +151,8 @@
       "base": "avs://openai/official",
       "overlayPath": "upstream/openai/xai/overlay.yml",
       "uri": "avs://openai/xai",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/xai/overlay.yml",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/xai/overlay.yml"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/xai/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/openai/xai/overlay.yml"
     },
     "vertex/official": {
       "protocol": "vertex",
@@ -165,16 +165,16 @@
       "sourceUrl": "https://raw.githubusercontent.com/googleapis/discovery-artifact-manager/master/discoveries/aiplatform.v1.json",
       "specPath": "upstream/vertex/official/discovery.json",
       "uri": "avs://vertex/official",
-      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/vertex/official/discovery.json",
-      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/vertex/official/discovery.json"
+      "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/vertex/official/discovery.json",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/upstream/vertex/official/discovery.json"
     }
   },
   "conventions": {
     "uriProtocol": "avs://<protocol>/<provider>[#<JSON-Pointer>]",
     "resolverLib": "scripts/overlay/apply.js (CommonJS, exported via package main)",
     "fetchPattern": {
-      "raw": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/<branch-or-tag>/upstream/<protocol>/<provider>/openapi.yml",
-      "cdn": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@<branch-or-tag>/upstream/<protocol>/<provider>/openapi.yml"
+      "raw": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/<branch-or-tag>/upstream/<protocol>/<provider>/openapi.yml",
+      "cdn": "https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@<branch-or-tag>/upstream/<protocol>/<provider>/openapi.yml"
     }
   }
 }

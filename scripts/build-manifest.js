@@ -23,7 +23,7 @@ function exists(rel) {
 
 // 从 package.json 读取 repo 信息
 const pkg = readJSON('package.json');
-const repoUrl = pkg.repository?.url || 'https://github.com/your-org/ai-vendor-specs.git';
+const repoUrl = pkg.repository?.url || 'https://github.com/AIhubmix/ai-vendor-specs.git';
 const repoSlug = repoUrl.replace(/^.*github\.com[:/]/, '').replace(/\.git$/, '');
 const branch = 'main';
 
