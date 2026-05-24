@@ -15,14 +15,20 @@ ai-vendor-specs/
 │   ├── metadata.json                   # Required for every entry
 │   ├── openapi.{yml,json} | discovery.json   # for kind=spec
 │   └── overlay.yml                     # for kind=overlay
-└── scripts/
-    ├── sync/<vendor>.sh                # Per-vendor sync scripts (cron-driven)
-    ├── overlay/apply.js                # avs:// resolver + overlay applier
-    ├── build-manifest.js               # Generates manifest.json
-    ├── check-drift.js                  # Drift detection (versions, freshness, sanity)
-    ├── notify.js                       # Webhook notifier (multi-channel)
-    ├── sync-all.sh
-    └── validate-all.sh
+├── scripts/
+│   ├── sync/<vendor>.sh                # Per-vendor sync scripts (cron-driven)
+│   ├── overlay/apply.js                # avs:// resolver + overlay applier
+│   ├── build-manifest.js               # Generates manifest.json
+│   ├── check-drift.js                  # Drift detection (versions, freshness, sanity)
+│   ├── notify.js                       # Webhook notifier (multi-channel)
+│   ├── sync-all.sh
+│   └── validate-all.sh
+└── python/                              # PyPI package — shares upstream/ data
+    ├── pyproject.toml                   # hatchling-based build, MIT, py>=3.9
+    ├── prepare-pypi.sh                  # copies upstream/ + manifest.json into _data/ pre-build
+    └── ai_vendor_specs/
+        ├── __init__.py                  # load_manifest / list_vendors / get_vendor / load_spec_path
+        └── py.typed
 ```
 
 ## Common operations
@@ -146,6 +152,45 @@ See [`upstream/anthropic/bedrock/overlay.yml`](./upstream/anthropic/bedrock/over
 | `requestBodyOverrides` | `drop` / `add` / modify properties on `components.schemas.<Name>` |
 | `security` | `drop` / `add` auth schemes |
 | `parametersDrop` | Remove global headers / query params |
+
+## Releasing
+
+Releases are deliberate. The daily sync workflow no longer auto-bumps versions; the maintainer cuts a release by pushing a tag.
+
+```bash
+# Bump npm package version (also drives the PyPI tag since both use the same git tag)
+npm version patch   # or minor / major
+git push --tags     # triggers both publish-npm.yml and publish-pypi.yml in parallel
+```
+
+Both publish workflows accept `workflow_dispatch` with a `dry-run` input for verifying contents without uploading.
+
+### Keeping npm + PyPI versions in sync
+
+The Python `__version__` in `python/ai_vendor_specs/__init__.py` and `version` in `python/pyproject.toml` must match the npm `version`. Update all three when bumping. (A future maintenance script may automate this.)
+
+### One-time setup
+
+| Registry | Auth mechanism | Action |
+|---|---|---|
+| npm | `NPM_TOKEN` repo secret | Generate an Automation token at npmjs.com → Account Settings → Access Tokens; add as `NPM_TOKEN` in GitHub repo Settings → Secrets and variables → Actions |
+| PyPI | Trusted publisher (OIDC) | PyPI project page → Manage → Publishing → Add trusted publisher. Owner=`AIhubmix`, Repository=`ai-vendor-specs`, Workflow=`publish-pypi.yml`. Use PyPI's "pending trusted publisher" mechanism for the first publish before the project exists. |
+
+## Python package development
+
+```bash
+# editable install for local dev
+pip install -e ./python
+
+# build sdist + wheel locally
+bash python/prepare-pypi.sh
+cd python && python -m build
+ls dist/
+```
+
+The data is bundled via `prepare-pypi.sh` copying `upstream/` and `manifest.json` into `python/ai_vendor_specs/_data/`. That `_data/` directory is gitignored — only the wheel/sdist embeds it.
+
+The Python API is deliberately small (read-only data access). Overlay composition remains JavaScript-only for v0.1.x; a Python composer ships when the overlay grammar stabilizes.
 
 ## Pull request checklist
 

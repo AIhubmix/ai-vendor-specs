@@ -46,6 +46,14 @@ git submodule add https://github.com/AIhubmix/ai-vendor-specs.git ai-vendor-spec
 git submodule update --init --remote ai-vendor-specs
 ```
 
+### pip
+
+```bash
+pip install ai-vendor-specs
+```
+
+The Python package ships the same upstream data and a small read-only API. Overlay composition is currently JavaScript-only; see [Python usage](#python) below.
+
 ### Direct download (no runtime needed)
 
 ```bash
@@ -92,6 +100,24 @@ Or fetch the manifest directly without any runtime:
 
 ```bash
 curl https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/manifest.json
+```
+
+### Python
+
+```python
+import ai_vendor_specs as avs
+
+# Catalog
+manifest = avs.load_manifest()
+for vendor in avs.list_vendors():
+    print(vendor['key'], vendor['kind'])
+
+# Single lookup
+xai = avs.get_vendor('openai', 'xai')
+
+# Raw spec file path (overlay-kind entries return the overlay.yml; compose
+# via the JavaScript resolver or wait for the Python composer)
+spec_path = avs.load_spec_path('openai', 'official')
 ```
 
 ---

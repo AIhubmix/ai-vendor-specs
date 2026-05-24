@@ -46,6 +46,14 @@ git submodule add https://github.com/AIhubmix/ai-vendor-specs.git ai-vendor-spec
 git submodule update --init --remote ai-vendor-specs
 ```
 
+### pip
+
+```bash
+pip install ai-vendor-specs
+```
+
+Python パッケージは同じ上流データを共有し、読み取り専用 API を提供します。overlay の合成は現在 JavaScript 版のみ対応しています。下記の [Python 使用例](#python-1) を参照してください。
+
 ### 直接ダウンロード(ランタイム不要)
 
 ```bash
@@ -92,6 +100,24 @@ for (const [key, entry] of Object.entries(manifest.upstream)) {
 
 ```bash
 curl https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/manifest.json
+```
+
+### Python
+
+```python
+import ai_vendor_specs as avs
+
+# カタログ
+manifest = avs.load_manifest()
+for vendor in avs.list_vendors():
+    print(vendor['key'], vendor['kind'])
+
+# 単一検索
+xai = avs.get_vendor('openai', 'xai')
+
+# 生の spec ファイルパス(overlay 種別は overlay.yml を返します。
+# 合成は JavaScript 版 resolver が必要。Python 版合成器はロードマップ上)
+spec_path = avs.load_spec_path('openai', 'official')
 ```
 
 ---

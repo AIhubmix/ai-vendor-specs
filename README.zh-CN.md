@@ -46,6 +46,14 @@ git submodule add https://github.com/AIhubmix/ai-vendor-specs.git ai-vendor-spec
 git submodule update --init --remote ai-vendor-specs
 ```
 
+### pip
+
+```bash
+pip install ai-vendor-specs
+```
+
+Python 包共享同一份上游数据,提供只读 API。overlay 合成目前仅 JavaScript 版可用;详见下方 [Python 使用](#python-1)。
+
 ### 直接下载(无需运行时)
 
 ```bash
@@ -92,6 +100,24 @@ for (const [key, entry] of Object.entries(manifest.upstream)) {
 
 ```bash
 curl https://cdn.jsdelivr.net/gh/AIhubmix/ai-vendor-specs@main/manifest.json
+```
+
+### Python
+
+```python
+import ai_vendor_specs as avs
+
+# 厂商目录
+manifest = avs.load_manifest()
+for vendor in avs.list_vendors():
+    print(vendor['key'], vendor['kind'])
+
+# 单条查询
+xai = avs.get_vendor('openai', 'xai')
+
+# 原始 spec 文件路径(overlay 类条目返回 overlay.yml,
+# 合成需要 JavaScript 版 resolver,Python 合成器在路线图)
+spec_path = avs.load_spec_path('openai', 'official')
 ```
 
 ---
