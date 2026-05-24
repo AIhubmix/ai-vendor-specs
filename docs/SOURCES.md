@@ -12,6 +12,7 @@
 | openai | groq | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [Groq API docs](https://console.groq.com/docs/openai) |
 | openai | together | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [Together AI docs](https://docs.together.ai/docs/openai-compatibility) |
 | openai | deepseek | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [DeepSeek API docs](https://api-docs.deepseek.com/) |
+| openai | xai | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [xAI docs](https://docs.x.ai/docs/api-reference) |
 | cohere | official | 1 | OpenAPI 3.1 | 自动 | [cohere-developer-experience](https://github.com/cohere-ai/cohere-developer-experience) |
 | gemini | official | 2 | Discovery | 自动 | [Google AI Discovery](https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta) |
 | vertex | official | 2 | Discovery | 自动 | [Google Cloud Discovery](https://aiplatform.googleapis.com/$discovery/rest?version=v1) |
@@ -494,7 +495,7 @@ jobs:
 
 ### overlay 类型如何"跟"上游
 
-`upstream/anthropic/bedrock/overlay.yml` **不被 sync 拉取**(它就是手维护的),但它通过 `base: avs://anthropic/official` 引用 official。当 anthropic-official 自动同步刷新后,**消费方下次 build 时**(在 aihubmix-openapi 等下游)resolver 会自动用最新 base 加上 overlay 合成新 bedrock spec。
+`upstream/anthropic/bedrock/overlay.yml` **不被 sync 拉取**(它就是手维护的),但它通过 `base: avs://anthropic/official` 引用 official。当 anthropic-official 自动同步刷新后,**消费方下次 build 时**,resolver 会自动用最新 base 加上 overlay 合成新 bedrock spec。
 
 换句话说:**ai-vendor-specs 这一层无需为 bedrock 做任何同步动作,bedrock 的"更新"是消费方触发的派生行为**。
 
@@ -536,23 +537,21 @@ npm run drift
 - 在 metadata.json 加 `lastReviewed: "YYYY-MM-DD"` 字段
 - 加 `lastReviewedDocs: [...]` 列出关联的官方文档 URL(给人 review 时核对用)
 
-#### Drift 通知(可选)
+#### Drift 通知
 
-`.drift-report.md` 是 commit 进 git 的,cron PR review 可见。若要进一步推送(企业微信 / 飞书 / Slack),在 `.github/workflows/sync-daily.yml` 末尾加一个 step:
+`scripts/check-drift.js` 在检测到 warn/error 时自动调用 `scripts/notify.js`,把摘要 markdown 推送到 webhook。通道按 URL 自动识别(企业微信 / Slack / Discord / generic POST),完整说明见 [CONTRIBUTING.md](../CONTRIBUTING.md#webhook-notifications)。
+
+CI 在 `.github/workflows/sync-daily.yml` 已挂好,从 GitHub Secrets 读取 `AVS_WEBHOOK_URL` 注入:
 
 ```yaml
-- name: Notify on drift
-  if: steps.changes.outputs.changed == 'true'
+- name: Check drift (with webhook notification on warn/error)
   env:
-    WEBHOOK_URL: ${{ secrets.WXWORK_WEBHOOK }}
-  run: |
-    if grep -E '⚠️|❌' .drift-report.md; then
-      curl -X POST "$WEBHOOK_URL" -H 'Content-Type: application/json' \
-        -d "{\"msgtype\":\"markdown\",\"markdown\":{\"content\":\"$(cat .drift-report.md | head -40)\"}}"
-    fi
+    AVS_WEBHOOK_URL: ${{ secrets.AVS_WEBHOOK_URL }}
+    AVS_WEBHOOK_TYPE: ${{ secrets.AVS_WEBHOOK_TYPE }}
+  run: npm run drift
 ```
 
-目前**未启用**,需要时再加 secret + 这段。
+未配置 `AVS_WEBHOOK_URL` 时静默 no-op,fork 用户零侵入。
 
 ### Tier 3(overlay / manual)
 
