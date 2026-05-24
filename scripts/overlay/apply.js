@@ -25,31 +25,38 @@ const yaml = require('js-yaml');
 
 /**
  * 决定 ai-vendor-specs 数据根目录(upstream/ 的父目录)
- * - 如果 process.cwd() 自身就是 ai-vendor-specs(有 upstream/ 目录) → 用 cwd
- * - 如果 cwd 是消费方且有 node_modules/ai-vendor-specs → 用那个
- * - 也可通过环境变量 AVS_ROOT 显式指定
+ *
+ * 解析顺序:
+ *   1. 环境变量 AVS_ROOT          — 显式覆盖
+ *   2. __dirname 上溯两级          — 包内自定位(npm/submodule/file: 通用)
+ *   3. cwd/node_modules/@aihubmix/ai-vendor-specs  — npm 兜底
+ *   4. cwd/ai-vendor-specs        — 同级 submodule 兜底
  */
 function findAvsRoot(cwd = process.cwd()) {
   if (process.env.AVS_ROOT) {
     return process.env.AVS_ROOT;
   }
-  // 1. cwd 自身就是 ai-vendor-specs
-  if (fs.existsSync(path.join(cwd, 'upstream')) &&
-      fs.existsSync(path.join(cwd, 'scripts/overlay/apply.js'))) {
-    return cwd;
+  // apply.js 永远位于 <root>/scripts/overlay/apply.js,
+  // 上溯两级即 root,不管被装在哪里
+  const selfBased = path.resolve(__dirname, '..', '..');
+  if (fs.existsSync(path.join(selfBased, 'upstream')) &&
+      fs.existsSync(path.join(selfBased, 'manifest.json'))) {
+    return selfBased;
   }
-  // 2. cwd 是消费方,有 node_modules/ai-vendor-specs
-  const nm = path.join(cwd, 'node_modules/ai-vendor-specs');
-  if (fs.existsSync(nm)) {
-    return nm;
-  }
-  // 3. cwd 是消费方,有同级 ai-vendor-specs 目录(submodule 用法)
-  const sibling = path.join(cwd, 'ai-vendor-specs');
-  if (fs.existsSync(path.join(sibling, 'upstream'))) {
-    return sibling;
+  // 兜底:cwd 视角
+  const candidates = [
+    cwd,                                                  // cwd 就是仓库
+    path.join(cwd, 'node_modules/@aihubmix/ai-vendor-specs'),
+    path.join(cwd, 'ai-vendor-specs'),                   // submodule 同级
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(path.join(c, 'upstream')) &&
+        fs.existsSync(path.join(c, 'manifest.json'))) {
+      return c;
+    }
   }
   throw new Error(
-    'ai-vendor-specs root not found. Set AVS_ROOT or install ai-vendor-specs as a dependency.'
+    'ai-vendor-specs root not found. Set AVS_ROOT or install @aihubmix/ai-vendor-specs.'
   );
 }
 
