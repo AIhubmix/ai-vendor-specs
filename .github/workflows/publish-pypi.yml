@@ -1,0 +1,58 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Build only; do not upload to PyPI'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # PyPI trusted-publisher (OIDC) — no token needed once configured
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tooling
+        run: pip install --upgrade pip build
+
+      - name: Populate ai_vendor_specs/_data from upstream/
+        run: bash python/prepare-pypi.sh
+
+      - name: Build wheel + sdist
+        working-directory: python
+        run: python -m build
+
+      - name: Show artifacts
+        working-directory: python
+        run: ls -lh dist/
+
+      - name: Sanity import test
+        working-directory: python
+        run: |
+          pip install dist/*.whl
+          python -c "import ai_vendor_specs as a; \
+            assert a.__version__, 'no version'; \
+            m = a.load_manifest(); \
+            assert len(m['upstream']) >= 12, f'only {len(m[\"upstream\"])} entries'; \
+            print(f'OK: v{a.__version__}, {len(m[\"upstream\"])} entries')"
+
+      - name: Publish to PyPI
+        if: ${{ !inputs.dry-run }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
+
+      - name: Dry-run notice
+        if: ${{ inputs.dry-run }}
+        run: echo "Dry-run — packages built and verified, but not uploaded."
