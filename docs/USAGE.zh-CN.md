@@ -1,5 +1,7 @@
 # ai-vendor-specs 使用指南
 
+**语言**: [English](./USAGE.md) · 简体中文
+
 > 上游 AI 协议 spec 收集库。本指南面向**消费方**——任何想直接读取上游 spec 的项目:网关 / proxy、SDK 生成器、文档站、契约测试、IDE 智能提示、AI agent 工具注册表等。
 
 ## 接入方式
@@ -114,7 +116,7 @@ resolver 在不同位置自动定位文件(顺序):
 | `avs://gemini/official` | Google Discovery JSON | ✅ Google Discovery API |
 | `avs://vertex/official` | Google Discovery JSON | ✅ discovery-artifact-manager |
 
-完整来源见 [SOURCES.md](./SOURCES.md)。
+完整来源见 [SOURCES.md](./SOURCES.zh-CN.md)。
 
 ## 典型场景
 
@@ -219,9 +221,9 @@ const tools = Object.entries(spec.paths).flatMap(([path, ops]) =>
 
 ## 相关文档
 
-- [README](../README.md) — 项目概述
-- [ARCHITECTURE](./ARCHITECTURE.md) — 设计、kind 分类、metadata schema、overlay 语法
-- [SOURCES](./SOURCES.md) — 各上游官方来源 + 同步细节
+- [README](../README.zh-CN.md) — 项目概述
+- [ARCHITECTURE](./ARCHITECTURE.zh-CN.md) — 设计、kind 分类、metadata schema、overlay 语法
+- [SOURCES](./SOURCES.zh-CN.md) — 各上游官方来源 + 同步细节
 - [CONTRIBUTING](../CONTRIBUTING.md) — 加新厂商、本地开发、drift、webhook
 
 ## License

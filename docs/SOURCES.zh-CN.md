@@ -1,5 +1,7 @@
 # AI 协议规范来源
 
+**语言**: [English](./SOURCES.md) · 简体中文
+
 本文档记录 ai-vendor-specs 中所有规范的官方来源地址和同步方法。
 
 ## 同步状态概览
@@ -363,7 +365,7 @@ git clone https://github.com/mistralai/client-python
 - ✅ 有详细的 Web 文档
 - ⚠️ API 格式接近 OpenAI，但有差异
 
-**是否纳入 ai-vendor-specs**: 待添加。可走 `kind: manual` 路线,人工对照文档写 `upstream/baidu/ernie/openapi.yml`(参考 [docs/ARCHITECTURE.md](./ARCHITECTURE.md) 的 manual 条目说明)。
+**是否纳入 ai-vendor-specs**: 待添加。可走 `kind: manual` 路线,人工对照文档写 `upstream/baidu/ernie/openapi.yml`(参考 [docs/ARCHITECTURE.md](./ARCHITECTURE.zh-CN.md) 的 manual 条目说明)。
 
 ---
 
@@ -572,8 +574,8 @@ CI 在 `.github/workflows/sync-daily.yml` 已挂好,从 GitHub Secrets 读取 `A
 
 ## 相关文档
 
-- [架构设计](./ARCHITECTURE.md) - Tier 分层说明
-- [使用指南](./USAGE.md) - 如何加载规范
+- [架构设计](./ARCHITECTURE.zh-CN.md) - Tier 分层说明
+- [使用指南](./USAGE.zh-CN.md) - 如何加载规范
 
 ---
 

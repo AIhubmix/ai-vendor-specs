@@ -1,53 +1,8 @@
 # ai-vendor-specs 架构设计
 
-## 仓库定位
+**语言**: [English](./ARCHITECTURE.md) · 简体中文
 
-ai-vendor-specs 是**上游 AI 协议 spec 收集库**,职责单一:
-
-- ✅ 同步各上游厂商(OpenAI、Anthropic、Cohere、Google、Microsoft 以及一众 OpenAI 兼容厂商)发布的官方 OpenAPI / Discovery 规范
-- ✅ 对没有机器可读 spec 的上游变体(如 AWS Bedrock 上的 Claude、OpenAI 兼容厂商)用 overlay 文件声明差异
-- ✅ 维护顶层 `manifest.json`,作为外部发现入口
-- ❌ **不**生成任何派生产物(成品 spec、SDK、契约 fixture 等)
-- ❌ **不**记录任何消费方业务字段
-
-> 判断口诀:**"这描述的是上游真实存在的东西吗?"** 是 → 放 ai-vendor-specs;否 → 由消费方自己维护。
-
-## 整体数据流
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│ 上游厂商                                                       │
-│   OpenAI / Azure OpenAI / Anthropic / Cohere / Google /       │
-│   xAI / DeepSeek / Groq / Together / Bedrock                  │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ 每日 cron sync(spec)
-                             │ 手维护 overlay(无机器可读 spec 时)
-                             ▼
-┌──────────────────────────────────────────────────────────────┐
-│ ai-vendor-specs(本仓库)                                       │
-│                                                              │
-│  upstream/openai/official/openapi.yml      ← Stainless        │
-│  upstream/openai/azure/openapi.json        ← Azure REST       │
-│  upstream/openai/xai/overlay.yml           ← docs.x.ai        │
-│  upstream/anthropic/official/openapi.yml   ← SDK .stats.yml   │
-│  upstream/anthropic/bedrock/overlay.yml    ← 无 spec, overlay │
-│  upstream/cohere/official/openapi.yml      ← cohere-developer-exp│
-│  upstream/gemini/official/discovery.json   ← Google Discovery │
-│  upstream/vertex/official/discovery.json   ← Google Discovery │
-│  ...                                                          │
-│                                                              │
-│  manifest.json            ← 顶层索引,所有上游一览              │
-│  scripts/overlay/apply.js ← avs:// resolver + applier 库      │
-│  scripts/check-drift.js   ← 漂移检测(版本/freshness/sanity) │
-│  scripts/notify.js        ← Webhook 通知(wxwork/Slack/...)  │
-└────────────────────────────┬─────────────────────────────────┘
-                             │ npm / submodule / raw / CDN
-                             ▼
-        ┌────────────────────┼─────────────────────┐
-        ▼                    ▼                     ▼
-   SDK 生成器            网关 / proxy        文档站 / 契约测试
-   IDE 智能提示          (拼装最终 spec)     AI agent 工具注册
-```
+> 仓库定位、整体数据流、项目特色见 [README](../README.zh-CN.md#工作机制)。本文聚焦设计细节:URI 协议、kind 分类、overlay 语法、metadata schema、同步策略。
 
 ## 引用协议:`avs://`
 
@@ -260,4 +215,4 @@ npm run drift                               # 漂移检测
 
 `resolve` 把任意 `avs://` URI 解析并打印结果到 stdout。overlay 类会先合成完整 spec。
 
-`drift` 跑四类检测(版本追踪 / overlay 新鲜度 / overlay resolve 健康度 / spec 文件完整性),详见 [SOURCES.md](./SOURCES.md#drift-检测scriptscheck-driftjs)。
+`drift` 跑四类检测(版本追踪 / overlay 新鲜度 / overlay resolve 健康度 / spec 文件完整性),详见 [SOURCES.md](./SOURCES.zh-CN.md#drift-检测scriptscheck-driftjs)。
