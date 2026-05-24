@@ -467,7 +467,7 @@ When adding a new overlay entry, **set** `lastReviewed: "YYYY-MM-DD"` and `lastR
 
 #### Drift notifications
 
-`scripts/check-drift.js` calls `scripts/notify.js` when there are warns or errors. The notifier auto-detects channel type from the URL (WeChat Work / Slack / Discord / generic POST). Configuration is via the `AVS_WEBHOOK_URL` GitHub secret — see [CONTRIBUTING.md](../CONTRIBUTING.md#webhook-notifications) for details.
+`scripts/check-drift.js` calls `scripts/notify.js` when there are warns or errors. The notifier auto-detects channel type from the URL (Slack / Discord / generic POST). Configuration is via the `AVS_WEBHOOK_URL` GitHub secret — see [CONTRIBUTING.md](../CONTRIBUTING.md#webhook-notifications) for details.
 
 Without a configured webhook, drift output is silent — fork-safe by default.
 

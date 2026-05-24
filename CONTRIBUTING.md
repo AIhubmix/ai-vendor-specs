@@ -90,7 +90,6 @@ Output goes to `.drift-report.md` (gitignored — regenerated each run). The scr
 
 | URL pattern | Channel |
 |---|---|
-| `qyapi.weixin.qq.com/...` | WeChat Work (markdown) |
 | `hooks.slack.com/...` | Slack (mrkdwn) |
 | `discord.com/api/webhooks/...` | Discord (content) |
 | Anything else | Generic `POST {text, message}` |

@@ -541,7 +541,7 @@ npm run drift
 
 #### Drift 通知
 
-`scripts/check-drift.js` 在检测到 warn/error 时自动调用 `scripts/notify.js`,把摘要 markdown 推送到 webhook。通道按 URL 自动识别(企业微信 / Slack / Discord / generic POST),完整说明见 [CONTRIBUTING.md](../CONTRIBUTING.md#webhook-notifications)。
+`scripts/check-drift.js` 在检测到 warn/error 时自动调用 `scripts/notify.js`,把摘要 markdown 推送到 webhook。通道按 URL 自动识别(Slack / Discord / generic POST),完整说明见 [CONTRIBUTING.md](../CONTRIBUTING.md#webhook-notifications)。
 
 CI 在 `.github/workflows/sync-daily.yml` 已挂好,从 GitHub Secrets 读取 `AVS_WEBHOOK_URL` 注入:
 
