@@ -2,6 +2,7 @@
   "protocol": "cohere",
   "provider": "official",
   "displayName": "Cohere Official",
+  "kind": "spec",
   "version": "2026-05-24",
   "specFormat": "openapi-3.1",
   "source": "https://raw.githubusercontent.com/cohere-ai/cohere-developer-experience/main/cohere-openapi.yaml",

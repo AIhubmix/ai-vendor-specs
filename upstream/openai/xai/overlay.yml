@@ -1,0 +1,50 @@
+# upstream/openai/xai overlay
+#
+# xAI Grok 系列,提供 OpenAI-compatible /chat/completions 端点。
+# 同时也有原生 /responses API(消息体用 input/output_text,非 messages/choices 形态),
+# 本 overlay 仅覆盖 OpenAI 兼容端点。
+#
+# 基础请求/响应 shape 复用 openai/official 整套,xAI 在此之上有若干扩展。
+# 以下扩展未在本 overlay 的 spec 层声明(理由同 deepseek/groq:与 openai 共用 schema 时
+# 不便就地覆盖)。消费方需读本注释或 metadata.note 处理。
+#
+# 来源核验:docs.x.ai/docs/api-reference (2026-05-24)
+#
+# === 请求扩展(非 OpenAI 标准)===
+# - deferred                                     异步推理。true 时返回 request_id;之后
+#                                                GET /v1/chat/deferred-completion/{id} 取结果
+# - search_parameters                            实时搜索对象:
+#                                                  from_date / to_date              ISO-8601
+#                                                  max_search_results               int
+#                                                  mode                             off | on (default) | auto
+#                                                  return_citations                 bool
+#                                                  sources                          数组,默认 web + X
+#
+# === 响应扩展(非 OpenAI 标准)===
+# - citations                                    外部引用 URL 列表
+# - output_files                                 code execution 工具生成的文件
+# - choices[].message.reasoning_content          思维链(reasoning 模型)
+# - usage.cost_in_usd_ticks                      计费(1 USD cent = 100_000_000 ticks)
+# - usage.num_sources_used                       搜索源数量
+# - usage.prompt_tokens_details.image_tokens     图像 prompt token 计数
+#
+# === 字段支持矩阵差异(spec 层不裁剪,消费方自行处理)===
+# - logit_bias                          标记 Unsupported
+# - frequency_penalty / presence_penalty 不适用 reasoning 模型;presence_penalty 也不适用 grok-3
+# - logprobs / top_logprobs              在 grok-4.20+ 被静默忽略
+# - reasoning_effort                     在 grok-4 报错
+
+base: avs://openai/official
+
+info:
+  title: xAI API (OpenAI-compatible)
+  description: |
+    xAI Grok 系列模型,提供 OpenAI-compatible /chat/completions 端点。
+    也提供原生 /responses API(本 overlay 不覆盖)。
+    扩展字段(deferred、search_parameters、citations、reasoning_content、
+    output_files、usage.cost_in_usd_ticks 等)详见本文件顶部注释。
+    权威来源:https://docs.x.ai/docs/api-reference
+
+servers:
+  - url: https://api.x.ai/v1
+    description: xAI Production (OpenAI-compatible)

@@ -2,6 +2,7 @@
   "protocol": "openai",
   "provider": "azure-preview",
   "displayName": "Azure OpenAI (Preview 2025-04-01-preview)",
+  "kind": "spec",
   "version": "2026-05-24",
   "specFormat": "openapi-3.1",
   "source": "https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview/2025-04-01-preview/inference.json",

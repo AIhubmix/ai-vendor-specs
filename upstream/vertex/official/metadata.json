@@ -2,6 +2,7 @@
   "protocol": "vertex",
   "provider": "official",
   "displayName": "Google Vertex AI",
+  "kind": "spec",
   "version": "2026-05-24",
   "specFormat": "google-discovery",
   "source": "https://raw.githubusercontent.com/googleapis/discovery-artifact-manager/master/discoveries/aiplatform.v1.json",

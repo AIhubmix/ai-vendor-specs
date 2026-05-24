@@ -2,6 +2,7 @@
   "protocol": "gemini",
   "provider": "official",
   "displayName": "Google Gemini",
+  "kind": "spec",
   "version": "2026-05-24",
   "specFormat": "google-discovery",
   "source": "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",

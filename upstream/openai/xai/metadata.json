@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "xai",
+  "displayName": "xAI (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/xai/overlay.yml",
+  "lastEdited": "2026-05-24T00:00:00Z",
+  "lastReviewed": "2026-05-24",
+  "lastReviewedDocs": [
+    "https://docs.x.ai/docs/overview",
+    "https://docs.x.ai/docs/api-reference"
+  ],
+  "autoSync": false,
+  "note": "xAI Grok 系列,OpenAI-compatible /chat/completions 端点。请求扩展 deferred / search_parameters,响应扩展 citations / reasoning_content / output_files / usage.cost_in_usd_ticks 等;字段全清单见 overlay.yml 顶部注释。也提供原生 /responses API(input/output_text 形态),本 overlay 不覆盖。"
+}

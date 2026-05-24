@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "ai-vendor-specs",
   "description": "Internal: curated upstream AI API specifications + overlay declarations. Consumed by aihubmix-openapi (and other downstreams) to compose final gateway specs. NOT published to npm.",
-  "generatedAt": "2026-05-24T10:36:34Z",
+  "generatedAt": "2026-05-24T11:28:03Z",
   "repository": "your-org/ai-vendor-specs",
   "upstream": {
     "anthropic/bedrock": {
@@ -140,6 +140,19 @@
       "uri": "avs://openai/together",
       "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/together/overlay.yml",
       "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/together/overlay.yml"
+    },
+    "openai/xai": {
+      "protocol": "openai",
+      "provider": "xai",
+      "displayName": "xAI (OpenAI-compatible)",
+      "hash": null,
+      "syncedAt": "2026-05-24T00:00:00Z",
+      "kind": "overlay",
+      "base": "avs://openai/official",
+      "overlayPath": "upstream/openai/xai/overlay.yml",
+      "uri": "avs://openai/xai",
+      "rawUrl": "https://raw.githubusercontent.com/your-org/ai-vendor-specs/main/upstream/openai/xai/overlay.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/your-org/ai-vendor-specs@main/upstream/openai/xai/overlay.yml"
     },
     "vertex/official": {
       "protocol": "vertex",

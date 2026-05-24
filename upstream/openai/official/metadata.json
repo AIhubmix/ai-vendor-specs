@@ -2,6 +2,7 @@
   "protocol": "openai",
   "provider": "official",
   "displayName": "OpenAI Official",
+  "kind": "spec",
   "version": "2026-05-24",
   "specFormat": "openapi-3.1",
   "source": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",

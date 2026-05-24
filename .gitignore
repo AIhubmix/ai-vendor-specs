@@ -2,6 +2,19 @@ node_modules/
 .DS_Store
 *.log
 .env
+.env.*
+!.env.example
 *.tmp
 .vscode/
 .idea/
+
+# Claude Code runtime
+.claude/
+
+# Generated drift reports
+.drift-report.md
+
+# Local-only config (webhook URLs, internal endpoints — see docs/INTERNAL.md)
+config.local.*
+*.local.yml
+*.local.json

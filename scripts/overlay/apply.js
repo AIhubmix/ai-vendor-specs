@@ -29,7 +29,7 @@ const yaml = require('js-yaml');
  * - 如果 cwd 是消费方且有 node_modules/ai-vendor-specs → 用那个
  * - 也可通过环境变量 AVS_ROOT 显式指定
  */
-function findProxySpecsRoot(cwd = process.cwd()) {
+function findAvsRoot(cwd = process.cwd()) {
   if (process.env.AVS_ROOT) {
     return process.env.AVS_ROOT;
   }
@@ -59,7 +59,7 @@ function findProxySpecsRoot(cwd = process.cwd()) {
  * 解析 avs:// URI 到具体文件路径 + JSON Pointer
  * 返回 { filePath, pointer, isOverlay }
  */
-function parseURI(uri, root = findProxySpecsRoot()) {
+function parseURI(uri, root = findAvsRoot()) {
   const m = /^avs:\/\/([^/]+)\/([^#]+)(#.*)?$/.exec(uri);
   if (!m) throw new Error(`Invalid avs:// URI: ${uri}`);
   const [, protocol, provider, fragment] = m;
@@ -284,7 +284,7 @@ if (require.main === module) {
 }
 
 module.exports = {
-  findProxySpecsRoot,
+  findAvsRoot,
   parseURI,
   loadFile,
   loadSpec,
