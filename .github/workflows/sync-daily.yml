@@ -14,11 +14,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
       - name: Sync all specs
         run: bash scripts/sync-all.sh
 
       - name: Validate
         run: bash scripts/validate-all.sh
+
+      - name: Rebuild manifest
+        run: npm run manifest
+
+      - name: Check drift (with webhook notification on warn/error)
+        env:
+          AVS_WEBHOOK_URL: ${{ secrets.AVS_WEBHOOK_URL }}
+          AVS_WEBHOOK_TYPE: ${{ secrets.AVS_WEBHOOK_TYPE }}
+        run: npm run drift
 
       - name: Check changes
         id: changes

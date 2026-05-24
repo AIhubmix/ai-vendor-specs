@@ -21,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const { loadSpec } = require('./overlay/apply');
+const { notify } = require('./notify');
 
 const ROOT = path.resolve(__dirname, '..');
 const STALE_DAYS = 90;
@@ -282,6 +283,35 @@ async function main() {
       console.log(`  ${r.level === 'error' ? '❌' : '⚠️'} ${r.entry}: ${r.message}`);
     });
     console.log();
+
+    // ── webhook 通知:仅在有 warn/error 时发,绿色日不打扰 ──────────────
+    const today = new Date().toISOString().slice(0, 10);
+    const statusIcon = counts.error ? '🔴' : '🟡';
+    const msgLines = [
+      `# ${statusIcon} ai-vendor-specs drift`,
+      `**${today}** · ❌ ${counts.error} / ⚠️ ${counts.warn} / ✅ ${counts.ok}`,
+      '',
+    ];
+    if (buckets.error.length) {
+      msgLines.push('## ❌ 错误', '');
+      for (const r of buckets.error) {
+        msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
+      }
+      msgLines.push('');
+    }
+    if (buckets.warn.length) {
+      msgLines.push('## ⚠️ 提醒', '');
+      for (const r of buckets.warn) {
+        msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
+      }
+      msgLines.push('');
+    }
+    msgLines.push('详情: https://github.com/AIhubmix/ai-vendor-specs/blob/main/.drift-report.md');
+
+    const result = await notify(msgLines.join('\n'));
+    if (result.sent) console.log('📤 webhook 已通知');
+    else if (process.env.AVS_WEBHOOK_URL) console.log(`📭 webhook 失败: ${result.reason}`);
+    // 没配 URL 时静默,不打 log
   }
 }
 
