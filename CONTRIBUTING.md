@@ -176,6 +176,19 @@ The Python `__version__` in `python/ai_vendor_specs/__init__.py` and `version` i
 | npm | `NPM_TOKEN` repo secret | Generate an Automation token at npmjs.com → Account Settings → Access Tokens; add as `NPM_TOKEN` in GitHub repo Settings → Secrets and variables → Actions |
 | PyPI | Trusted publisher (OIDC) | PyPI project page → Manage → Publishing → Add trusted publisher. Owner=`AIhubmix`, Repository=`ai-vendor-specs`, Workflow=`publish-pypi.yml`. Use PyPI's "pending trusted publisher" mechanism for the first publish before the project exists. |
 
+### Publishing from a fork
+
+The publish workflows are guarded with `if: github.repository == 'AIhubmix/ai-vendor-specs'`, so a fork that pushes a tag gets a skipped (green) job rather than a failed publish.
+
+If you want to fork this project and publish your own variant under a different namespace:
+
+1. Remove the `if:` guard from `.github/workflows/publish-npm.yml` and `.github/workflows/publish-pypi.yml` (or change it to your repo).
+2. **npm** — edit `package.json` `"name"` to your scope (e.g. `@your-scope/ai-vendor-specs`), then add `NPM_TOKEN` secret in your fork's settings.
+3. **PyPI** — edit `python/pyproject.toml` `name` to an unused PyPI project name (PyPI has a flat namespace, no scopes), and either add a `PYPI_API_TOKEN` secret or configure a trusted publisher pointing at your fork.
+4. Sync the `version` field across `package.json`, `python/pyproject.toml`, and `python/ai_vendor_specs/__init__.py` before tagging.
+
+There's nothing secret about the publish machinery — it's standard `npm publish` + `pypa/gh-action-pypi-publish`. The reason it works for the canonical repo and not for forks is purely the auth side (secrets + OIDC trust), which are controlled outside the source code.
+
 ## Python package development
 
 ```bash

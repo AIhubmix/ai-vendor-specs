@@ -13,6 +13,9 @@ on:
 
 jobs:
   publish:
+    # Guard: only the canonical repo publishes. Forks that push a tag get a
+    # skipped (green) job rather than wasted minutes ending in an OIDC mismatch.
+    if: github.repository == 'AIhubmix/ai-vendor-specs'
     runs-on: ubuntu-latest
     permissions:
       id-token: write   # PyPI trusted-publisher (OIDC) — no token needed once configured
