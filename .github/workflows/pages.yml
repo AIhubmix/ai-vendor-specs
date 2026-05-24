@@ -35,6 +35,9 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Rebuild manifest (so site reads the latest upstream/ state)
+        run: npm run manifest
+
       - name: Build site
         run: npm run build-site
 
