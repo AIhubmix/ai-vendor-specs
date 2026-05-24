@@ -491,7 +491,7 @@ No automatic sync.
 ## Related docs
 
 - [ARCHITECTURE](./ARCHITECTURE.md) — design, tier breakdown, schemas
-- [USAGE](./USAGE.md) — consumption patterns
+- [README — Use cases](../README.md#use-cases) — common consumption patterns
 
 ---
 

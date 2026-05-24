@@ -9,8 +9,7 @@ ai-vendor-specs/
 ├── manifest.json                       # Generated discovery index — do not hand-edit
 ├── docs/
 │   ├── ARCHITECTURE.md                 # Design + metadata schema + overlay syntax
-│   ├── SOURCES.md                      # Upstream URLs and per-vendor sync details
-│   └── USAGE.md                        # Consumer scenarios
+│   └── SOURCES.md                      # Upstream URLs and per-vendor sync details
 ├── upstream/<protocol>/<provider>/     # Per-vendor data
 │   ├── metadata.json                   # Required for every entry
 │   ├── openapi.{yml,json} | discovery.json   # for kind=spec

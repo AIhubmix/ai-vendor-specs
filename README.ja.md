@@ -4,6 +4,8 @@
 
 **言語**: [English](./README.md) · [简体中文](./README.zh-CN.md) · 日本語
 
+**🌐 仕様を閲覧**: [aihubmix.github.io/ai-vendor-specs](https://aihubmix.github.io/ai-vendor-specs/) — すべての上流仕様を Redoc でレンダリング、プロトコル絞り込みタブ付き。
+
 `ai-vendor-specs` は OpenAI、Anthropic、Cohere、Google、Microsoft などの主要 AI プロバイダー、および OpenAI 互換プロバイダー群が公開している公式 API 仕様を一箇所に集約し、SDK ジェネレーター、ゲートウェイ、ドキュメントサイト、契約テスト、IDE 補完、AI エージェントのツールレジストリといった下流ツールから一貫したデータセットとして利用できるようにします。
 
 機械可読な仕様を提供していないバリアント(AWS Bedrock 上の Claude、Groq などの OpenAI 互換プロバイダー)については、コンパクトな overlay ファイルで差分のみを宣言し、解決時にベース仕様と合成して完全な仕様を生成します。リポジトリ自体は派生物を一切保持せず、すべてのバイトが上流の公式ソースまで辿れる構造です。
@@ -14,18 +16,18 @@
 
 | プロトコル | プロバイダー | 種別 | 上流ソース |
 |---|---|---|---|
-| openai | official | spec | Stainless |
-| openai | azure | spec | Azure REST API Specs(stable 2024-10-21) |
-| openai | azure-preview | spec | Azure REST API Specs(preview 2025-04-01-preview) |
-| openai | deepseek | overlay | api-docs.deepseek.com |
-| openai | groq | overlay | console.groq.com/docs |
-| openai | together | overlay | docs.together.ai |
-| openai | xai | overlay | docs.x.ai |
-| anthropic | official | spec | Anthropic SDK `.stats.yml` → Stainless |
-| anthropic | bedrock | overlay | AWS Bedrock ドキュメント |
-| cohere | official | spec | cohere-developer-experience |
-| gemini | official | spec | Google Discovery(`generativelanguage.googleapis.com`) |
-| vertex | official | spec | Google Discovery(`aiplatform.googleapis.com`) |
+| openai | official | spec | [openai/openai-openapi](https://github.com/openai/openai-openapi)(Stainless) |
+| openai | azure | spec | [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable) · 固定 `2024-10-21` |
+| openai | azure-preview | spec | [Azure/azure-rest-api-specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) · 固定 `2025-04-01-preview` |
+| openai | deepseek | overlay | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
+| openai | groq | overlay | [console.groq.com/docs](https://console.groq.com/docs/api-reference) |
+| openai | together | overlay | [docs.together.ai](https://docs.together.ai/reference/chat-completions) |
+| openai | xai | overlay | [docs.x.ai](https://docs.x.ai/docs/api-reference) |
+| anthropic | official | spec | [anthropics/anthropic-sdk-python `.stats.yml`](https://github.com/anthropics/anthropic-sdk-python/blob/main/.stats.yml) → Stainless |
+| anthropic | bedrock | overlay | [AWS Bedrock InvokeModel docs](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html) |
+| cohere | official | spec | [cohere-ai/cohere-developer-experience](https://github.com/cohere-ai/cohere-developer-experience) |
+| gemini | official | spec | [Google AI Discovery](https://ai.google.dev/api/rest)(`generativelanguage.googleapis.com`) |
+| vertex | official | spec | [Google Cloud Discovery](https://cloud.google.com/vertex-ai/docs/reference/rest)(`aiplatform.googleapis.com`) |
 
 上流 URL、同期方法、バージョン固定の詳細は [`docs/SOURCES.md`](./docs/SOURCES.md) を参照してください。
 
@@ -170,6 +172,51 @@ spec_path = avs.load_spec_path('openai', 'official')
 
 ---
 
+## ユースケース
+
+### 1. ゲートウェイ / proxy 仕様の合成
+上流の骨格をロードし、自分の overlay を適用してゲートウェイが公開する仕様を生成します。
+
+```js
+const { loadSpec, applyOverlay } = require('@aihubmix/ai-vendor-specs');
+const base = loadSpec('avs://openai/official');
+const final = applyOverlay(base, myGatewayOverlay);  // overlay = 認証、エラー形式など
+```
+
+### 2. SDK / 型生成
+任意の OpenAPI codegen に投入できます。毎日の自動同期で型が古くなりません。
+
+```bash
+npx openapi-typescript node_modules/@aihubmix/ai-vendor-specs/upstream/openai/official/openapi.yml \
+  -o src/types/openai.d.ts
+```
+
+### 3. 上流真実に対する契約テスト
+上流が約束しているフィールドが実際に存在するかをアサート。
+
+```js
+const spec = loadSpec('avs://openai/official');
+const required = spec.components.schemas.CreateChatCompletionResponse.required;
+required.forEach(f => expect(actual[f]).not.toBeUndefined());
+```
+
+(自家ゲートウェイのレスポンスは自家仕様でテスト。これは「上流が黙ってフィールドを変えたか」の検出用。)
+
+### 4. ドキュメントサイトで上流仕様を表示
+`node_modules/` から生ファイルを読んで Redoc / Swagger UI に渡します。本プロジェクトの [doc site](https://aihubmix.github.io/ai-vendor-specs/) はこの方式で構築されています。
+
+### 5. Discovery → OpenAPI 変換
+Gemini / Vertex は Google Discovery 形式。ツールチェーンが OpenAPI のみ対応なら [gnostic](https://github.com/google/gnostic) で変換:
+
+```bash
+gnostic upstream/gemini/official/discovery.json --openapi-out=gemini.yml
+```
+
+### 6. AI エージェントツールレジストリ
+`paths` / `operations` を走査して関数呼び出しスキーマを生成、LangChain / MCP などのエージェントフレームワークに渡します。`operationId`、パラメータ schema、リクエストボディ形状すべてツール記述子に 1:1 マップ可能。
+
+---
+
 ## `avs://` URI スキーム
 
 上流仕様への参照はすべて同一の URI スキームを使います:
@@ -200,8 +247,8 @@ overlay や利用者側のコードは、どのデプロイ形態で動いてい
 
 | ドキュメント | 想定読者 | 内容 |
 |---|---|---|
+| [ライブドキュメントサイト](https://aihubmix.github.io/ai-vendor-specs/) | 閲覧者 | 全上流仕様の Redoc ビュー、プロトコル絞り込みタブ付き |
 | [Architecture](./docs/ARCHITECTURE.md) | すべての人 | 設計、種別、metadata スキーマ、overlay 構文 |
-| [Usage Guide](./docs/USAGE.md) | 利用者 | 利用パターンと典型シナリオ |
 | [Sources](./docs/SOURCES.md) | 監査者 | プロバイダー別の上流 URL と同期方式 |
 | [Contributing](./CONTRIBUTING.md) | 貢献者 | プロバイダー追加、ローカル開発、ドリフト、Webhook |
 

@@ -575,7 +575,7 @@ CI 在 `.github/workflows/sync-daily.yml` 已挂好,从 GitHub Secrets 读取 `A
 ## 相关文档
 
 - [架构设计](./ARCHITECTURE.zh-CN.md) - Tier 分层说明
-- [使用指南](./USAGE.zh-CN.md) - 如何加载规范
+- [README — 典型场景](../README.zh-CN.md#典型场景) - 常见消费方式
 
 ---
 

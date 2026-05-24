@@ -4,6 +4,8 @@
 
 **语言**: [English](./README.md) · 简体中文 · [日本語](./README.ja.md)
 
+**🌐 在线浏览 spec**: [aihubmix.github.io/ai-vendor-specs](https://aihubmix.github.io/ai-vendor-specs/) —— 每个上游 spec 都用 Redoc 渲染,带 protocol 筛选 tab。
+
 `ai-vendor-specs` 把各主流 AI 厂商(OpenAI、Anthropic、Cohere、Google、Microsoft,以及一众 OpenAI 兼容厂商)发布的官方 API 规范统一收纳到一处,以一致的数据结构供下游消费:SDK 生成器、网关、文档站、契约测试、IDE 智能提示、AI agent 工具注册表等。
 
 对于没有机器可读 spec 的变体(如 AWS Bedrock 上的 Claude、Groq 等 OpenAI 兼容厂商),用紧凑的 overlay 文件声明差异,在 resolve 阶段合成完整 spec。仓库本身**不存储任何派生产物**,每一个字节都可追溯到上游官方来源。
@@ -14,18 +16,18 @@
 
 | 协议 | provider | 类型 | 上游来源 |
 |---|---|---|---|
-| openai | official | spec | Stainless |
-| openai | azure | spec | Azure REST API Specs(stable 2024-10-21) |
-| openai | azure-preview | spec | Azure REST API Specs(preview 2025-04-01-preview) |
-| openai | deepseek | overlay | api-docs.deepseek.com |
-| openai | groq | overlay | console.groq.com/docs |
-| openai | together | overlay | docs.together.ai |
-| openai | xai | overlay | docs.x.ai |
-| anthropic | official | spec | Anthropic SDK `.stats.yml` → Stainless |
-| anthropic | bedrock | overlay | AWS Bedrock 文档 |
-| cohere | official | spec | cohere-developer-experience |
-| gemini | official | spec | Google Discovery(`generativelanguage.googleapis.com`) |
-| vertex | official | spec | Google Discovery(`aiplatform.googleapis.com`) |
+| openai | official | spec | [openai/openai-openapi](https://github.com/openai/openai-openapi)(Stainless) |
+| openai | azure | spec | [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable) · 钉版 `2024-10-21` |
+| openai | azure-preview | spec | [Azure/azure-rest-api-specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) · 钉版 `2025-04-01-preview` |
+| openai | deepseek | overlay | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
+| openai | groq | overlay | [console.groq.com/docs](https://console.groq.com/docs/api-reference) |
+| openai | together | overlay | [docs.together.ai](https://docs.together.ai/reference/chat-completions) |
+| openai | xai | overlay | [docs.x.ai](https://docs.x.ai/docs/api-reference) |
+| anthropic | official | spec | [anthropics/anthropic-sdk-python `.stats.yml`](https://github.com/anthropics/anthropic-sdk-python/blob/main/.stats.yml) → Stainless |
+| anthropic | bedrock | overlay | [AWS Bedrock InvokeModel 文档](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html) |
+| cohere | official | spec | [cohere-ai/cohere-developer-experience](https://github.com/cohere-ai/cohere-developer-experience) |
+| gemini | official | spec | [Google AI Discovery](https://ai.google.dev/api/rest)(`generativelanguage.googleapis.com`) |
+| vertex | official | spec | [Google Cloud Discovery](https://cloud.google.com/vertex-ai/docs/reference/rest)(`aiplatform.googleapis.com`) |
 
 完整上游 URL、同步方式和版本钉死细节见 [`docs/SOURCES.md`](./docs/SOURCES.zh-CN.md)。
 
@@ -170,6 +172,51 @@ spec_path = avs.load_spec_path('openai', 'official')
 
 ---
 
+## 典型场景
+
+### 1. 合成网关 / proxy 自家 spec
+拉上游骨架,叠加自家 overlay 产出对外 spec。
+
+```js
+const { loadSpec, applyOverlay } = require('@aihubmix/ai-vendor-specs');
+const base = loadSpec('avs://openai/official');
+const final = applyOverlay(base, myGatewayOverlay);  // overlay = 自家认证、错误体等
+```
+
+### 2. SDK / 类型生成
+丢给任意 OpenAPI codegen,每日同步保证类型不滞后。
+
+```bash
+npx openapi-typescript node_modules/@aihubmix/ai-vendor-specs/upstream/openai/official/openapi.yml \
+  -o src/types/openai.d.ts
+```
+
+### 3. 契约测试(对照上游真相)
+断言上游承诺的字段是否真的出现。
+
+```js
+const spec = loadSpec('avs://openai/official');
+const required = spec.components.schemas.CreateChatCompletionResponse.required;
+required.forEach(f => expect(actual[f]).not.toBeUndefined());
+```
+
+(测自家网关响应该用自家 spec;这里只检查"上游悄悄改了字段没"。)
+
+### 4. 文档站展示上游
+从 `node_modules/` 直接读原始文件喂给 Redoc / Swagger UI。本项目的 [doc site](https://aihubmix.github.io/ai-vendor-specs/) 就是这么搭的。
+
+### 5. Discovery → OpenAPI 转换
+Gemini / Vertex 走 Google Discovery。如果工具链只吃 OpenAPI,用 [gnostic](https://github.com/google/gnostic):
+
+```bash
+gnostic upstream/gemini/official/discovery.json --openapi-out=gemini.yml
+```
+
+### 6. AI agent 工具注册表
+遍历 `paths`/`operations` 直接生成函数调用 schema,适配 LangChain / MCP 等 agent 框架。spec 自带 `operationId`、参数 schema、请求体形状,一一映射成工具描述符。
+
+---
+
 ## `avs://` URI 协议
 
 所有上游引用统一使用同一套 URI:
@@ -200,8 +247,8 @@ Resolver 按以下顺序定位数据根目录:
 
 | 文档 | 读者 | 内容 |
 |---|---|---|
+| [在线文档站](https://aihubmix.github.io/ai-vendor-specs/) | 浏览者 | 每个上游 spec 的 Redoc 视图,带 protocol 筛选 tab |
 | [架构设计](./docs/ARCHITECTURE.zh-CN.md) | 所有人 | 设计、kind 分类、metadata schema、overlay 语法 |
-| [使用指南](./docs/USAGE.zh-CN.md) | 消费方 | 接入方式、典型场景 |
 | [上游来源](./docs/SOURCES.zh-CN.md) | 审计者 | 各厂商上游 URL 和同步方式 |
 | [贡献指南](./CONTRIBUTING.md) | 贡献者 | 加新厂商、本地开发、drift、webhook |
 

@@ -4,6 +4,8 @@
 
 **Languages**: English · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md)
 
+**🌐 Browse the specs**: [aihubmix.github.io/ai-vendor-specs](https://aihubmix.github.io/ai-vendor-specs/) — every upstream rendered with Redoc, with protocol filter tabs and search.
+
 `ai-vendor-specs` collects the source-of-truth API specifications published by major AI providers (OpenAI, Anthropic, Cohere, Google, Microsoft, plus OpenAI-compatible providers) and exposes them as one consistent dataset for downstream tools: SDK generators, gateways, doc sites, contract testing, IDE intelligence, and AI agent tool registries.
 
 For variants without a machine-readable spec (e.g. Claude on AWS Bedrock, or OpenAI-compatible providers like Groq), differences are declared in compact overlay files that compose against a base spec at resolve time. The repository itself never stores derived artifacts — every byte traces back to an officially published upstream.
@@ -14,18 +16,18 @@ For variants without a machine-readable spec (e.g. Claude on AWS Bedrock, or Ope
 
 | Protocol | Provider | Kind | Upstream source |
 |---|---|---|---|
-| openai | official | spec | Stainless |
-| openai | azure | spec | Azure REST API Specs (stable 2024-10-21) |
-| openai | azure-preview | spec | Azure REST API Specs (preview 2025-04-01-preview) |
-| openai | deepseek | overlay | api-docs.deepseek.com |
-| openai | groq | overlay | console.groq.com/docs |
-| openai | together | overlay | docs.together.ai |
-| openai | xai | overlay | docs.x.ai |
-| anthropic | official | spec | Anthropic SDK `.stats.yml` → Stainless |
-| anthropic | bedrock | overlay | AWS Bedrock docs |
-| cohere | official | spec | cohere-developer-experience |
-| gemini | official | spec | Google Discovery (`generativelanguage.googleapis.com`) |
-| vertex | official | spec | Google Discovery (`aiplatform.googleapis.com`) |
+| openai | official | spec | [openai/openai-openapi](https://github.com/openai/openai-openapi) (Stainless) |
+| openai | azure | spec | [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable) · pinned `2024-10-21` |
+| openai | azure-preview | spec | [Azure/azure-rest-api-specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) · pinned `2025-04-01-preview` |
+| openai | deepseek | overlay | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
+| openai | groq | overlay | [console.groq.com/docs](https://console.groq.com/docs/api-reference) |
+| openai | together | overlay | [docs.together.ai](https://docs.together.ai/reference/chat-completions) |
+| openai | xai | overlay | [docs.x.ai](https://docs.x.ai/docs/api-reference) |
+| anthropic | official | spec | [anthropics/anthropic-sdk-python `.stats.yml`](https://github.com/anthropics/anthropic-sdk-python/blob/main/.stats.yml) → Stainless |
+| anthropic | bedrock | overlay | [AWS Bedrock InvokeModel docs](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html) |
+| cohere | official | spec | [cohere-ai/cohere-developer-experience](https://github.com/cohere-ai/cohere-developer-experience) |
+| gemini | official | spec | [Google AI Discovery](https://ai.google.dev/api/rest) (`generativelanguage.googleapis.com`) |
+| vertex | official | spec | [Google Cloud Discovery](https://cloud.google.com/vertex-ai/docs/reference/rest) (`aiplatform.googleapis.com`) |
 
 Full upstream URLs, sync methods, and version pinning details: [`docs/SOURCES.md`](./docs/SOURCES.md).
 
@@ -170,6 +172,51 @@ spec_path = avs.load_spec_path('openai', 'official')
 
 ---
 
+## Use cases
+
+### Compose a gateway / proxy spec
+Load upstream skeletons, then apply your own overlay to produce the spec your gateway exposes.
+
+```js
+const { loadSpec, applyOverlay } = require('@aihubmix/ai-vendor-specs');
+const base = loadSpec('avs://openai/official');
+const final = applyOverlay(base, myGatewayOverlay);  // overlay = your auth, error envelope, etc.
+```
+
+### Generate SDK types
+Drop the spec into any OpenAPI codegen — daily upstream syncs keep types current.
+
+```bash
+npx openapi-typescript node_modules/@aihubmix/ai-vendor-specs/upstream/openai/official/openapi.yml \
+  -o src/types/openai.d.ts
+```
+
+### Contract-test against upstream truth
+Assert that the response fields the upstream actually promises are present in what you observe.
+
+```js
+const spec = loadSpec('avs://openai/official');
+const required = spec.components.schemas.CreateChatCompletionResponse.required;
+required.forEach(f => expect(actual[f]).not.toBeUndefined());
+```
+
+(Test your own gateway against its own spec; use this only for "did the upstream change something on us".)
+
+### Embed specs in a doc site
+Read the raw files from `node_modules/` and feed Redoc, Swagger UI, or any OpenAPI renderer. This is exactly how the [official doc site](https://aihubmix.github.io/ai-vendor-specs/) is built.
+
+### Convert Discovery → OpenAPI
+Gemini / Vertex ship Google Discovery. If your toolchain wants OpenAPI, run [gnostic](https://github.com/google/gnostic):
+
+```bash
+gnostic upstream/gemini/official/discovery.json --openapi-out=gemini.yml
+```
+
+### AI agent tool registry
+Iterate `paths`/`operations` to emit function-call schemas for LangChain, MCP, or any agent framework. The specs already include `operationId`, parameter schemas, and request body shapes that map 1:1 to tool descriptors.
+
+---
+
 ## The `avs://` URI scheme
 
 All references to upstream specs use one consistent URI scheme:
@@ -200,8 +247,8 @@ You can write overlays or consumer code without caring which deployment mode is 
 
 | Document | Audience | Content |
 |---|---|---|
+| [Live doc site](https://aihubmix.github.io/ai-vendor-specs/) | Browsers | Redoc-rendered specs for every upstream, with protocol filter tabs |
 | [Architecture](./docs/ARCHITECTURE.md) | Anyone | Design, kinds, metadata schema, overlay syntax |
-| [Usage Guide](./docs/USAGE.md) | Consumers | Consumption patterns, common scenarios |
 | [Sources](./docs/SOURCES.md) | Auditors | Upstream URLs and sync methods, per-vendor details |
 | [Contributing](./CONTRIBUTING.md) | Contributors | Adding new vendors, repo development, drift, webhook |
 
