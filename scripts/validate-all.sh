@@ -1,44 +1,49 @@
 #!/bin/bash
+# 验证 upstream/ 下所有上游 spec 目录结构是否齐全
 
-echo "🔍 验证所有规范..."
+echo "🔍 验证所有 upstream spec..."
 
 errors=0
 
-# 验证目录结构（协议/供应商）
-for protocol_dir in */; do
+if [ ! -d "upstream" ]; then
+    echo "❌ upstream/ 目录不存在"
+    exit 1
+fi
+
+# 遍历 upstream/<协议>/<变体>/
+for protocol_dir in upstream/*/; do
     protocol=$(basename "$protocol_dir")
-
-    # 跳过特殊目录
-    [[ "$protocol" =~ ^(scripts|docs|node_modules|\.github)$ ]] && continue
-
     echo "检查协议: $protocol"
 
     for provider_dir in "$protocol_dir"*/; do
         [ ! -d "$provider_dir" ] && continue
 
         provider=$(basename "$provider_dir")
-        full_path="$protocol/$provider"
+        full_path="upstream/$protocol/$provider"
 
-        # 检查 metadata.json
+        # metadata.json 必备
         if [ ! -f "$provider_dir/metadata.json" ]; then
             echo "❌ $full_path: 缺少 metadata.json"
             ((errors++))
             continue
         fi
 
-        # 检查规范文件（YAML 或 JSON，但不是 metadata.json）
+        # 必须有 spec 文件或 overlay 文件二者其一
         spec_found=false
-        if ls "$provider_dir"/*.yml &>/dev/null || ls "$provider_dir"/openapi.json &>/dev/null || ls "$provider_dir"/discovery.json &>/dev/null; then
+        if ls "$provider_dir"/*.yml &>/dev/null || \
+           ls "$provider_dir"/openapi.json &>/dev/null || \
+           ls "$provider_dir"/discovery.json &>/dev/null || \
+           ls "$provider_dir"/overlay.yml &>/dev/null; then
             spec_found=true
         fi
 
         if [ "$spec_found" = false ]; then
-            echo "❌ $full_path: 缺少规范文件"
+            echo "❌ $full_path: 既无 spec 文件也无 overlay.yml"
             ((errors++))
             continue
         fi
 
-        # 验证 JSON 格式
+        # metadata.json JSON 合法性
         if ! jq empty "$provider_dir/metadata.json" 2>/dev/null; then
             echo "❌ $full_path: metadata.json 格式错误"
             ((errors++))

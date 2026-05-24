@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "together",
+  "displayName": "Together AI (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/together/overlay.yml",
+  "lastEdited": "2026-05-24T00:00:00Z",
+  "lastReviewed": "2026-05-24",
+  "lastReviewedDocs": [
+    "https://docs.together.ai/reference/chat-completions",
+    "https://docs.together.ai/docs/openai-compatibility"
+  ],
+  "autoSync": false,
+  "note": "Together AI 自身 spec 未在 GitHub 公开发布。OpenAI-compat 子集走 overlay。专属端点(images/generations、rerank 等)若要纳入,后续单独写。"
+}

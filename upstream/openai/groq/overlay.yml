@@ -1,0 +1,22 @@
+# upstream/openai/groq overlay
+#
+# Groq 暴露 OpenAI-compatible 接口(`/openai/v1/...`),所以 overlay 几乎是空的,
+# 只换 server URL。请求/响应 shape 复用 openai/official 整套。
+#
+# 行为差异(不在 spec 层处理):
+# - 不支持 logprobs
+# - 不支持 function tools 的某些边角(详见 Groq docs)
+# - 不支持 image input
+# 这些 deviation 应由消费方(网关业务实现)负责处理,ai-vendor-specs 不在 spec 层裁剪。
+
+base: avs://openai/official
+
+info:
+  title: Groq API (OpenAI-compatible)
+  description: |
+    Groq 的推理服务,OpenAI 协议完全兼容。
+    Server URL 用 /openai/v1 前缀(注意有 /openai/ 这一层)。
+
+servers:
+  - url: https://api.groq.com/openai/v1
+    description: Groq Production

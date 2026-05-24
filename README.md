@@ -1,148 +1,257 @@
-# proxy-specs
+# ai-vendor-specs(内部仓库)
 
-> 存储和同步各主流 AI 协议的原始 API 规范，作为下游工具的权威标准来源
+> 上游 AI 协议 spec 仓库:每天同步 OpenAI / Anthropic / Cohere / Gemini / Vertex / Azure 等上游的官方规范。
+> 对没有机器可读 spec 的上游(如 AWS Bedrock 上的 Claude),用 overlay 文件声明差异。
 
-## 定位
+**⚠️ 仅内部使用,不发 npm**。本仓库为 [aihubmix-openapi](#相关仓库) 等内部项目提供上游 spec 数据。
+公开消费方应读 aihubmix-openapi 发布的 `openapi.json`,不直接访问本仓库。
 
-proxy-specs 是一个**规范存储与同步库**，不包含业务逻辑。
+**ai-vendor-specs 不生产网关产物**,只维护上游事实。生产真相源(`openapi.json`)的事归 [aihubmix-openapi](#相关仓库) 仓库。
 
-它解决的核心问题：当你开发一个 AI 代理服务（如 [one-api](https://github.com/songquanpeng/one-api)）的测试工具或 UI，需要知道"OpenAI API 的响应 schema 是什么"、"chat 请求有哪些参数及其约束"——这些信息不应硬编码在代码里，而应从权威来源动态读取。
+---
+
+## 仓库定位
 
 ```
-proxy-specs (权威规范源)
+ai-vendor-specs (本仓库)              ← 上游 vendor API 知识库,纯数据
        │
-       ├── openai/official/openapi.yml
-       │         │
-       │         ├──► 自动化测试项目
-       │         │      契约测试：验证 one-api 响应符合 OpenAI 标准
-       │         │      spec 更新 → hash 变更 → CI 感知 → 人工 review
-       │         │
-       │         └──► Playground 项目
-       │                Schema 驱动参数表单：无需硬编码参数列表
-       │                新参数 → spec 更新 → 构建时自动生成新控件
+       │ file: 依赖 / git submodule(本仓库私有,不发 npm)
+       ▼
+aihubmix-openapi(另一仓库)        ← 组合 ai-vendor-specs + 网关自家差异 → 编译 openapi.json
        │
-       └── gemini/official/, anthropic/official/, ...
-             记录各协议原生规范，供参考和文档用途
+       │ GitHub Release / jsDelivr CDN
+       ▼
+┌───────────┬──────────────┬─────────────────┐
+▼           ▼              ▼                 ▼
+gateway   运营后台      文档站          SDK 生成器
+服务实现   /Playground   /API portal     /code-gen
+```
+
+| 角色 | 仓库 | 输出 |
+|---|---|---|
+| 上游 spec 维护 | **ai-vendor-specs**(本仓库) | `upstream/<协议>/<变体>/` + 顶层 `manifest.json` |
+| 网关 spec 编译 | aihubmix-openapi | `openapi.json` + `manifest.json` + `CHANGELOG.md` |
+| 网关业务实现 | aihubmix-service | 实际网关代码,按 `openapi.json` 实现并跑契约测试 |
+| 其他消费方 | playground / docs / SDK 等 | 各自 `curl` aihubmix-openapi 的 `openapi.json` |
+
+---
+
+## 目录结构
+
+```
+ai-vendor-specs/
+├── README.md
+├── LICENSE
+├── package.json
+├── manifest.json                       ← ★ 顶层入口,列所有上游 + 拉取 URL
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── SOURCES.md                      ← 上游来源 + 同步方法
+│   └── USAGE.md
+├── upstream/
+│   ├── openai/
+│   │   ├── official/{openapi.yml, metadata.json}        Stainless 同步
+│   │   ├── azure/{openapi.json, metadata.json}          Azure REST API Specs(stable 2024-10-21)
+│   │   ├── azure-preview/{openapi.json, metadata.json}  Azure preview 2025-04-01-preview(含 o1/o3/audio 等新字段)
+│   │   ├── groq/{overlay.yml, metadata.json}            OpenAI-compatible,只换 server URL
+│   │   ├── together/{overlay.yml, metadata.json}        OpenAI-compatible
+│   │   └── deepseek/{overlay.yml, metadata.json}        OpenAI-compatible(R1 有 reasoning_content)
+│   ├── anthropic/
+│   │   ├── official/{openapi.yml, metadata.json}     SDK .stats.yml → Stainless
+│   │   └── bedrock/{overlay.yml, metadata.json}      只有 overlay,无独立 spec
+│   ├── cohere/official/{openapi.yml, metadata.json}  cohere-developer-experience
+│   ├── gemini/official/{discovery.json, metadata.json}  Google Discovery
+│   └── vertex/official/{discovery.json, metadata.json}  Google Discovery
+└── scripts/
+    ├── sync/                           上游同步脚本(每天 cron)
+    ├── overlay/apply.js                ★ avs:// resolver + applier 库
+    ├── build-manifest.js               生成顶层 manifest.json
+    ├── sync-all.sh
+    ├── validate-all.sh
+    └── utils.sh
 ```
 
 ---
 
-## 支持的协议
+## 引用协议:`avs://`
 
-| 目录 | 协议 | Tier | 同步方式 |
-|------|------|------|---------|
-| `openai/official/` | OpenAI 官方 | 1 | 自动，每日从 Stainless 同步 |
-| `openai/azure/` | Azure OpenAI | 1 | 自动，每日从 Azure REST API Specs 同步 |
-| `cohere/official/` | Cohere 原生 | 1 | 自动，每日从 cohere-typescript 同步 |
-| `gemini/official/` | Google Gemini 原生（AI Studio） | 2 | 自动，Discovery JSON 直接存储 |
-| `vertex/official/` | Google Vertex AI 原生 | 2 | 自动，Discovery JSON 直接存储 |
-| `anthropic/official/` | Anthropic Claude 直连 | 3 | 手动维护 |
-| `anthropic/bedrock/` | Claude on AWS Bedrock | 3 | 手动维护 |
+所有 overlay 和消费方都用同一套语法,resolver 自动定位文件:
 
-**关于目录结构**：顶层是协议名，而不是厂商名。这是因为 proxy 服务按协议路由——`openai/azure/` 归入 `openai/` 协议是因为 Azure 的 request body 与 OpenAI 完全相同，只是 URL 和认证头不同；`anthropic/bedrock/` 归入 `anthropic/` 是因为 Bedrock Claude 的请求体格式与 Anthropic 直连 API 几乎相同（仅多一个 `anthropic_version` 字段）；而 `gemini/`、`cohere/` 使用完全不同的请求/响应结构，各自独立协议目录。
+```
+avs://<protocol>/<provider>[#<JSON-Pointer>]
+```
+
+| 示例 | 含义 |
+|---|---|
+| `avs://anthropic/official` | 整份 anthropic/official spec |
+| `avs://anthropic/official#/components/schemas/Message` | 那份 spec 里的 `Message` schema |
+| `avs://openai/official#/components/schemas/CreateChatCompletionRequest` | 跨上游引用 |
+
+Resolver 行为(`scripts/overlay/apply.js`):
+- 在 ai-vendor-specs 自身 → 解析到 `./upstream/<protocol>/<provider>/`
+- 在消费方(如 aihubmix-openapi)→ 解析到 `./node_modules/ai-vendor-specs/upstream/<protocol>/<provider>/`
+
+写 overlay 的人**完全不感知**当前在哪个仓库。
 
 ---
 
-## 快速开始
+## 三种上游条目
 
-### 同步规范
+### 1. `spec`:有机器可读 spec(Tier 1/2)
+
+直接同步上游 spec 文件,自动化。代表:`openai/official`、`anthropic/official`、`cohere/official`、`gemini/official`、`vertex/official`、`openai/azure`。
+
+```
+upstream/openai/official/
+├── openapi.yml          ← 同步自 Stainless
+└── metadata.json        ← hash / lastSynced / source URL
+```
+
+### 2. `overlay`:上游无 spec,用 overlay 声明差异(Tier 3)
+
+上游本身没发布机器可读 spec,但和另一个有 spec 的变体只是 envelope 不同(URL / 认证 / 个别字段)。代表:`anthropic/bedrock`。
+
+```
+upstream/anthropic/bedrock/
+├── overlay.yml          ← 声明 base + 差异
+└── metadata.json        ← kind: overlay, base: avs://...
+```
+
+消费方 build 时由 resolver 把 base + overlay 合成完整 spec,ai-vendor-specs 这边不落盘派生物。
+
+### 3. `manual`(未来):纯人写
+
+上游既没 spec、也无可派生的近亲(比如百度文心、阿里通义)。需要从官方文档手抄一份 OpenAPI 进来,标 `authority: manual`。
+
+---
+
+## 顶层 `manifest.json`(内部发现入口)
+
+内部消费方一个文件拿到全景:
+
+```js
+// 已通过 file: 或 submodule 接入 ai-vendor-specs 的项目里
+const manifest = require('ai-vendor-specs/manifest.json');
+```
+
+或直接读文件:
+
+```bash
+cat path/to/ai-vendor-specs/manifest.json
+```
+
+> ⚠️ **不要**用公网 CDN(jsDelivr 等)拉取本仓库 —— 本仓库为私有,公网拉不到。
+> 公开消费方应读 [aihubmix-openapi](https://github.com/<org>/aihubmix-openapi) 的 `openapi.json`,不通过 ai-vendor-specs。
+
+返回结构(节选):
+
+```jsonc
+{
+  "schemaVersion": 1,
+  "name": "ai-vendor-specs",
+  "generatedAt": "2026-05-24T...",
+  "repository": "<org>/ai-vendor-specs",
+  "upstream": {
+    "openai/official": {
+      "kind": "spec",
+      "specFormat": "openapi-3.1",
+      "uri": "avs://openai/official",
+      "specPath": "upstream/openai/official/openapi.yml",
+      "hash": "sha256:9fe021...",
+      "syncedAt": "2026-05-19T12:27:12Z",
+      "sourceUrl": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",
+      "rawUrl": "https://raw.githubusercontent.com/.../upstream/openai/official/openapi.yml",
+      "cdnUrl": "https://cdn.jsdelivr.net/gh/.../upstream/openai/official/openapi.yml"
+    },
+    "anthropic/bedrock": {
+      "kind": "overlay",
+      "base": "avs://anthropic/official",
+      "uri": "avs://anthropic/bedrock",
+      "overlayPath": "upstream/anthropic/bedrock/overlay.yml",
+      ...
+    }
+  }
+}
+```
+
+---
+
+## 常用操作
 
 ```bash
 npm install
-npm run sync        # 同步 Tier 1 + Tier 2（自动同步协议）
-bash scripts/validate-all.sh
+npm run sync              # 同步所有上游 + 重建 manifest.json
+npm run validate          # 校验目录结构
+npm run manifest          # 单独重建 manifest.json
+npm run resolve avs://anthropic/bedrock   # 验证 overlay 能正确 resolve
 ```
 
-### 在项目中使用
+### 添加新上游(有 spec)
+
+1. 在 `scripts/sync/` 加同步脚本(参考 `openai-official.sh`)
+2. 在 `scripts/sync-all.sh` 加调用
+3. 跑 `npm run sync` 验证
+
+### 添加新上游(只有 overlay)
+
+1. `mkdir upstream/<protocol>/<provider>`
+2. 写 `overlay.yml`(参考 `upstream/anthropic/bedrock/overlay.yml`)
+3. 写 `metadata.json`(`kind: overlay`,声明 `base`)
+4. 跑 `npm run resolve avs://<protocol>/<provider>` 验证能合成完整 spec
+5. `npm run manifest` 刷新顶层索引
+
+---
+
+## 消费方接入(给 aihubmix-openapi / 其他内部下游用)
+
+本仓库**不发 npm**。消费方仓库通过以下任一方式接入:
 
 ```bash
-# git submodule
-git submodule add https://github.com/your-org/proxy-specs.git vendor-specs
+# 方式 A: file: 依赖(本机开发,同级目录)
+# 在消费方 package.json 写:
+#   "dependencies": { "ai-vendor-specs": "file:../ai-vendor-specs" }
+npm install
 
-# 或 npm
-npm install proxy-specs
+# 方式 B: git submodule(CI / 不同机器)
+git submodule add git@github.com:<内部 org>/ai-vendor-specs.git ai-vendor-specs
+git submodule update --init --remote ai-vendor-specs
+
+# 方式 C: 内部 tarball
+npm pack /path/to/ai-vendor-specs       # 产出 ai-vendor-specs-1.0.0.tgz
+# 消费方仓库:npm install /path/to/ai-vendor-specs-1.0.0.tgz
 ```
 
-```javascript
-const yaml = require('js-yaml');
-const fs = require('fs');
+接入后代码侧调用 resolver:
 
-const spec = yaml.load(
-  fs.readFileSync('vendor-specs/openai/official/openapi.yml', 'utf8')
+```js
+const { loadSpec, applyOverlay } = require('ai-vendor-specs');
+
+// 加载任意上游 spec(overlay 自动 resolve)
+const bedrockSpec = loadSpec('avs://anthropic/bedrock');
+
+// 加载具体 schema
+const cacheControl = loadSpec(
+  'avs://anthropic/official#/components/schemas/CacheControlEphemeral'
 );
 
-// 读取 chat 请求 schema
-const requestSchema = spec.components.schemas.CreateChatCompletionRequest;
-// 读取 chat 响应 schema
-const responseSchema = spec.components.schemas.CreateChatCompletionResponse;
+// 应用消费方自己的 overlay
+const finalSpec = applyOverlay(bedrockSpec, myGatewayOverlay);
 ```
 
 ---
 
-## 为什么需要这个仓库
+## 相关仓库
 
-### 背景
+| 仓库 | 用途 |
+|---|---|
+| **ai-vendor-specs**(本仓库) | 上游 spec 收集 + 维护 |
+| **aihubmix-openapi** | 网关 spec 编译,产出 `openapi.json` 作为唯一真相源 |
+| **aihubmix-service** | 网关业务实现 |
 
-AI 代理服务（如 one-api）对外统一暴露 OpenAI 格式接口，内部将请求转换为各厂商原生协议后调用上游 API。适配器层的转换逻辑是**硬编码的 Go 代码**，不依赖外部规范文件——Gemini 适配器中有约 76 处硬编码转换逻辑，Cohere 适配器将 `messages[]` 转换为 `message + chat_history[]`，这些都无法从规范自动推导。
-
-但在测试和 UI 开发层面，规范文件有明确价值：
-
-### 价值 1：契约测试
-
-`openai/official/openapi.yml` 定义了 one-api 对外的接口契约。测试项目以此为标准，无需手动维护期望字段列表：
-
-```javascript
-// 从 spec 读取 required 字段，自动生成断言
-const required = spec.components.schemas.CreateChatCompletionResponse.required;
-// → ['id', 'object', 'created', 'model', 'choices']
-
-required.forEach(field => {
-  expect(oneApiResponse[field]).not.toBeUndefined();
-});
-
-// 从 spec 读取枚举值，验证合规性
-const finishReasonEnum = choiceSchema.properties.finish_reason.enum;
-expect(finishReasonEnum).toContain(response.choices[0].finish_reason);
-```
-
-### 价值 2：Schema 驱动 UI
-
-Playground 无需硬编码参数列表，直接从 spec 读取参数定义驱动表单：
-
-```javascript
-const properties = spec.components.schemas.CreateChatCompletionRequest.properties;
-
-// temperature: { type: 'number', minimum: 0, maximum: 2 }
-// → 自动渲染 Slider，范围从 spec 读取
-
-// response_format.type: { enum: ['text', 'json_object', 'json_schema'] }
-// → 自动渲染 Select，选项从 spec 读取
-```
-
-OpenAI 新增参数（如 `reasoning_effort`）→ spec 每日自动更新 → Playground 下次构建自动出现新控件。
-
-### 价值 3：API 变更感知
-
-`metadata.json` 中的 `hash` 字段记录每次 sync 后规范文件的 sha256。CI 检测到 hash 变化时触发通知，团队可 review OpenAI 的接口变更，决定是否需要更新测试或业务逻辑。
+详见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)。
 
 ---
 
-## 分层说明
+## License
 
-- **Tier 1**（openai/official, openai/azure, cohere/official）：厂商提供完整 OpenAPI 规范，直接下载，完全自动同步
-- **Tier 2**（gemini/official, vertex/official）：厂商使用 Google Discovery 格式，Discovery JSON 即原生规范，直接存储，自动同步
-- **Tier 3**（anthropic/official, anthropic/bedrock）：无机器可读规范源，依据官方文档手动编写，`autoSync: false`
-
----
-
-## 文档
-
-- [架构设计](./docs/ARCHITECTURE.md) — 目录结构、分层设计、同步流程、与 one-api 的关系
-- [使用指南](./docs/USAGE.md) — 集成方式、加载规范、典型场景代码示例
-- [规范来源](./docs/SOURCES.md) — 各协议规范的官方来源地址和同步方法
-
----
-
-## 许可证
-
-MIT
+Internal use only(UNLICENSED)。如未来开放给公网,需另行评估并补 LICENSE 文件。

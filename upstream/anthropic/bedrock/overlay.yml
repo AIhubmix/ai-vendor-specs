@@ -1,0 +1,88 @@
+# upstream/anthropic/bedrock overlay
+#
+# bedrock 的请求体与 anthropic/official 几乎完全相同,只在 envelope (URL/认证/版本字段) 上不同。
+# 本文件声明式记录差异,resolver 在消费方 build 时把 base + 此 overlay 合成完整 spec。
+#
+# 引用语法:avs://<protocol>/<provider>[#<JSON-Pointer>]
+# Resolver 实现见 scripts/overlay/apply.js
+#
+# 参考:
+# - https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html
+# - https://docs.anthropic.com/en/api/claude-on-amazon-bedrock
+
+base: avs://anthropic/official
+
+info:
+  title: Anthropic Claude on AWS Bedrock
+  version: bedrock-2023-05-31
+  description: |
+    AWS Bedrock 调用 Claude 的 spec,从 anthropic/official 派生。
+    请求体共用 Anthropic Messages 格式,仅 envelope 不同。
+
+servers:
+  - url: https://bedrock-runtime.{region}.amazonaws.com
+    variables:
+      region:
+        default: us-east-1
+        description: AWS region (us-east-1, us-west-2, eu-west-1, ...)
+
+# 路径映射:用 Bedrock 的 path 替换 Anthropic 直连的 path
+pathRewrites:
+  - from: /v1/messages
+    to: /model/{modelId}/invoke
+    pathParameters:
+      - name: modelId
+        in: path
+        required: true
+        description: |
+          Bedrock model ID,例如:
+          - anthropic.claude-3-5-sonnet-20241022-v2:0
+          - us.anthropic.claude-sonnet-4-20250514-v1:0
+        schema:
+          type: string
+  # 流式调用单独走一个端点(Anthropic 直连用同一路径 + stream:true)
+  - from: /v1/messages
+    to: /model/{modelId}/invoke-with-response-stream
+    when: { body.stream: true }
+    responseContentType: application/vnd.amazon.eventstream
+
+# 仅保留 Bedrock 支持的端点,其它(/v1/complete、/v1/messages/batches、/v1/models 等)删除
+pathsKeep:
+  - /v1/messages
+
+# 请求体字段差异
+requestBodyOverrides:
+  CreateMessageParams:
+    drop:
+      - model                  # Bedrock 把 model 放到 URL path
+    add:
+      anthropic_version:
+        type: string
+        enum: [bedrock-2023-05-31]
+        description: 必须为 "bedrock-2023-05-31",替代 Anthropic 直连的 anthropic-version header
+        required: true
+
+# 认证差异
+security:
+  drop: [x-api-key]            # 移除 Anthropic 直连的 header 鉴权
+  add:
+    awsSigV4:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        AWS Signature Version 4。由 AWS SDK 计算的 headers:
+        Authorization, X-Amz-Date, X-Amz-Security-Token (使用 STS 时)。
+        Service: bedrock, Action: bedrock:InvokeModel
+
+# Header 差异:移除 Anthropic 直连专用的 headers
+parametersDrop:
+  - anthropic-version          # 已搬到 body 的 anthropic_version
+  - anthropic-beta             # Bedrock 暂不支持(若 AWS 后续支持需移除此项)
+
+# 响应差异说明(不改 schema,仅备注)
+notes:
+  - Bedrock 把 InvokeModel 的响应包了一层(Body 字段),但 AWS SDK 自动解包,
+    暴露给调用方的就是 Anthropic 的原始响应体,因此 schema 与 official 一致
+  - 流式响应用 application/vnd.amazon.eventstream(AWS EventStream),
+    SDK 会把它转成与 Anthropic SSE 等价的事件流

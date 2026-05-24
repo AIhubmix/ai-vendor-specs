@@ -10,7 +10,7 @@ GITHUB_URL="https://raw.githubusercontent.com/googleapis/discovery-artifact-mana
 FALLBACK_URL='https://aiplatform.googleapis.com/$discovery/rest?version=v1'
 PROTOCOL="vertex"
 PROVIDER="official"
-OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
+OUTPUT_DIR="upstream/${PROTOCOL}/${PROVIDER}"
 
 mkdir -p "$OUTPUT_DIR"
 

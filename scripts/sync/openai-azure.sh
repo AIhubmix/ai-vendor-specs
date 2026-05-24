@@ -8,7 +8,7 @@ echo "🔄 同步 Azure OpenAI 规范..."
 SPEC_URL="https://raw.githubusercontent.com/Azure/azure-rest-api-specs/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable/2024-10-21/inference.json"
 PROTOCOL="openai"
 PROVIDER="azure"
-OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
+OUTPUT_DIR="upstream/${PROTOCOL}/${PROVIDER}"
 
 mkdir -p "$OUTPUT_DIR"
 

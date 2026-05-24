@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "groq",
+  "displayName": "Groq (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/groq/overlay.yml",
+  "lastEdited": "2026-05-24T00:00:00Z",
+  "lastReviewed": "2026-05-24",
+  "lastReviewedDocs": [
+    "https://console.groq.com/docs/api-reference",
+    "https://console.groq.com/docs/openai"
+  ],
+  "autoSync": false,
+  "note": "Groq 不发独立 OpenAPI spec,但其 /openai/v1/* 接口与 OpenAI 完全兼容。overlay 只换 server URL,其它复用 openai/official。实际字段支持差异由网关业务层处理。"
+}

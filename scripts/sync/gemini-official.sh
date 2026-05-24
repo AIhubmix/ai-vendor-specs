@@ -8,7 +8,7 @@ echo "🔄 同步 Google Gemini 规范..."
 SPEC_URL='https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta'
 PROTOCOL="gemini"
 PROVIDER="official"
-OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
+OUTPUT_DIR="upstream/${PROTOCOL}/${PROVIDER}"
 
 mkdir -p "$OUTPUT_DIR"
 

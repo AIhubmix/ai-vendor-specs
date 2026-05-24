@@ -1,0 +1,17 @@
+{
+  "protocol": "anthropic",
+  "provider": "bedrock",
+  "displayName": "Anthropic Claude on AWS Bedrock",
+  "version": "bedrock-2023-05-31",
+  "kind": "overlay",
+  "base": "avs://anthropic/official",
+  "overlayPath": "upstream/anthropic/bedrock/overlay.yml",
+  "lastEdited": "2026-05-24T00:00:00Z",
+  "lastReviewed": "2026-05-24",
+  "lastReviewedDocs": [
+    "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html",
+    "https://docs.anthropic.com/en/api/claude-on-amazon-bedrock"
+  ],
+  "autoSync": false,
+  "note": "AWS 不发布与 anthropic/official 对等的 OpenAPI 文件,本目录仅存 overlay.yml 声明差异。消费方 build 时由 scripts/overlay/apply.js 合成完整 spec。lastReviewed 超过 90 天会被 check-drift 提醒人核对官方文档。"
+}

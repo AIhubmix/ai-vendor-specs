@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "deepseek",
+  "displayName": "DeepSeek (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/deepseek/overlay.yml",
+  "lastEdited": "2026-05-24T00:00:00Z",
+  "lastReviewed": "2026-05-24",
+  "lastReviewedDocs": [
+    "https://api-docs.deepseek.com/",
+    "https://api-docs.deepseek.com/api/create-chat-completion"
+  ],
+  "autoSync": false,
+  "note": "DeepSeek 自身 spec 未在 GitHub 公开发布。OpenAI-compat 子集走 overlay。R1 模型响应额外有 reasoning_content 字段,本 overlay 未在 spec 层声明,由网关业务层注意处理。"
+}

@@ -1,37 +1,35 @@
 {
-  "name": "proxy-specs",
+  "name": "ai-vendor-specs",
   "version": "1.0.0",
-  "description": "Universal AI Protocol Specifications for Proxy Services",
-  "main": "index.js",
-  "files": [
-    "openai/**/*.yml",
-    "openai/**/*.json",
-    "anthropic/**/*.yml",
-    "cohere/**/*.yml",
-    "gemini/**/*.json",
-    "vertex/**/*.json",
-    "**/metadata.json"
-  ],
+  "private": true,
+  "description": "Internal: curated upstream AI API specifications + overlay declarations. Consumed by aihubmix-openapi (and other downstreams) to compose final gateway specs. NOT published to npm.",
+  "main": "scripts/overlay/apply.js",
   "scripts": {
     "sync": "bash scripts/sync-all.sh",
-    "validate": "bash scripts/validate-all.sh"
+    "validate": "bash scripts/validate-all.sh",
+    "manifest": "node scripts/build-manifest.js",
+    "drift": "node scripts/check-drift.js",
+    "resolve": "node scripts/overlay/apply.js"
   },
   "keywords": [
     "ai",
     "openai",
-    "gemini",
+    "anthropic",
     "claude",
-    "api",
-    "specs",
+    "gemini",
+    "cohere",
+    "vertex",
+    "azure",
+    "bedrock",
     "openapi",
-    "proxy",
-    "llm"
+    "api-specs",
+    "internal"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/proxy-specs.git"
+    "url": "https://github.com/your-org/ai-vendor-specs.git"
   },
-  "license": "MIT",
+  "license": "UNLICENSED",
   "devDependencies": {
     "@apidevtools/swagger-cli": "^4.0.4",
     "js-yaml": "^4.1.0"

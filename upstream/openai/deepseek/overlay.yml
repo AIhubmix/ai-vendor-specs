@@ -1,0 +1,19 @@
+# upstream/openai/deepseek overlay
+#
+# DeepSeek 暴露 OpenAI-compatible 接口,新增 reasoning_content 字段(R1 系列响应里有)。
+# 其它 shape 复用 OpenAI 整套。
+
+base: avs://openai/official
+
+info:
+  title: DeepSeek API (OpenAI-compatible)
+  description: |
+    DeepSeek 推理服务,OpenAI 协议完全兼容。
+    DeepSeek-R1 系列响应里多一个 reasoning_content 字段(思维链),
+    需要消费方注意(spec 层未声明,因为它发生在响应消息体里,与 openai 共用 schema 时不便覆盖)。
+
+servers:
+  - url: https://api.deepseek.com/v1
+    description: DeepSeek Production
+  - url: https://api.deepseek.com
+    description: DeepSeek 简短形式(同 /v1)

@@ -8,7 +8,7 @@ echo "🔄 同步 OpenAI Official 规范..."
 SPEC_URL="https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
 PROTOCOL="openai"
 PROVIDER="official"
-OUTPUT_DIR="${PROTOCOL}/${PROVIDER}"
+OUTPUT_DIR="upstream/${PROTOCOL}/${PROVIDER}"
 
 mkdir -p "$OUTPUT_DIR"
 

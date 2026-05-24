@@ -1,0 +1,17 @@
+# upstream/openai/together overlay
+#
+# Together AI 暴露 OpenAI-compatible 接口,server URL 不同,
+# 但 chat/completions、embeddings、completions 等 shape 复用 OpenAI 整套。
+
+base: avs://openai/official
+
+info:
+  title: Together AI API (OpenAI-compatible)
+  description: |
+    Together AI 推理服务,OpenAI 协议完全兼容。
+    除了标准 OpenAI 端点,Together 还有自家专属端点(图像生成、reranking 等),
+    这些不在本 overlay 范围内 —— 仅覆盖 OpenAI-compat 子集。
+
+servers:
+  - url: https://api.together.xyz/v1
+    description: Together AI Production

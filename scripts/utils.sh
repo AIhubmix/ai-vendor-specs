@@ -7,10 +7,14 @@ download_spec() {
     local max_retries=3
 
     for i in $(seq 1 $max_retries); do
-        if curl -m 60 -sL "$url" -o "$output" 2>/dev/null; then
+        # --fail 让 4xx/5xx 返回非零;先下到临时文件,成功才覆盖原文件,避免把 404 body 写入
+        local tmp="${output}.tmp"
+        if curl -m 60 -fsSL "$url" -o "$tmp" 2>/dev/null; then
+            mv "$tmp" "$output"
             echo "✅ 下载成功"
             return 0
         fi
+        rm -f "$tmp"
         echo "⚠️  重试 $i/$max_retries..."
         sleep $((i * 2))
     done
@@ -35,7 +39,7 @@ create_metadata() {
     local auto_sync=${7:-true}
 
     local hash=$(calc_hash "$spec_file")
-    local output_dir="${protocol}/${provider}"
+    local output_dir="upstream/${protocol}/${provider}"
 
     cat > "${output_dir}/metadata.json" << EOF
 {
