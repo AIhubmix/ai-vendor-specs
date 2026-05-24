@@ -31,6 +31,54 @@ Full upstream URLs, sync methods, and version pinning details: [`docs/SOURCES.md
 
 ---
 
+## How it works
+
+ai-vendor-specs is a thin data layer with one job: keep an audit-trailed, machine-readable copy of every upstream AI provider's API truth, and expose it through a single URI scheme.
+
+```
+┌─── 12+ upstream vendors ────────────────────────────────────────┐
+│   OpenAI / Azure OpenAI / Anthropic / Cohere / Google /          │
+│   xAI / DeepSeek / Groq / Together / AWS Bedrock                 │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ daily cron sync (machine-readable spec)
+                             │ overlay declarations (no spec available)
+                             ▼
+┌─── ai-vendor-specs (this repo) ─────────────────────────────────┐
+│                                                                  │
+│   upstream/<protocol>/<provider>/                                │
+│     openapi.{yml,json} | discovery.json     ← spec  (synced)     │
+│     overlay.yml                              ← overlay (manual)  │
+│                                                                  │
+│   manifest.json   ← discovery index covering every entry         │
+│   resolver lib    ← composes base + overlay into a full spec     │
+│   drift detector  ← warns when upstream versions move            │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ npm / PyPI / submodule / raw / CDN
+                             ▼
+       ┌─────────────────────┼─────────────────────┐
+       ▼                     ▼                     ▼
+  SDK generators        Gateways / proxies     Doc sites
+  Contract tests        AI agent tools         IDE assistants
+```
+
+### What this repo does
+
+- ✅ Sync each upstream's machine-readable OpenAPI / Discovery spec daily, hash-tracked
+- ✅ Declare deltas with overlay files when the upstream has no published spec (AWS Bedrock, OpenAI-compatible providers like xAI / DeepSeek / Groq / Together)
+- ✅ Maintain a top-level `manifest.json` as a discovery entry for every consumer
+- ✅ Detect upstream drift — version moves, stale overlays, broken fetches — before it bites consumers downstream
+
+### What this repo does NOT do
+
+- ❌ Generate derived artifacts (composed specs, SDKs, contract fixtures) — those are the consumer's choice
+- ❌ Record consumer-specific or business fields — the data stays neutral upstream truth
+
+Decision rule: **"Is this a thing the upstream actually publishes?"** Yes → belongs here. No → belongs in the consumer.
+
+Architecture details (kinds, overlay syntax, metadata schema): [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+
+---
+
 ## Installation
 
 ### npm

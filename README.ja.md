@@ -31,6 +31,54 @@
 
 ---
 
+## 仕組み
+
+ai-vendor-specs は薄いデータ層に徹しています。各 AI プロバイダーの API 真実(machine-readable, 監査可能)を 1 箇所に保ち、統一 URI スキームで配信することだけが仕事です。
+
+```
+┌─── 12+ 個の上流プロバイダー ──────────────────────────────────┐
+│   OpenAI / Azure OpenAI / Anthropic / Cohere / Google /        │
+│   xAI / DeepSeek / Groq / Together / AWS Bedrock               │
+└────────────────────────────┬──────────────────────────────────┘
+                             │ 毎日 cron で同期(機械可読仕様)
+                             │ overlay で差分宣言(仕様なしの場合)
+                             ▼
+┌─── ai-vendor-specs(このリポジトリ)─────────────────────────────┐
+│                                                                │
+│   upstream/<protocol>/<provider>/                              │
+│     openapi.{yml,json} | discovery.json     ← spec(自動同期)  │
+│     overlay.yml                              ← overlay(手動)  │
+│                                                                │
+│   manifest.json   ← すべてのエントリーへのディスカバリー入口    │
+│   resolver lib    ← base + overlay を完全な spec に合成         │
+│   drift detector  ← 上流変更 / overlay 期限切れ / 同期失敗を警告│
+└────────────────────────────┬──────────────────────────────────┘
+                             │ npm / PyPI / submodule / raw / CDN
+                             ▼
+       ┌─────────────────────┼─────────────────────┐
+       ▼                     ▼                     ▼
+  SDK ジェネレーター      ゲートウェイ / proxy   ドキュメントサイト
+  契約テスト              AI エージェント        IDE 補完
+```
+
+### このリポジトリがやること
+
+- ✅ 各上流プロバイダーの機械可読 OpenAPI / Discovery 仕様を毎日同期、ハッシュ追跡
+- ✅ 機械可読仕様を公開していない上流(AWS Bedrock、OpenAI 互換の xAI / DeepSeek / Groq / Together など)については overlay ファイルで差分を宣言
+- ✅ トップレベル `manifest.json` を全利用者向けディスカバリー入口として維持
+- ✅ ドリフト検知 — バージョン変動、overlay の期限切れ、同期失敗 — を下流に届く前に警告
+
+### このリポジトリが**やらない**こと
+
+- ❌ 派生物(合成済み spec、SDK、契約 fixture)の生成 — 利用者側の選択に委ねる
+- ❌ 利用者固有のビジネスフィールドの記録 — 上流真実を中立に保つ
+
+判断基準:**「これは上流が実際に公開しているものか?」** はい → ここ。いいえ → 利用者側。
+
+アーキテクチャの詳細(種別、overlay 構文、metadata スキーマ)は [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) を参照してください。
+
+---
+
 ## インストール
 
 ### npm

@@ -27,7 +27,55 @@
 | gemini | official | spec | Google Discovery(`generativelanguage.googleapis.com`) |
 | vertex | official | spec | Google Discovery(`aiplatform.googleapis.com`) |
 
-完整上游 URL、同步方式和版本钉死细节见 [`docs/SOURCES.md`](./docs/SOURCES.md)。
+完整上游 URL、同步方式和版本钉死细节见 [`docs/SOURCES.md`](./docs/SOURCES.zh-CN.md)。
+
+---
+
+## 工作机制
+
+ai-vendor-specs 是一层薄薄的数据层,职责单一:保存每个上游 AI 厂商 API 真相的机器可读拷贝(可审计、可追溯),用统一的 URI 协议对外暴露。
+
+```
+┌─── 12+ 个上游厂商 ────────────────────────────────────────────┐
+│   OpenAI / Azure OpenAI / Anthropic / Cohere / Google /        │
+│   xAI / DeepSeek / Groq / Together / AWS Bedrock               │
+└────────────────────────────┬──────────────────────────────────┘
+                             │ 每日 cron 同步(机器可读 spec)
+                             │ overlay 文件声明差异(无 spec 的)
+                             ▼
+┌─── ai-vendor-specs(本仓库)────────────────────────────────────┐
+│                                                                │
+│   upstream/<protocol>/<provider>/                              │
+│     openapi.{yml,json} | discovery.json     ← spec(自动同步)  │
+│     overlay.yml                              ← overlay(手维护)│
+│                                                                │
+│   manifest.json   ← 所有条目的发现入口                          │
+│   resolver lib    ← 把 base + overlay 合成完整 spec             │
+│   drift detector  ← 上游版本变动 / overlay 过期 / 同步失败时报警│
+└────────────────────────────┬──────────────────────────────────┘
+                             │ npm / PyPI / submodule / raw / CDN
+                             ▼
+       ┌─────────────────────┼─────────────────────┐
+       ▼                     ▼                     ▼
+  SDK 生成器              网关 / proxy           文档站
+  契约测试                AI agent 工具          IDE 智能提示
+```
+
+### 这个仓库做什么
+
+- ✅ 每日自动同步每个上游的机器可读 OpenAPI / Discovery 规范,hash 跟踪
+- ✅ 对没有公开机器可读 spec 的上游(AWS Bedrock、OpenAI 兼容厂商:xAI / DeepSeek / Groq / Together 等),用 overlay 文件声明差异
+- ✅ 维护顶层 `manifest.json` 作为所有消费方的发现入口
+- ✅ 漂移检测——版本变动、overlay 过期、同步失败——在消费方踩坑前预警
+
+### 这个仓库**不**做什么
+
+- ❌ 生成派生产物(合成 spec、SDK、契约 fixture)——那是消费方自己的选择
+- ❌ 记录消费方业务字段——数据保持中性的上游真相
+
+判断口诀:**"这描述的是上游真实存在的东西吗?"** 是 → 放这里。否 → 放消费方。
+
+架构细节(kind 分类、overlay 语法、metadata schema)见 [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.zh-CN.md)。
 
 ---
 
@@ -152,9 +200,9 @@ Resolver 按以下顺序定位数据根目录:
 
 | 文档 | 读者 | 内容 |
 |---|---|---|
-| [架构设计](./docs/ARCHITECTURE.md) | 所有人 | 设计、kind 分类、metadata schema、overlay 语法 |
-| [使用指南](./docs/USAGE.md) | 消费方 | 接入方式、典型场景 |
-| [上游来源](./docs/SOURCES.md) | 审计者 | 各厂商上游 URL 和同步方式 |
+| [架构设计](./docs/ARCHITECTURE.zh-CN.md) | 所有人 | 设计、kind 分类、metadata schema、overlay 语法 |
+| [使用指南](./docs/USAGE.zh-CN.md) | 消费方 | 接入方式、典型场景 |
+| [上游来源](./docs/SOURCES.zh-CN.md) | 审计者 | 各厂商上游 URL 和同步方式 |
 | [贡献指南](./CONTRIBUTING.md) | 贡献者 | 加新厂商、本地开发、drift、webhook |
 
 ---
