@@ -14,6 +14,9 @@ node_modules/
 # Generated drift reports
 .drift-report.md
 
+# Generated doc site (built by scripts/build-site.js, deployed via Pages)
+site/
+
 # Local-only config (webhook URLs, internal endpoints — see docs/INTERNAL.md)
 config.local.*
 *.local.yml
