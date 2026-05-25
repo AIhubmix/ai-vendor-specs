@@ -1,4 +1,5 @@
 {
+  "version_module": true,
   "parameters": {
     "access_token": {
       "type": "string",
@@ -76,23 +77,16 @@
       "location": "query"
     }
   },
-  "auth": {
-    "oauth2": {
-      "scopes": {
-        "https://www.googleapis.com/auth/devstorage.read_only": {
-          "description": "View your data in Google Cloud Storage"
-        }
-      }
-    }
-  },
-  "protocol": "rest",
-  "discoveryVersion": "v1",
+  "ownerDomain": "google.com",
+  "baseUrl": "https://generativelanguage.googleapis.com/",
   "canonicalName": "Generative Language",
   "version": "v1beta",
-  "kind": "discovery#restDescription",
-  "documentationLink": "https://developers.generativeai.google/api",
-  "rootUrl": "https://generativelanguage.googleapis.com/",
-  "servicePath": "",
+  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
+  "title": "Gemini API",
+  "icons": {
+    "x16": "http://www.google.com/images/icons/product/search-16.gif",
+    "x32": "http://www.google.com/images/icons/product/search-32.gif"
+  },
   "schemas": {
     "ListOperationsResponse": {
       "id": "ListOperationsResponse",
@@ -5610,14 +5604,24 @@
       }
     }
   },
-  "icons": {
-    "x16": "http://www.google.com/images/icons/product/search-16.gif",
-    "x32": "http://www.google.com/images/icons/product/search-32.gif"
-  },
-  "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/",
-  "batchPath": "batch",
-  "ownerDomain": "google.com",
+  "ownerName": "Google",
+  "protocol": "rest",
+  "fullyEncodeReservedExpansion": true,
   "revision": "20260522",
+  "basePath": "",
+  "batchPath": "batch",
+  "documentationLink": "https://developers.generativeai.google/api",
+  "rootUrl": "https://generativelanguage.googleapis.com/",
+  "id": "generativelanguage:v1beta",
+  "auth": {
+    "oauth2": {
+      "scopes": {
+        "https://www.googleapis.com/auth/devstorage.read_only": {
+          "description": "View your data in Google Cloud Storage"
+        }
+      }
+    }
+  },
   "name": "generativelanguage",
   "resources": {
     "batches": {
@@ -7754,12 +7758,8 @@
       }
     }
   },
-  "title": "Gemini API",
-  "version_module": true,
-  "id": "generativelanguage:v1beta",
-  "baseUrl": "https://generativelanguage.googleapis.com/",
-  "description": "The Gemini API allows developers to build generative AI applications using Gemini models. Gemini is our most capable model, built from the ground up to be multimodal. It can generalize and seamlessly understand, operate across, and combine different types of information including language, images, audio, video, and code. You can use the Gemini API for use cases like reasoning across text and images, content generation, dialogue agents, summarization and classification systems, and more.",
-  "ownerName": "Google",
-  "basePath": "",
-  "fullyEncodeReservedExpansion": true
+  "discoveryVersion": "v1",
+  "servicePath": "",
+  "kind": "discovery#restDescription",
+  "mtlsRootUrl": "https://generativelanguage.mtls.googleapis.com/"
 }
