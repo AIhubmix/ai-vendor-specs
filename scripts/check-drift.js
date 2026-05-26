@@ -20,6 +20,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { execSync } = require('child_process');
 const { loadSpec } = require('./overlay/apply');
 const { notify } = require('./notify');
 
@@ -283,36 +284,64 @@ async function main() {
       console.log(`  ${r.level === 'error' ? '❌' : '⚠️'} ${r.entry}: ${r.message}`);
     });
     console.log();
-
-    // ── webhook 通知:仅在有 warn/error 时发,绿色日不打扰 ──────────────
-    const today = new Date().toISOString().slice(0, 10);
-    const statusIcon = counts.error ? '🔴' : '🟡';
-    const msgLines = [
-      `# ${statusIcon} ai-vendor-specs drift`,
-      `**${today}** · ❌ ${counts.error} / ⚠️ ${counts.warn} / ✅ ${counts.ok}`,
-      '',
-    ];
-    if (buckets.error.length) {
-      msgLines.push('## ❌ 错误', '');
-      for (const r of buckets.error) {
-        msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
-      }
-      msgLines.push('');
-    }
-    if (buckets.warn.length) {
-      msgLines.push('## ⚠️ 提醒', '');
-      for (const r of buckets.warn) {
-        msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
-      }
-      msgLines.push('');
-    }
-    msgLines.push('详情: https://github.com/AIhubmix/ai-vendor-specs/blob/main/.drift-report.md');
-
-    const result = await notify(msgLines.join('\n'));
-    if (result.sent) console.log('📤 webhook 已通知');
-    else if (process.env.AVS_WEBHOOK_URL) console.log(`📭 webhook 失败: ${result.reason}`);
-    // 没配 URL 时静默,不打 log
   }
+
+  // ── 收集本次 sync 即将提交的文件变化(drift 跑在 commit 步之前) ─────
+  // 用于绿色日给 webhook 一点"这次到底改没改"的信号
+  let changedFiles = [];
+  try {
+    const diff = execSync('git diff --name-only', { cwd: ROOT, encoding: 'utf8' });
+    changedFiles = diff.split('\n').map(s => s.trim()).filter(Boolean);
+  } catch {
+    // git 不可用(本地手跑或 CI 沙箱异常),不阻塞
+  }
+
+  // ── webhook 通知:每次 sync 都发,无论是否有变化 ───────────────────
+  const today = new Date().toISOString().slice(0, 10);
+  const statusIcon = counts.error ? '🔴' : counts.warn ? '🟡' : '🟢';
+  const msgLines = [
+    `# ${statusIcon} ai-vendor-specs sync`,
+    `**${today}** · ❌ ${counts.error} / ⚠️ ${counts.warn} / ✅ ${counts.ok}`,
+    '',
+  ];
+  if (buckets.error.length) {
+    msgLines.push('## ❌ 错误', '');
+    for (const r of buckets.error) {
+      msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
+    }
+    msgLines.push('');
+  }
+  if (buckets.warn.length) {
+    msgLines.push('## ⚠️ 提醒', '');
+    for (const r of buckets.warn) {
+      msgLines.push(`- \`${r.entry}\` (${sectionLabel[r.section]}): ${r.message}`);
+    }
+    msgLines.push('');
+  }
+  if (changedFiles.length) {
+    // 折成 provider 维度,避免把 30+ 行原始路径糊到 IM 里
+    const providers = new Set();
+    for (const f of changedFiles) {
+      const m = f.match(/^upstream\/([^/]+)\/([^/]+)\//);
+      if (m) providers.add(`${m[1]}/${m[2]}`);
+    }
+    msgLines.push(`## 📦 本次变化(${changedFiles.length} 文件)`, '');
+    if (providers.size) {
+      msgLines.push(`涉及: ${[...providers].sort().map(p => `\`${p}\``).join(' · ')}`);
+    } else {
+      msgLines.push(changedFiles.slice(0, 10).map(f => `- \`${f}\``).join('\n'));
+      if (changedFiles.length > 10) msgLines.push(`- ...(还有 ${changedFiles.length - 10} 个)`);
+    }
+    msgLines.push('');
+  } else {
+    msgLines.push('_本次 sync 无文件变化_', '');
+  }
+  msgLines.push('详情: https://github.com/AIhubmix/ai-vendor-specs/blob/main/.drift-report.md');
+
+  const result = await notify(msgLines.join('\n'));
+  if (result.sent) console.log('📤 webhook 已通知');
+  else if (process.env.AVS_WEBHOOK_URL) console.log(`📭 webhook 失败: ${result.reason}`);
+  // 没配 URL 时静默,不打 log
 }
 
 if (require.main === module) {
