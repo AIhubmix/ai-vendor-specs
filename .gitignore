@@ -21,3 +21,4 @@ site/
 config.local.*
 *.local.yml
 *.local.json
+.gstack/
