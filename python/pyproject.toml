@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-vendor-specs"
-version = "0.1.0"
+version = "0.1.1"
 description = "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection."
 readme = "README.md"
 requires-python = ">=3.9"
