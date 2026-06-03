@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "stepfun",
+  "displayName": "StepFun (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/stepfun/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://platform.stepfun.com/docs/zh/api-reference/chat/chat-completion-create.md",
+    "https://platform.stepfun.com/docs/llms.txt"
+  ],
+  "autoSync": false,
+  "note": "阶跃星辰 StepFun,OpenAI-compatible。base 证书 *.stepfun.com(DigiCert),Volcengine WAF。文档站只有 Mintlify Plant Store 样板 openapi(假阳性),无真实规范 → overlay;但有 agent 可读 .md/llms.txt。扩展 enable_thinking/reasoning_effort、响应 reasoning_content。.com 国内 / .ai 国际。"
+}

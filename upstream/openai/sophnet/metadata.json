@@ -1,0 +1,15 @@
+{
+  "protocol": "openai",
+  "provider": "sophnet",
+  "displayName": "SophNet (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/sophnet/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://www.sophnet.com/docs/component/API.html"
+  ],
+  "autoSync": false,
+  "note": "SophNet 云算力平台,OpenAI-compatible(base /api/open-apis/v1,非裸 /v1)。base 证书 *.sophnet.com(DigiCert),自有文档站 + 真实 /models JSON,确认为真实第一方平台(无官方 GitHub org,但非必需)。TODO:补 ICP/beian 备案主体到本 note。扩展:enable_thinking/reasoning_effort、响应 reasoning_content/refs。另有 Anthropic 兼容端点。"
+}

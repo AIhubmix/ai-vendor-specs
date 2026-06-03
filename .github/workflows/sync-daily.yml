@@ -3,7 +3,12 @@ name: Sync Specs Daily
 on:
   schedule:
     - cron: '30 11 * * *'  # 每天 UTC 11:30 (北京时间 19:30)
-  workflow_dispatch:      # 手动触发
+  workflow_dispatch:        # 手动触发
+    inputs:
+      dry_run:
+        description: '演练发版分支:计算版本+digest 但不 npm version / 不打 tag / 不发布'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -37,10 +42,34 @@ jobs:
           AVS_WEBHOOK_TYPE: ${{ secrets.AVS_WEBHOOK_TYPE }}
         run: npm run drift
 
+      # ── 语义发版判定(必须在 commit 之前:HEAD 仍指向上次 sync 的 spec) ──────────
+      - name: Install oasdiff
+        run: |
+          curl -fsSL -o /tmp/oasdiff.tar.gz \
+            https://github.com/oasdiff/oasdiff/releases/download/v1.15.3/oasdiff_1.15.3_linux_amd64.tar.gz
+          tar -xzf /tmp/oasdiff.tar.gz -C /tmp oasdiff
+          sudo mv /tmp/oasdiff /usr/local/bin/oasdiff
+          oasdiff --version
+
+      - name: Detect semantic release
+        id: detect
+        run: npm run detect-release
+
       - name: Check changes
         id: changes
         run: |
           git diff --quiet || echo "changed=true" >> $GITHUB_OUTPUT
+
+      # ── 每日「改动内容」推送(必须在 commit 之前:HEAD 仍指向上次 sync 的 spec) ──
+      # 列出今天新增/更新/移除的每个 provider(spec hash 变化、overlay 人工更新等),
+      # 不限于发版日。无变更默认不推(设 secret AVS_REPORT_HEARTBEAT=1 可推心跳)。
+      - name: Notify daily changes
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          AVS_WEBHOOK_URL: ${{ secrets.AVS_WEBHOOK_URL }}
+          AVS_WEBHOOK_TYPE: ${{ secrets.AVS_WEBHOOK_TYPE }}
+          AVS_REPORT_HEARTBEAT: ${{ secrets.AVS_REPORT_HEARTBEAT }}
+        run: npm run report
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
@@ -51,6 +80,29 @@ jobs:
           git commit -m "chore: auto-sync specs $(date +%Y-%m-%d)"
           git push
 
-      # NOTE: Daily sync no longer auto-bumps the package version. Releases are
-      # cut explicitly by the maintainer via `git tag v0.x.y && git push --tags`
-      # or by running .github/workflows/publish-npm.yml manually.
+      # ── 真实语义变更 → 自动定版本号(纯日期)+ 打 tag + push → 触发 publish-npm.yml ──
+      - name: Bump version, tag and push
+        if: steps.detect.outputs.release == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          npm version "${{ steps.detect.outputs.version }}" \
+            -m "chore(release): v%s [auto] ${{ steps.detect.outputs.digest }}"
+          git push --follow-tags
+
+      - name: Dry-run (release branch preview only)
+        if: steps.detect.outputs.release == 'true' && github.event.inputs.dry_run == 'true'
+        run: |
+          echo "DRY RUN — 将发布版本: v${{ steps.detect.outputs.version }}"
+          echo "digest: ${{ steps.detect.outputs.digest }}"
+          echo "(未执行 npm version / tag / push)"
+
+      - name: Notify release
+        if: steps.detect.outputs.release == 'true' && github.event.inputs.dry_run != 'true'
+        env:
+          AVS_WEBHOOK_URL: ${{ secrets.AVS_WEBHOOK_URL }}
+          AVS_WEBHOOK_TYPE: ${{ secrets.AVS_WEBHOOK_TYPE }}
+        run: node scripts/notify.js "$(cat .release-notes.md)"
+
+      # NOTE: 真实语义变更才发版(纯日期 1.YYYYMMDD.patch)。无变更日仅 commit 存档,不 bump。
+      # 发布执行器仍是 publish-npm.yml(由上面 push 的 v* tag 触发)。

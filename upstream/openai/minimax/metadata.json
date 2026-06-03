@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "minimax",
+  "displayName": "MiniMax (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/minimax/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://platform.minimaxi.com/docs/api-reference/text-chat-openai.md",
+    "https://platform.minimaxi.com/docs/api-reference/text/api/openapi-chat-openai.json"
+  ],
+  "autoSync": false,
+  "note": "MiniMax(海螺),OpenAI-compatible /chat/completions。base 证书 *.minimaxi.com(WoTrus)。无统一发布规范(仅端点级 OpenAPI 片段 openapi-chat-openai.json,OAS3.1;若日后补全可升级 spec)→ overlay。扩展 reasoning_split/thinking;⚠️ 拒绝 developer 角色;另有 native/anthropic 模式。.minimaxi.com 国内 / .minimax.io 国际。"
+}

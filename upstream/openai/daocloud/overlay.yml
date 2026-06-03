@@ -1,0 +1,25 @@
+# upstream/openai/daocloud overlay
+#
+# DaoCloud d.run 模型网关,共享公共面 chat.d.run/v1 提供 OpenAI-compatible /chat/completions
+#(底层 vLLM)。基础 shape 复用 openai/official,扩展见下。
+#
+# 来源核验:docs.daocloud.io/en/hydra/api-call(2026-06-03);base 证书 *.d.run(Sectigo)
+# ⚠️ sh-02.d.run 为「自部署区域端点」且其 TLS 证书已过期(2026-05-26),不作默认 base;
+#    共享公共面用 chat.d.run。
+#
+# === 差异 ===
+# - model 用租户命名空间格式 u-xxxx/name(非裸模型 ID)
+
+base: avs://openai/official
+
+info:
+  title: DaoCloud d.run (OpenAI-compatible)
+  description: |
+    DaoCloud d.run 模型网关(底层 vLLM),OpenAI 协议兼容 /chat/completions。
+    model 用租户命名空间 u-xxxx/name 格式,详见顶部注释。
+    权威来源:https://docs.daocloud.io/en/hydra/api-call/
+
+servers:
+  - url: https://chat.d.run/v1
+    description: d.run 共享公共面(OpenAI-compatible)
+  # - url: https://<region>.d.run/v1   # 自部署区域端点(如 sh-02);按需启用

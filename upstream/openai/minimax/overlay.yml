@@ -1,0 +1,30 @@
+# upstream/openai/minimax overlay
+#
+# MiniMax(海螺),/v1/chat/completions 提供 OpenAI-compatible 端点。
+# 另有原生 /v1/text/chatcompletion_v2 与 Anthropic 兼容 /anthropic/v1/messages(官方推荐后者取全功能)。
+# 基础 shape 复用 openai/official,扩展见下。
+#
+# 来源核验:platform.minimaxi.com/docs(2026-06-03);base 证书 *.minimaxi.com
+#
+# === 请求扩展(非 OpenAI 标准,经 extra_body)===
+# - reasoning_split          把思考拆到 reasoning_details
+# - thinking                 {"type": "disabled" | "adaptive"}
+#
+# === 兼容性差异 ===
+# - ⚠️ 拒绝 OpenAI 的 developer 角色(报 invalid role: developer 2013),消费方需 developer→system
+# - 原生模型会在 content 内嵌 <think>...</think>,多轮 function-call 历史须保留
+
+base: avs://openai/official
+
+info:
+  title: MiniMax (OpenAI-compatible)
+  description: |
+    MiniMax(海螺)推理服务,OpenAI 协议兼容 /chat/completions。
+    另有原生 chatcompletion_v2 与 Anthropic 兼容端点。扩展 reasoning_split / thinking 详见顶部注释。
+    注意:不支持 developer 角色。权威来源:https://platform.minimaxi.com/docs
+
+servers:
+  - url: https://api.minimaxi.com/v1
+    description: MiniMax 国内
+  - url: https://api.minimax.io/v1
+    description: MiniMax 国际

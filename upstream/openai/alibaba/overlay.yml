@@ -1,0 +1,32 @@
+# upstream/openai/alibaba overlay
+#
+# 阿里云 百炼 Model Studio / DashScope(通义千问 Qwen),compatible-mode 路由提供
+# OpenAI-compatible /chat/completions。基础 shape 复用 openai/official,扩展见下。
+#
+# 来源核验:alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope
+#          (2026-06-03);base 证书 O=Alibaba (China) Technology Co., Ltd.
+#
+# === 请求扩展(非 OpenAI 标准,均经 extra_body)===
+# - enable_thinking          Qwen3 混合思考开关(对专用思考模型无效)
+# - thinking_budget          思考 token 上限
+#
+# === 响应扩展(非 OpenAI 标准)===
+# - choices[].message.reasoning_content   思维链,与 content 分离
+#
+# 说明:部分开源 Qwen3/QwQ/QVQ/Qwen-Omni 仅支持流式;错误的 extra_body 语法(如 vLLM 风格
+# chat_template_kwargs)会被静默忽略,须用顶层 extra_body。
+
+base: avs://openai/official
+
+info:
+  title: Alibaba Cloud DashScope / Qwen (OpenAI-compatible)
+  description: |
+    阿里云百炼 Model Studio / DashScope(通义千问 Qwen),OpenAI 协议兼容 compatible-mode/v1。
+    扩展 enable_thinking / thinking_budget / reasoning_content 详见顶部注释。
+    权威来源:https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope
+
+servers:
+  - url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    description: 国内(北京)
+  - url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    description: 国际(新加坡)

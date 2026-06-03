@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "baichuan",
+  "displayName": "Baichuan (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/baichuan/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://platform.baichuan-ai.com/docs/api"
+  ],
+  "reviewMode": "browser",
+  "autoSync": false,
+  "note": "百川智能 Baichuan,OpenAI-compatible。base 证书 O=北京百川智能科技有限公司,*.baichuan-ai.com(DNSPod OV),端点 live(api_key_empty 错误)。无公开规范且文档为纯 SPA 壳(curl 不可读)→ overlay;reviewMode=browser,90 天复核需无头浏览器。差异主要是模型枚举。"
+}

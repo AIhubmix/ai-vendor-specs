@@ -1,0 +1,24 @@
+# upstream/openai/baichuan overlay
+#
+# 百川智能 Baichuan,提供 OpenAI-compatible /chat/completions(Bearer 鉴权)。
+# 基础 shape 复用 openai/official,无显著非标扩展;差异主要是模型枚举。
+#
+# 来源核验:platform.baichuan-ai.com/docs/api(2026-06-03);base 证书 O=北京百川智能
+# ⚠️ 文档为纯 SPA 壳(curl 不可读,reviewMode=browser),90 天复核需无头浏览器。
+#
+# === 模型枚举(参考)===
+# Baichuan4 / Baichuan3-Turbo / Baichuan3-Turbo-128k / Baichuan2-Turbo /
+# 医疗模型 Baichuan-M2-Plus / Baichuan-M3-Plus 等(随官网更新)
+
+base: avs://openai/official
+
+info:
+  title: Baichuan (OpenAI-compatible)
+  description: |
+    百川智能 Baichuan 推理服务,OpenAI 协议兼容 /chat/completions(Bearer 鉴权)。
+    主要差异为模型枚举,详见顶部注释。
+    权威来源:https://platform.baichuan-ai.com/docs/api
+
+servers:
+  - url: https://api.baichuan-ai.com/v1
+    description: Baichuan Production (OpenAI-compatible)

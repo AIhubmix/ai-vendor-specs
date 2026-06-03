@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "nvidia",
+  "displayName": "NVIDIA NIM (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/nvidia/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html",
+    "https://docs.api.nvidia.com/nim/reference/llm-apis"
+  ],
+  "autoSync": false,
+  "note": "NVIDIA NIM 托管聚合 integrate.api.nvidia.com,OpenAI-compatible。base 证书 CN=integrate.api.nvidia.com(Amazon),AWS Global Accelerator。聚合面不发布 spec(openapi 仅自部署容器运行时,随模型/版本漂移)→ overlay。鉴权 nvapi- key;扩展 nvext 引导解码(extra_body)。文档 agent 可读(Sphinx)。"
+}

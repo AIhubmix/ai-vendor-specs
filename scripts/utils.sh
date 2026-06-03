@@ -29,6 +29,8 @@ calc_hash() {
 }
 
 # 创建元数据
+# 位参 8/9 可选:sourceAuthority(production-host|official-docs|official-sdk-stats)
+# 与 authorityNote(中文权威性证据)。不传则不输出该两字段,向后兼容旧脚本。
 create_metadata() {
     local protocol=$1
     local provider=$2
@@ -37,9 +39,19 @@ create_metadata() {
     local source_url=$5
     local spec_file=$6
     local auto_sync=${7:-true}
+    local source_authority=${8:-}
+    local authority_note=${9:-}
 
     local hash=$(calc_hash "$spec_file")
     local output_dir="upstream/${protocol}/${provider}"
+
+    # 可选权威性字段(置于 hash 与 autoSync 之间,保持 JSON 合法)
+    local authority_block=""
+    if [ -n "$source_authority" ]; then
+        authority_block="  \"sourceAuthority\": \"$source_authority\",
+  \"authorityNote\": \"$authority_note\",
+"
+    fi
 
     cat > "${output_dir}/metadata.json" << EOF
 {
@@ -51,7 +63,7 @@ create_metadata() {
   "source": "$source_url",
   "lastSynced": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "hash": "sha256:$hash",
-  "autoSync": $auto_sync
+${authority_block}  "autoSync": $auto_sync
 }
 EOF
 }

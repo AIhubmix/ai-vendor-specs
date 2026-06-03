@@ -28,6 +28,28 @@
 | cohere | official | spec | [cohere-ai/cohere-developer-experience](https://github.com/cohere-ai/cohere-developer-experience) |
 | gemini | official | spec | [Google AI Discovery](https://ai.google.dev/api/rest)(`generativelanguage.googleapis.com`) |
 | vertex | official | spec | [Google Cloud Discovery](https://cloud.google.com/vertex-ai/docs/reference/rest)(`aiplatform.googleapis.com`) |
+| openai | cerebras | spec | [cerebras-cloud-sdk-python `.stats.yml`](https://github.com/Cerebras/cerebras-cloud-sdk-python/blob/main/.stats.yml) → Stainless |
+| openai | deepinfra | spec | [api.deepinfra.com/openapi.json](https://api.deepinfra.com/openapi.json) |
+| openai | siliconflow | spec | [docs.siliconflow.cn](https://docs.siliconflow.cn/cn/api-reference/openapi.yaml)(硅基流动) |
+| openai | moonshot | spec | [platform.moonshot.cn/docs/openapi.json](https://platform.moonshot.cn/docs/openapi.json)(月之暗面 Kimi) |
+| zhipu | official | spec | [docs.z.ai/openapi.json](https://docs.z.ai/openapi.json)(Z.AI / 智谱 GLM) |
+| mistral | official | spec | [mistralai/platform-docs-public](https://github.com/mistralai/platform-docs-public/blob/main/openapi.yaml) |
+| perplexity | official | spec | [docs.perplexity.ai/openapi.json](https://docs.perplexity.ai/openapi.json) |
+| ideogram | official | spec | [developer.ideogram.ai/openapi.yaml](https://developer.ideogram.ai/openapi.yaml) |
+| jina | official | spec | [api.jina.ai/openapi.json](https://api.jina.ai/openapi.json) |
+| flux | official | spec | [api.bfl.ai/openapi.json](https://api.bfl.ai/openapi.json)(Black Forest Labs) |
+| openai | bytedance | overlay | [火山方舟 Ark](https://www.volcengine.com/docs/82379)(豆包) |
+| openai | sophnet | overlay | [SophNet](https://www.sophnet.com/docs/component/API.html) |
+| openai | baidu | overlay | [百度千帆](https://cloud.baidu.com/doc/qianfan/s/Hmh4suq26)(文心 ERNIE) |
+| openai | chutes | overlay | [Chutes](https://chutes.ai/llms-full.txt) |
+| openai | alibaba | overlay | [阿里云百炼 / 通义千问](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope) |
+| openai | yi | overlay | [零一万物 01.AI](https://platform.lingyiwanwu.com/docs) |
+| openai | stepfun | overlay | [阶跃星辰 StepFun](https://platform.stepfun.com/docs) |
+| openai | nvidia | overlay | [NVIDIA NIM](https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html) |
+| openai | minimax | overlay | [MiniMax 海螺](https://platform.minimaxi.com/docs/api-reference/text-chat-openai.md) |
+| openai | baichuan | overlay | [百川智能](https://platform.baichuan-ai.com/docs/api) |
+| openai | xiaomi | overlay | [小米 MiMo](https://platform.xiaomimimo.com/docs/en-US/api/chat/openai-api) |
+| openai | daocloud | overlay | [DaoCloud d.run](https://docs.daocloud.io/en/hydra/api-call/) |
 
 完整上游 URL、同步方式和版本钉死细节见 [`docs/SOURCES.md`](./docs/SOURCES.zh-CN.md)。
 

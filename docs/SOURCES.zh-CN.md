@@ -20,6 +20,72 @@
 | vertex | official | 2 | Discovery | 自动 | [Google Cloud Discovery](https://aiplatform.googleapis.com/$discovery/rest?version=v1) |
 | anthropic | official | 1 | OpenAPI 3.1 | 自动 | [anthropic-sdk-python `.stats.yml`](https://github.com/anthropics/anthropic-sdk-python/blob/main/.stats.yml) → Stainless GCS spec |
 | anthropic | bedrock | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [AWS Bedrock 文档](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html) |
+| openai | cerebras | 1 | OpenAPI 3.1 | 自动(`.stats.yml`→Stainless) | [cerebras-cloud-sdk-python `.stats.yml`](https://github.com/Cerebras/cerebras-cloud-sdk-python/blob/main/.stats.yml) |
+| openai | deepinfra | 1 | OpenAPI 3.1 | 自动 | [api.deepinfra.com/openapi.json](https://api.deepinfra.com/openapi.json) |
+| openai | siliconflow | 1 | OpenAPI 3.0 | 自动 | [docs.siliconflow.cn openapi.yaml](https://docs.siliconflow.cn/cn/api-reference/openapi.yaml) |
+| openai | moonshot | 1 | OpenAPI 3.1 | 自动 | [platform.moonshot.cn/docs/openapi.json](https://platform.moonshot.cn/docs/openapi.json) |
+| zhipu | official | 2 | OpenAPI 3.0 | 自动 | [docs.z.ai/openapi.json](https://docs.z.ai/openapi.json) |
+| mistral | official | 1 | OpenAPI 3.1 | 自动 | [mistralai/platform-docs-public openapi.yaml](https://github.com/mistralai/platform-docs-public/blob/main/openapi.yaml) |
+| perplexity | official | 2 | OpenAPI 3.1 | 自动 | [docs.perplexity.ai/openapi.json](https://docs.perplexity.ai/openapi.json) |
+| ideogram | official | 2 | OpenAPI 3.1 | 自动 | [developer.ideogram.ai/openapi.yaml](https://developer.ideogram.ai/openapi.yaml) |
+| jina | official | 2 | OpenAPI 3.1 | 自动 | [api.jina.ai/openapi.json](https://api.jina.ai/openapi.json) |
+| flux | official | 2 | OpenAPI 3.1 | 自动 | [api.bfl.ai/openapi.json](https://api.bfl.ai/openapi.json) |
+| openai | bytedance | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [火山方舟文档](https://www.volcengine.com/docs/82379) |
+| openai | sophnet | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [SophNet API 文档](https://www.sophnet.com/docs/component/API.html) |
+| openai | baidu | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [百度千帆文档](https://cloud.baidu.com/doc/qianfan/s/Hmh4suq26) |
+| openai | chutes | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [Chutes docs](https://chutes.ai/llms-full.txt) |
+| openai | alibaba | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [阿里云百炼 OpenAI 兼容](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope) |
+| openai | yi | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [01.AI 文档](https://platform.lingyiwanwu.com/docs) |
+| openai | stepfun | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [StepFun 文档](https://platform.stepfun.com/docs) |
+| openai | nvidia | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [NVIDIA NIM LLM API](https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html) |
+| openai | minimax | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [MiniMax OpenAI API](https://platform.minimaxi.com/docs/api-reference/text-chat-openai.md) |
+| openai | baichuan | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [百川 API 文档](https://platform.baichuan-ai.com/docs/api) |
+| openai | xiaomi | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [小米 MiMo OpenAI API](https://platform.xiaomimimo.com/docs/en-US/api/chat/openai-api) |
+| openai | daocloud | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [DaoCloud d.run API](https://docs.daocloud.io/en/hydra/api-call/) |
+
+> 2026-06 扩充明细(权威性档位、来源合法性证据、agent 可读性)见下方「## 2026-06 扩充」。
+
+---
+
+## 2026-06 扩充(新增 10 spec + 12 overlay)
+
+按下游供应商注册表顺序补齐缺失厂商。三轮调研(文档判定 → 深挖官方 GitHub org/SDK/文档仓 → 逐仓库 file-tree 爬取 + 来源合法性/agent 可读性核验)。所有 spec URL 实测返回真规范;所有 overlay base 经证书属主 + DNS + 官网反链确认为第一方。
+
+### 新增 spec(自动同步)
+
+权威性三档:**A** 生产 host 自描述 / **B** 官方文档站同源 / **C** 官方仓库·SDK 溯源。
+
+| URI | 协议归属 | 权威档 | 权威性证据 |
+|-----|---------|--------|-----------|
+| `openai/cerebras` | OpenAI 兼容 | C | 官方 SDK `cerebras-cloud-sdk-python`(Stainless)的 `.stats.yml` 指向策展规范,同 Anthropic 做法;策展版仅 4 端点,比直连 `/openapi.json`(FastAPI 裸 dump)干净 |
+| `openai/deepinfra` | OpenAI 兼容 | A | 生产 API 域 `api.deepinfra.com` 自描述输出(103 路径,server 绝对) |
+| `openai/siliconflow` | OpenAI 兼容 | B | 官方文档站 `docs.siliconflow.cn`(Mintlify)渲染底稿,server 与 base 一致(仅 `/cn/` 路径存在) |
+| `openai/moonshot` | OpenAI 兼容 | B | 官方平台文档(Mintlify)托管,含 `/v1/chat/completions`,server `api.moonshot.cn`;源 URL 301→`platform.kimi.com`(curl -L 跟随) |
+| `zhipu/official` | 专属(GLM 原生面) | B | 官方文档站 `docs.z.ai`(Mintlify),含 license/contact;server `https://api.z.ai/api`,路径自带 `/paas/v4`,勿加 `/v1` |
+| `mistral/official` | 专属(fim/ocr/agents) | C | 官方 org `mistralai` 的 `platform-docs-public` 仓(docs.mistral.ai 底稿)唯一 openapi.yaml;SDK 的 Speakeasy spec 源私有 |
+| `perplexity/official` | 专属(sonar/search) | B | 官方文档站 `docs.perplexity.ai`(Mintlify),server `api.perplexity.ai`;以 `/v1/sonar` 为中心 |
+| `ideogram/official` | 专属(图像) | B | 官方开发者站 `developer.ideogram.ai`(Fern),server `api.ideogram.ai`;鉴权 Api-Key 头 |
+| `jina/official` | 专属(embeddings/rerank) | A | 生产 API 域 `api.jina.ai` 自描述;⚠️ 无 servers 块,消费方注入 `https://api.jina.ai` |
+| `flux/official` | 专属(异步图像) | A | 生产 API 域 `api.bfl.ai` 自描述;鉴权 x-key 头;⚠️ version 占位 0.0.1,变更检测靠 body hash |
+
+### 新增 overlay(手写差异,基于 `openai/official`)
+
+合法性:base 证书属主 + DNS + 官网反链确认第一方;agent 可读性决定 90 天复核能否自动化。**12 个里 11 个 agent 可读,0 个 login-gated;仅 baichuan 为纯 SPA 需无头浏览器。**
+
+| URI | base | 合法性证据(证书属主) | agent 可读源 |
+|-----|------|----------------------|-------------|
+| `openai/bytedance` | `ark.cn-beijing.volces.com/api/v3` | CN=ark.cn-beijing.volces.com(DigiCert),console.volcengine.com/ark 反链 | SSR-HTML |
+| `openai/sophnet` | `www.sophnet.com/api/open-apis/v1` | *.sophnet.com(DigiCert);真实平台(自有文档+真实 models JSON),TODO 补 ICP 主体 | SSR-HTML(VuePress) |
+| `openai/baidu` | `qianfan.baidubce.com/v2` | O=Beijing Baidu Netcom,CN=baidu.com(GlobalSign) | SSR-HTML |
+| `openai/chutes` | `llm.chutes.ai/v1` | *.chutes.ai(GoDaddy),GCP LB | **llms-full.txt** |
+| `openai/alibaba` | `dashscope.aliyuncs.com/compatible-mode/v1` | O=Alibaba (China) Technology Co.,*.aliyuncs.com(GlobalSign) | SSR-HTML |
+| `openai/yi` | `api.lingyiwanwu.com/v1` | O=北京零一万物,*.lingyiwanwu.com(DigiCert);⚠️ 01.AI 转 ToB,监控停服 | SSR-HTML |
+| `openai/stepfun` | `api.stepfun.com/v1` | *.stepfun.com(DigiCert);文档站只有 Mintlify 样板 openapi(假阳性) | **页面.md + /docs/llms.txt** |
+| `openai/nvidia` | `integrate.api.nvidia.com/v1` | CN=integrate.api.nvidia.com(Amazon),AWS GA;openapi 仅容器运行时 | SSR-HTML(Sphinx) |
+| `openai/minimax` | `api.minimaxi.com/v1` | *.minimaxi.com(WoTrus);有端点级 OpenAPI 片段,补全后可升 spec | **页面.md + /docs/llms.txt + OpenAPI JSON 片段** |
+| `openai/baichuan` | `api.baichuan-ai.com/v1` | O=北京百川智能,*.baichuan-ai.com(DNSPod) | ⚠️ 纯 SPA(reviewMode=browser) |
+| `openai/xiaomi` | `api.xiaomimimo.com/v1` | *.xiaomimimo.com(DigiCert),DNS 直指 alb.xiaomi.com | SSR-HTML(勿加 .md) |
+| `openai/daocloud` | `chat.d.run/v1` | *.d.run(Sectigo);⚠️ `sh-02.d.run` 证书已过期(自部署区域端点),公共面用 `chat.d.run` | SSR-HTML(MkDocs) |
 
 ---
 
@@ -319,66 +385,38 @@ AWS Bedrock:
 
 ## 其他潜在协议（未包含）
 
-### AWS Bedrock (通用)
+### AWS Bedrock (通用 / Converse / Nova / Titan,非 Claude 切片)
 
-**Botocore 服务定义**:
+**官方机器可读源(Smithy,非 OpenAPI)**:
 ```bash
-curl -o aws-bedrock-botocore.json \
-  "https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/bedrock-runtime/2023-09-30/service-2.json"
+curl -o bedrock-runtime.json \
+  "https://raw.githubusercontent.com/aws/api-models-aws/main/models/bedrock-runtime/service/2023-09-30/bedrock-runtime-2023-09-30.json"
 ```
 
 **特点**:
-- ⚠️ Botocore JSON 格式（非 OpenAPI）
-- ✅ AWS SDK 自动生成
-- ⚠️ 每个模型的请求格式不同
+- ⚠️ Smithy 2.0 JSON AST 格式(非 OpenAPI;约 315KB,版本化稳定,每日同步)
+- ✅ AWS 官方仓库 `aws/api-models-aws`,覆盖 Converse / InvokeModel / Nova Sonic 等全数据面(模型无关)
+- ⚠️ OpenAI 兼容端点(`bedrock-runtime.<region>.amazonaws.com/openai/v1`)与 Mantle Responses 端点均无机器可读规范
 
-**是否纳入 ai-vendor-specs**: 不纳入，因为 Bedrock 本身不是协议，而是托管平台，每个模型（Claude、Llama 等）使用各自的协议
-
----
-
-### Mistral AI
-
-**来源**: Mistral AI SDK
-
-```bash
-git clone https://github.com/mistralai/client-python
-# 查看 src/mistralai/openapi.json
-```
-
-**特点**:
-- ✅ OpenAPI 3.0 格式
-- ✅ 兼容 OpenAI API 格式
-- ✅ SDK 中包含规范
-
-**是否纳入 ai-vendor-specs**: 可选，Mistral API 高度兼容 OpenAI，可直接使用 openai/official 规范
-
-**API 文档**: https://docs.mistral.ai/api/
+**是否纳入 ai-vendor-specs**: **manual·pending**。仓库当前只认 openapi/discovery,Smithy 需新增 `smithy-2.0` 格式 + smithy→openapi 转换步骤(工作量另算)。Claude 切片已由 `anthropic/bedrock` overlay 覆盖;gpt-oss `/openai/v1` 后续可选 overlay。
 
 ---
 
-### 百度文心 (ERNIE)
+### Mistral AI ✅ 已纳入(2026-06)
 
-**文档地址**: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/clntwmv7t
-
-**特点**:
-- ❌ 无 OpenAPI 规范
-- ✅ 有详细的 Web 文档
-- ⚠️ API 格式接近 OpenAI，但有差异
-
-**是否纳入 ai-vendor-specs**: 待添加。可走 `kind: manual` 路线,人工对照文档写 `upstream/baidu/ernie/openapi.yml`(参考 [docs/ARCHITECTURE.md](./ARCHITECTURE.zh-CN.md) 的 manual 条目说明)。
+→ `mistral/official`(spec)。源:`mistralai/platform-docs-public` 仓的 `openapi.yaml`(非 SDK,SDK 的 Speakeasy spec 源私有)。详见上方「2026-06 扩充」。
 
 ---
 
-### 阿里通义 (Qwen)
+### 百度文心 (ERNIE) ✅ 已纳入(2026-06)
 
-**文档地址**: https://help.aliyun.com/zh/dashscope/developer-reference/api-details
+→ `openai/baidu`(overlay,v2 OpenAI 兼容路由 `qianfan.baidubce.com/v2`)。内部确有 OpenAPI-Generator 源(`baidubce/sdc` 可证)但官方未公开 → 走 overlay。详见上方「2026-06 扩充」。
 
-**特点**:
-- ❌ 无 OpenAPI 规范
-- ✅ 有详细的 Web 文档
-- ⚠️ 使用自定义格式
+---
 
-**是否纳入 ai-vendor-specs**: 待添加。可走 `kind: manual` 路线,人工对照文档写 `upstream/alibaba/qwen/openapi.yml`。
+### 阿里通义 (Qwen) ✅ 已纳入(2026-06)
+
+→ `openai/alibaba`(overlay,`dashscope.aliyuncs.com/compatible-mode/v1`)。aliyun-openapi-meta 仅含控制面 `bailian`,非推理面 → 走 overlay。详见上方「2026-06 扩充」。
 
 ---
 
