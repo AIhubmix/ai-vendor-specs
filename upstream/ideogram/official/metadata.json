@@ -5,7 +5,7 @@
   "version": "2026-06-03",
   "specFormat": "openapi-3.1",
   "source": "https://developer.ideogram.ai/openapi.yaml",
-  "lastSynced": "2026-06-03T06:39:56Z",
+  "lastSynced": "2026-06-03T12:56:39Z",
   "hash": "sha256:79d661918336bdbe7c4db6619570d3c832f72814fa5eda1511dbfdcf0a2a398c",
   "sourceAuthority": "official-docs",
   "authorityNote": "Ideogram 官方开发者站 developer.ideogram.ai(Fern)托管;server=https://api.ideogram.ai。原生图像生成 REST,鉴权 Api-Key 头,多为 multipart/form-data。",

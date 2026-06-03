@@ -5,8 +5,8 @@
   "version": "2026-06-03",
   "specFormat": "openapi-3.1",
   "source": "https://api.jina.ai/openapi.json",
-  "lastSynced": "2026-06-03T06:39:57Z",
-  "hash": "sha256:49c6f1a9fe6eb2c4cdccdad5820fc6815ea5eda2f709fa197eb188cc8b0ef57c",
+  "lastSynced": "2026-06-03T12:56:39Z",
+  "hash": "sha256:5e3c1b901f566b7bb92e01f34371831bd34a6954dd2d27decc30482aaccb6a47",
   "sourceAuthority": "production-host",
   "authorityNote": "由 Jina 生产 API 域 api.jina.ai 自描述输出。无 servers 块,消费方注入 https://api.jina.ai。Reader(r.jina.ai)不在此 spec。",
   "autoSync": true

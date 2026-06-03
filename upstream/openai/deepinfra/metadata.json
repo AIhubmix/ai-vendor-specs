@@ -5,8 +5,8 @@
   "version": "2026-06-03",
   "specFormat": "openapi-3.1",
   "source": "https://api.deepinfra.com/openapi.json",
-  "lastSynced": "2026-06-03T06:39:42Z",
-  "hash": "sha256:8569e40f0434e8ca3dacd93373aea50cf403abc164512ba602c754d92efd484f",
+  "lastSynced": "2026-06-03T12:56:32Z",
+  "hash": "sha256:5a576f4803166f62e77a6def396d6e350d80336cf94ab4de894b1efc3206a7c1",
   "sourceAuthority": "production-host",
   "authorityNote": "由 DeepInfra 生产 API 域 api.deepinfra.com 自描述输出;OpenAI 兼容推理 base 为 https://api.deepinfra.com/v1/openai。",
   "autoSync": true
