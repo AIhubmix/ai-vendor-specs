@@ -1,0 +1,26 @@
+# upstream/openai/nvidia overlay
+#
+# NVIDIA NIM 托管聚合端点 integrate.api.nvidia.com,LLM/VLM 提供 OpenAI-compatible
+# /chat/completions、/completions、/embeddings。鉴权 nvapi- key。
+# ⚠️ 托管聚合面不发布 spec(OpenAPI 仅存在于自部署 NIM 容器运行时,随模型/版本漂移),故 overlay。
+# 基础 shape 复用 openai/official,扩展见下。
+#
+# 来源核验:docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html
+#          (2026-06-03);base 证书 CN=integrate.api.nvidia.com
+#
+# === 请求扩展(非 OpenAI 标准,经 extra_body 的 nvext 对象)===
+# - nvext.guided_json / guided_regex / guided_choice / guided_grammar   引导解码(部分容器)
+#   新 SGLang 容器改用标准 response_format,弃用 nvext。
+
+base: avs://openai/official
+
+info:
+  title: NVIDIA NIM (OpenAI-compatible)
+  description: |
+    NVIDIA NIM 托管聚合 integrate.api.nvidia.com,OpenAI 协议兼容 chat/completions/embeddings。
+    鉴权 nvapi- key。扩展 nvext 引导解码详见顶部注释。
+    权威来源:https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html
+
+servers:
+  - url: https://integrate.api.nvidia.com/v1
+    description: NVIDIA NIM hosted (OpenAI-compatible)

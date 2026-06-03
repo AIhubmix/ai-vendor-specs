@@ -1,0 +1,22 @@
+# upstream/openai/yi overlay
+#
+# 零一万物 01.AI(Yi 系列),提供 OpenAI-compatible /chat/completions。
+# 基础 shape 完整复用 openai/official,无显著扩展字段。
+#
+# ⚠️ 弃用风险:01.AI 2025-03 转向 ToB,逐步基于 DeepSeek 构建;Yi 自有 API 的模型目录
+# 可能收缩。端点 2026-06-03 仍 live(返回需鉴权错误)。check-drift 90 天复核时请确认存活。
+#
+# 来源核验:platform.lingyiwanwu.com/docs(2026-06-03);base 证书 O=北京零一万物
+
+base: avs://openai/official
+
+info:
+  title: Yi / 01.AI (OpenAI-compatible)
+  description: |
+    零一万物 01.AI(Yi-Large / Yi-Lightning 等),OpenAI 协议兼容 /chat/completions。
+    无显著扩展。注意 01.AI 已转 ToB,模型目录或收缩,需监控存活。
+    权威来源:https://platform.lingyiwanwu.com/docs
+
+servers:
+  - url: https://api.lingyiwanwu.com/v1
+    description: 01.AI Production (OpenAI-compatible)

@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "baidu",
+  "displayName": "Baidu Qianfan / ERNIE (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/baidu/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://cloud.baidu.com/doc/qianfan/s/Hmh4suq26",
+    "https://intl.cloud.baidu.com/en/doc/qianfan/s/qm8qxemze-intl-en"
+  ],
+  "autoSync": false,
+  "note": "百度千帆/文心 ERNIE,v2 OpenAI-compatible。base 证书 O=Beijing Baidu Netcom Science Technology Co.,CN=baidu.com(GlobalSign),DNS 走百度 shifen CDN,本环境地域不可达但证书+官网反链证明第一方。内部确有 OpenAPI-Generator 源(baidubce/sdc 可证)但官方未公开 → overlay。鉴权 bce-v3/ key;扩展 penalty_score/web_search。"
+}

@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "chutes",
+  "displayName": "Chutes (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/chutes/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://chutes.ai/llms-full.txt",
+    "https://chutes.ai/docs/getting-started/quickstart"
+  ],
+  "autoSync": false,
+  "note": "Chutes 去中心化推理,OpenAI-compatible(base llm.chutes.ai/v1)。base 证书 *.chutes.ai(GoDaddy),GCP LB。api.chutes.ai/openapi.json 仅管理面(166 路径,零 chat/completions),不替代推理面 → overlay。鉴权 Bearer cpk_;/v1/models 含 supported_features/定价。文档 agent 可读(llms-full.txt)。"
+}

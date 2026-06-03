@@ -46,7 +46,8 @@ function indexHtml(manifest, entries) {
   const repo = manifest.repository || 'AIhubmix/ai-vendor-specs';
 
   // Tab counts grouped by protocol — preserves the same sort order as cards.
-  const PROTOCOL_ORDER = ['openai', 'anthropic', 'cohere', 'gemini', 'vertex'];
+  const PROTOCOL_ORDER = ['openai', 'anthropic', 'cohere', 'gemini', 'vertex',
+                          'mistral', 'zhipu', 'perplexity', 'jina', 'ideogram', 'flux'];
   const counts = {};
   for (const e of entries) counts[e.protocol] = (counts[e.protocol] || 0) + 1;
   const protocols = [...PROTOCOL_ORDER.filter(p => counts[p]),
@@ -755,7 +756,8 @@ function main() {
 
   // Sort: protocol order first (openai → anthropic → cohere → gemini → vertex → others),
   // within each protocol: "official" first, then alphabetical.
-  const PROTOCOL_ORDER = ['openai', 'anthropic', 'cohere', 'gemini', 'vertex'];
+  const PROTOCOL_ORDER = ['openai', 'anthropic', 'cohere', 'gemini', 'vertex',
+                          'mistral', 'zhipu', 'perplexity', 'jina', 'ideogram', 'flux'];
   entries.sort((a, b) => {
     const pa = PROTOCOL_ORDER.indexOf(a.protocol);
     const pb = PROTOCOL_ORDER.indexOf(b.protocol);

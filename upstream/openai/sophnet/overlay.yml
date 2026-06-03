@@ -1,0 +1,31 @@
+# upstream/openai/sophnet overlay
+#
+# SophNet 云算力平台,提供 OpenAI-compatible /chat/completions 端点。
+# ⚠️ base 路径不寻常:/api/open-apis/v1(非裸 /v1)。另有 Anthropic 兼容端点
+# /api/open-apis/anthropic。基础 shape 复用 openai/official,扩展见下。
+#
+# 来源核验:www.sophnet.com/docs/component/API.html(2026-06-03);base 证书 *.sophnet.com
+#
+# === 请求扩展(非 OpenAI 标准)===
+# - enable_thinking                              思考开关
+# - thinking.budget_tokens / chat_template_kwargs.enable_thinking   思考预算
+# - reasoning_effort                             low | medium | high
+# - stop_token_ids                               停止 token id 列表
+#
+# === 响应扩展(非 OpenAI 标准)===
+# - choices[].message.reasoning_content          思维链
+# - choices[].refs                               引用列表(file / qa / web 类型)
+
+base: avs://openai/official
+
+info:
+  title: SophNet (OpenAI-compatible)
+  description: |
+    SophNet 推理服务,OpenAI 协议兼容 /chat/completions(base 路径 /api/open-apis/v1)。
+    另提供 Anthropic 兼容 /api/open-apis/anthropic。
+    扩展字段 enable_thinking / reasoning_content / refs 详见本文件顶部注释。
+    权威来源:https://www.sophnet.com/docs/component/API.html
+
+servers:
+  - url: https://www.sophnet.com/api/open-apis/v1
+    description: SophNet Production (OpenAI-compatible)

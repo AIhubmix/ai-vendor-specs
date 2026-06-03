@@ -17,8 +17,10 @@
     "validate": "bash scripts/validate-all.sh",
     "manifest": "node scripts/build-manifest.js",
     "drift": "node scripts/check-drift.js",
+    "detect-release": "node scripts/detect-release.js",
     "resolve": "node scripts/overlay/apply.js",
-    "build-site": "node scripts/build-site.js"
+    "build-site": "node scripts/build-site.js",
+    "report": "node scripts/report-changes.js"
   },
   "files": [
     "scripts/overlay/",

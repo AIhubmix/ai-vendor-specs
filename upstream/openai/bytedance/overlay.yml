@@ -1,0 +1,29 @@
+# upstream/openai/bytedance overlay
+#
+# 字节跳动 火山方舟 Ark / 豆包(Doubao),提供 OpenAI-compatible /chat/completions 端点。
+# 基础 shape 复用 openai/official 整套,以下扩展未在 spec 层声明(同 deepseek/xai:
+# 与 openai 共用 schema 时不便就地覆盖),消费方读本注释或 metadata.note 处理。
+#
+# 来源核验:www.volcengine.com/docs/82379(2026-06-03);base 证书 CN=ark.cn-beijing.volces.com
+#
+# === 请求扩展(非 OpenAI 标准)===
+# - thinking                 思考开关对象 {"type": "enabled" | "disabled" | "auto"}(部分 Seed 模型支持 auto)
+# - model                    可填模型 ID(doubao-seed-1-6-*)或控制台 endpoint ID(ep-*)
+#
+# === 响应扩展(非 OpenAI 标准)===
+# - choices[].message.reasoning_content   思维链(reasoning 模型),与 content 分离
+
+base: avs://openai/official
+
+info:
+  title: Volcengine Ark / Doubao (OpenAI-compatible)
+  description: |
+    字节跳动 火山方舟 Ark 推理服务(豆包 Doubao 系列),OpenAI 协议兼容 /chat/completions。
+    扩展字段 thinking / reasoning_content 详见本文件顶部注释。
+    权威来源:https://www.volcengine.com/docs/82379
+
+servers:
+  - url: https://ark.cn-beijing.volces.com/api/v3
+    description: Volcengine Ark 国内(北京)
+  - url: https://ap-southeast.bytepluses.com/api/v3
+    description: BytePlus 国际

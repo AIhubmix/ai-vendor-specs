@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "bytedance",
+  "displayName": "Volcengine Ark / Doubao (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/bytedance/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://www.volcengine.com/docs/82379/1494384",
+    "https://www.volcengine.com/docs/82379"
+  ],
+  "autoSync": false,
+  "note": "字节跳动火山方舟 Ark/豆包,OpenAI-compatible /chat/completions。base 证书 CN=ark.cn-beijing.volces.com(DigiCert),DNS 属火山引擎,console.volcengine.com/ark 反链确认第一方。深挖确认无公开机器可读规范(SDK 推理面手写,唯一 codegen 模块是管理面),故走 overlay。扩展:thinking 对象、响应 reasoning_content;model 可填 ep-* endpoint ID。"
+}

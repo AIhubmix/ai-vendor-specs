@@ -1,0 +1,15 @@
+{
+  "protocol": "openai",
+  "provider": "xiaomi",
+  "displayName": "Xiaomi MiMo (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/xiaomi/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://platform.xiaomimimo.com/docs/en-US/api/chat/openai-api"
+  ],
+  "autoSync": false,
+  "note": "小米 MiMo 开放平台,OpenAI-compatible。base 证书 *.xiaomimimo.com(DigiCert),DNS CNAME 直指 alb.xiaomi.com(小米自有 ALB),确认第一方。开放平台为托管 API(非仅开源权重);文档为 Next.js SSR(页面 URL 可读,勿加 .md)→ overlay。鉴权 Bearer 或 api-key 头;响应 reasoning_content;另有 anthropic 兼容面。"
+}

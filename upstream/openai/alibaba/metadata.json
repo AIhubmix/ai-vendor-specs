@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "alibaba",
+  "displayName": "Alibaba Cloud DashScope / Qwen (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/alibaba/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope",
+    "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope"
+  ],
+  "autoSync": false,
+  "note": "阿里云百炼/DashScope(通义千问 Qwen),OpenAI-compatible compatible-mode/v1。base 证书 O=Alibaba (China) Technology Co., Ltd.,*.aliyuncs.com(GlobalSign)。aliyun-openapi-meta 仅含控制面 bailian(host bailian.*.aliyuncs.com),非推理面;SDK 手写非 codegen → overlay。扩展 enable_thinking/thinking_budget(extra_body)、响应 reasoning_content。多区域 base。"
+}

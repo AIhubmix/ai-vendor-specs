@@ -1,0 +1,15 @@
+{
+  "protocol": "openai",
+  "provider": "yi",
+  "displayName": "Yi / 01.AI (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/yi/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://platform.lingyiwanwu.com/docs"
+  ],
+  "autoSync": false,
+  "note": "零一万物 01.AI(Yi),OpenAI-compatible。base 证书 O=北京零一万物信息技术有限公司,*.lingyiwanwu.com(DigiCert/GeoTrust),Aliyun WAF。端点 2026-06-03 live。弃用风险:01.AI 2025-03 转 ToB,模型目录或收缩,90 天复核须确认存活。无显著扩展。"
+}

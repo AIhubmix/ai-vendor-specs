@@ -20,6 +20,30 @@ This document records the official sources and sync method for every spec in ai-
 | vertex | official | 2 | Discovery | auto | [Google Cloud Discovery](https://aiplatform.googleapis.com/$discovery/rest?version=v1) |
 | anthropic | official | 1 | OpenAPI 3.1 | auto | [anthropic-sdk-python `.stats.yml`](https://github.com/anthropics/anthropic-sdk-python/blob/main/.stats.yml) → Stainless GCS |
 | anthropic | bedrock | 3 | overlay (no spec) | manual `overlay.yml` | [AWS Bedrock docs](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html) |
+| openai | cerebras | 1 | OpenAPI 3.1 | auto (`.stats.yml`→Stainless) | [cerebras-cloud-sdk-python `.stats.yml`](https://github.com/Cerebras/cerebras-cloud-sdk-python/blob/main/.stats.yml) |
+| openai | deepinfra | 1 | OpenAPI 3.1 | auto | [api.deepinfra.com/openapi.json](https://api.deepinfra.com/openapi.json) |
+| openai | siliconflow | 1 | OpenAPI 3.0 | auto | [docs.siliconflow.cn openapi.yaml](https://docs.siliconflow.cn/cn/api-reference/openapi.yaml) |
+| openai | moonshot | 1 | OpenAPI 3.1 | auto | [platform.moonshot.cn/docs/openapi.json](https://platform.moonshot.cn/docs/openapi.json) |
+| zhipu | official | 2 | OpenAPI 3.0 | auto | [docs.z.ai/openapi.json](https://docs.z.ai/openapi.json) |
+| mistral | official | 1 | OpenAPI 3.1 | auto | [mistralai/platform-docs-public openapi.yaml](https://github.com/mistralai/platform-docs-public/blob/main/openapi.yaml) |
+| perplexity | official | 2 | OpenAPI 3.1 | auto | [docs.perplexity.ai/openapi.json](https://docs.perplexity.ai/openapi.json) |
+| ideogram | official | 2 | OpenAPI 3.1 | auto | [developer.ideogram.ai/openapi.yaml](https://developer.ideogram.ai/openapi.yaml) |
+| jina | official | 2 | OpenAPI 3.1 | auto | [api.jina.ai/openapi.json](https://api.jina.ai/openapi.json) |
+| flux | official | 2 | OpenAPI 3.1 | auto | [api.bfl.ai/openapi.json](https://api.bfl.ai/openapi.json) |
+| openai | bytedance | 3 | overlay (no spec) | manual `overlay.yml` | [Volcengine Ark docs](https://www.volcengine.com/docs/82379) |
+| openai | sophnet | 3 | overlay (no spec) | manual `overlay.yml` | [SophNet API docs](https://www.sophnet.com/docs/component/API.html) |
+| openai | baidu | 3 | overlay (no spec) | manual `overlay.yml` | [Baidu Qianfan docs](https://cloud.baidu.com/doc/qianfan/s/Hmh4suq26) |
+| openai | chutes | 3 | overlay (no spec) | manual `overlay.yml` | [Chutes docs](https://chutes.ai/llms-full.txt) |
+| openai | alibaba | 3 | overlay (no spec) | manual `overlay.yml` | [Alibaba DashScope OpenAI-compat](https://www.alibabacloud.com/help/en/model-studio/compatibility-of-openai-with-dashscope) |
+| openai | yi | 3 | overlay (no spec) | manual `overlay.yml` | [01.AI docs](https://platform.lingyiwanwu.com/docs) |
+| openai | stepfun | 3 | overlay (no spec) | manual `overlay.yml` | [StepFun docs](https://platform.stepfun.com/docs) |
+| openai | nvidia | 3 | overlay (no spec) | manual `overlay.yml` | [NVIDIA NIM LLM API](https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html) |
+| openai | minimax | 3 | overlay (no spec) | manual `overlay.yml` | [MiniMax OpenAI API](https://platform.minimaxi.com/docs/api-reference/text-chat-openai.md) |
+| openai | baichuan | 3 | overlay (no spec) | manual `overlay.yml` | [Baichuan API docs](https://platform.baichuan-ai.com/docs/api) |
+| openai | xiaomi | 3 | overlay (no spec) | manual `overlay.yml` | [Xiaomi MiMo OpenAI API](https://platform.xiaomimimo.com/docs/en-US/api/chat/openai-api) |
+| openai | daocloud | 3 | overlay (no spec) | manual `overlay.yml` | [DaoCloud d.run API](https://docs.daocloud.io/en/hydra/api-call/) |
+
+> 2026-06 expansion: 10 specs + 12 overlays added in registry order. Authority tier (A production-host / B official-docs / C official-repo·SDK), source-legitimacy evidence (cert owner), and agent-readability are tracked per vendor in [SOURCES.zh-CN.md](./SOURCES.zh-CN.md#2026-06-扩充). AWS Bedrock general surface stays manual·pending — official machine-readable model is Smithy (`aws/api-models-aws`), not OpenAPI.
 
 ---
 

@@ -1,0 +1,2874 @@
+openapi: 3.1.0
+info:
+  title: API Reference
+  version: 1.0.0
+paths:
+  /v1/ideogram-v3/generate:
+    post:
+      operationId: post-generate-image-v-3
+      summary: Generate with Ideogram 3.0
+      description: >
+        Generates images synchronously based on a given prompt and optional parameters using the Ideogram 3.0 model.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with Ideogram 3.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: The prompt to use to generate the image.
+                seed:
+                  type: integer
+                  description: Random seed. Set for reproducible generation.
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV3'
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV3'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                negative_prompt:
+                  type: string
+                  description: |
+                    Description of what to exclude from an image. Descriptions in the prompt take precedence
+                    to descriptions in the negative prompt.
+                num_images:
+                  type: integer
+                  default: 1
+                  description: Number of images to generate.
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/StyleCode'
+                  description: >-
+                    A list of 8 character hexadecimal codes representing the style of the image. Cannot be used in
+                    conjunction with style_reference_images or style_type.
+                style_type:
+                  $ref: '#/components/schemas/StyleTypeV3'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                custom_model_uri:
+                  type: string
+                  description: >
+                    A custom model URI in the format model/<model_name>/version/<version_name>. 
+
+                    When provided, the model version and style will be resolved from this URI, and style_type is not
+                    required.
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+                character_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Generations with character reference are subject to the character reference pricing. A set of images
+                    to use as character references (maximum total size 10MB across all character references), currently
+                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                character_reference_images_mask:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Optional masks for character reference images. When provided, must match the number of
+                    character_reference_images. Each mask should be a grayscale image of the same dimensions as the
+                    corresponding character reference image. The images should be in JPEG, PNG or WebP format.
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). The effective gate is the OR of this field and the organization's
+                    `copyright_detection_enabled` setting on `/api`: if the org has it on, this is ignored;
+                    if the org has it off, setting this `true` enables detection for this request only.
+                    Adds detection latency. Flagged images come back with `is_image_safe: false`.
+              required:
+                - prompt
+  /v1/ideogram-v3/generate-transparent:
+    post:
+      operationId: post-generate-image-v-3-transparent
+      summary: Generate with Ideogram 3.0 (Transparent Background)
+      description: >
+        Generates images with transparent background synchronously based on a given prompt and optional parameters using
+
+        the Ideogram 3.0 model. Images will be generated using maximum supported resolution at the specified aspect
+        ratio
+
+        to allow best results with upscaler. The selected resolution is written to the response, not the upscaled final
+
+        resolution.
+
+
+        `rendering_speed=FLASH` is not supported for transparent-background generation; the request will return a 400.
+
+        Use `TURBO`, `DEFAULT`, or `QUALITY` instead.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with transparent background using Ideogram 3.0, with optional upscaling.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: The prompt to use to generate the image.
+                seed:
+                  type: integer
+                  description: Random seed. Set for reproducible generation.
+                upscale_factor:
+                  $ref: '#/components/schemas/UpscaleFactor'
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV3'
+                rendering_speed:
+                  $ref: >-
+                    #/components/schemas/V1IdeogramV3GenerateTransparentPostRequestBodyContentMultipartFormDataSchemaRenderingSpeed
+                  description: >-
+                    The rendering speed to use. FLASH is not supported for transparent-background generation; requests
+                    with rendering_speed=FLASH will return a 400.
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                negative_prompt:
+                  type: string
+                  description: |
+                    Description of what to exclude from an image. Descriptions in the prompt take precedence
+                    to descriptions in the negative prompt.
+                num_images:
+                  type: integer
+                  default: 1
+                  description: Number of images to generate.
+              required:
+                - prompt
+  /v1/ideogram-v3/inpaint:
+    post:
+      operationId: post-inpaint-image-v-3
+      summary: Inpaint with Ideogram 3.0
+      description: >
+        Inpaint a given image synchronously using the provided mask with Ideogram 3.0. The mask indicates which part of
+        the image
+
+        should be edited, while the prompt and chosen style can further guide the edit.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image edits generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Initial Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to inpaint an image with Ideogram 3.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image being edited (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                mask:
+                  type: string
+                  format: binary
+                  description: >-
+                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
+                    and PNG formats are supported at this time.
+                prompt:
+                  type: string
+                  description: The prompt used to describe the edited result.
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                style_type:
+                  $ref: '#/components/schemas/StyleTypeV3'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  $ref: '#/components/schemas/StyleCodes'
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+                character_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Generations with character reference are subject to the character reference pricing. A set of images
+                    to use as character references (maximum total size 10MB across all character references), currently
+                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                character_reference_images_mask:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Optional masks for character reference images. When provided, must match the number of
+                    character_reference_images. Each mask should be a grayscale image of the same dimensions as the
+                    corresponding character reference image. The images should be in JPEG, PNG or WebP format.
+              required:
+                - image
+                - mask
+                - prompt
+  /v1/ideogram-v3/remix:
+    post:
+      operationId: post-remix-image-v-3
+      summary: Remix with Ideogram 3.0
+      description: >
+        Remix provided images synchronously based on a given prompt and optional parameters with the Ideogram 3.0 model.
+
+
+        Input images are cropped to the chosen aspect ratio before being remixed.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or provided image failed safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to remix an image with Ideogram 3.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image to remix binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    time.
+                prompt:
+                  type: string
+                  description: The prompt to use to generate the image.
+                image_weight:
+                  type: integer
+                  default: 50
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV3'
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV3'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                negative_prompt:
+                  type: string
+                  description: |
+                    Description of what to exclude from an image. Descriptions in the prompt take precedence
+                    to descriptions in the negative prompt.
+                num_images:
+                  type: integer
+                  default: 1
+                  description: Number of images to generate.
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  $ref: '#/components/schemas/StyleCodes'
+                style_type:
+                  $ref: '#/components/schemas/StyleTypeV3'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+                character_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Generations with character reference are subject to the character reference pricing. A set of images
+                    to use as character references (maximum total size 10MB across all character references), currently
+                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                character_reference_images_mask:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Optional masks for character reference images. When provided, must match the number of
+                    character_reference_images. Each mask should be a grayscale image of the same dimensions as the
+                    corresponding character reference image. The images should be in JPEG, PNG or WebP format.
+              required:
+                - image
+                - prompt
+  /v1/ideogram-v3/reframe:
+    post:
+      operationId: post-reframe-image-v-3
+      summary: Reframe with Ideogram 3.0
+      description: >
+        Reframe a square image to a chosen resolution with Ideogram 3.0. The supported image formats include JPEG, PNG,
+        and WebP.
+
+
+        Image links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image re-frames generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to reframe an image in a new resolution.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image being reframed (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    time.
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV3'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  $ref: '#/components/schemas/StyleCodes'
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+              required:
+                - image
+                - resolution
+  /v1/ideogram-v3/replace-background:
+    post:
+      operationId: post-replace-background-v-3
+      summary: Replace Background with Ideogram 3.0
+      description: >
+        Replace the background of a given image synchronously using a prompt with Ideogram 3.0. The foreground subject
+
+        will be identified and kept, while the background is replaced based on the prompt and chosen style.
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Background replacement generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Initial Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to replace the background of an image with Ideogram 3.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image whose background is being replaced (max size 10MB); only JPEG, WebP and PNG formats are
+                    supported at this time.
+                prompt:
+                  type: string
+                  description: The prompt describing the desired new background.
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  $ref: '#/components/schemas/StyleCodes'
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+              required:
+                - image
+                - prompt
+  /v1/remove-background:
+    post:
+      operationId: post-remove-background
+      summary: Remove Background
+      description: |
+        Remove the background of a given image synchronously. The foreground subject
+        is identified and returned on a transparent background. Supported image formats include JPEG,
+        PNG, and WebP.
+        Image links are available for a limited period of time; if you would like to keep the image,
+        you must download it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Background removed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveBackgroundResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to remove background.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Initial image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to remove the background of an image.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image whose background is being removed (max size 10MB); only JPEG, WebP and PNG formats are
+                    supported at this time.
+              required:
+                - image
+  /v1/ideogram-v3/layerize-text:
+    post:
+      operationId: post-layerize-text-v-3
+      summary: Layerize Text
+      description: >
+        Analyzes an image to detect text regions, then returns each detected text block with its position, content, font
+        information, and styling.
+
+
+        The response includes a text-erased base image (background with all text removed) and a flat list of detected
+        text blocks.
+
+
+        Supported image formats include JPEG, PNG, and WebP (max size 10MB).
+
+
+        Image links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Text layers detected and extracted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LayerizeTextResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to detect and extract text layers from an image.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image to analyze for text detection. The image should be in JPEG, PNG, or WebP format (max size
+                    10MB).
+                prompt:
+                  type: string
+                  description: >-
+                    An optional text description of the image. If not provided, a description will be auto-generated
+                    from the image.
+                seed:
+                  $ref: '#/components/schemas/Seed'
+              required:
+                - image
+  /v1/edit:
+    post:
+      operationId: post-v-1-edit-image
+      summary: Edit images with a prompt
+      description: >
+        Edit one or more images using a text prompt. Provide images via file upload
+
+        or Ideogram image URLs, and describe the desired edit in your prompt.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image edits generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1EditImagesResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or provided image failed safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '503':
+          description: Image generation service temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to edit images.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: The prompt describing the desired edit.
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Images to edit (max 10 images, max size 10MB each); JPEG, WebP and PNG formats are supported.
+                image_urls:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    URLs to Ideogram images to use as references (max 10). Supports URLs from generation responses and
+                    image uploads. Alternative to uploading via the images field.
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV3'
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV3'
+                transparent_background:
+                  type: boolean
+                  default: false
+                  description: Whether the output should have a transparent background. Default false.
+              required:
+                - prompt
+  /upscale:
+    post:
+      operationId: post-upscale-image
+      summary: Upscale
+      description: >
+        Upscale provided images synchronously with an optional prompt.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or provided image failed safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to upscale a provided image with Ideogram.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_request:
+                  $ref: '#/components/schemas/UpscaleInitialImageRequest'
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+              required:
+                - image_request
+                - image_file
+  /describe:
+    post:
+      operationId: post-describe
+      summary: Describe
+      description: |
+        Describe an image.
+
+        Supported image formats include JPEG, PNG, and WebP.
+      tags:
+        - subpackage_vision
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Description(s) created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Image failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                describe_model_version:
+                  $ref: '#/components/schemas/DescribeModelVersion'
+              required:
+                - image_file
+  /generate:
+    post:
+      operationId: post-generate-image
+      summary: Generate (legacy)
+      description: >
+        Generates images synchronously based on a given prompt and optional parameters.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with Ideogram.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateImageRequest'
+  /v1/ideogram-v3/edit:
+    post:
+      operationId: post-edit-image-v-3
+      summary: Edit with Ideogram 3.0 (legacy)
+      description: >
+        Legacy: use [`POST /v1/ideogram-v3/inpaint`](/api-reference/api-reference/inpaint-v3) instead. This endpoint
+        will be removed in a future release.
+
+
+        Edit a given image synchronously using the provided mask with Ideogram 3.0. The mask indicates which part of the
+        image
+
+        should be edited, while the prompt and chosen style can further guide the edit.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image edits generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV3'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Initial Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to edit an image with Ideogram 3.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image being edited (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                mask:
+                  type: string
+                  format: binary
+                  description: >-
+                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
+                    and PNG formats are supported at this time.
+                prompt:
+                  type: string
+                  description: The prompt used to describe the edited result.
+                magic_prompt:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                style_type:
+                  $ref: '#/components/schemas/StyleTypeV3'
+                style_preset:
+                  $ref: '#/components/schemas/StylePresetV3'
+                color_palette:
+                  $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+                style_codes:
+                  $ref: '#/components/schemas/StyleCodes'
+                style_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    A set of images to use as style references (maximum total size 10MB across all style references).
+                    The images should be in JPEG, PNG or WebP format.
+                character_reference_images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Generations with character reference are subject to the character reference pricing. A set of images
+                    to use as character references (maximum total size 10MB across all character references), currently
+                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                character_reference_images_mask:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Optional masks for character reference images. When provided, must match the number of
+                    character_reference_images. Each mask should be a grayscale image of the same dimensions as the
+                    corresponding character reference image. The images should be in JPEG, PNG or WebP format.
+              required:
+                - image
+                - mask
+                - prompt
+  /edit:
+    post:
+      operationId: post-edit-image
+      summary: Edit (legacy)
+      description: >
+        Edit a given image synchronously using the provided mask. The mask indicates which part of the image
+
+        should be edited, while the prompt and chosen style type can further guide the edit.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image edits generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Initial Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to edit an image with Ideogram.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                mask:
+                  type: string
+                  format: binary
+                  description: >-
+                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
+                    and PNG formats are supported at this time.
+                prompt:
+                  type: string
+                  description: The prompt used to describe the edited result.
+                model:
+                  $ref: '#/components/schemas/ModelEnum'
+                magic_prompt_option:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                style_type:
+                  $ref: '#/components/schemas/StyleType'
+              required:
+                - image_file
+                - mask
+                - prompt
+                - model
+  /remix:
+    post:
+      operationId: post-remix-image
+      summary: Remix (legacy)
+      description: >
+        Remix provided images synchronously based on a given prompt and optional parameters.
+
+
+        Input images are cropped to the chosen aspect ratio before being remixed.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or provided image failed safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: >-
+          A request to remix a provided image with Ideogram. Input images are cropped to the chosen aspect ratio before
+          being remixed.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_request:
+                  $ref: '#/components/schemas/InitialImageRequest'
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+              required:
+                - image_request
+                - image_file
+  /reframe:
+    post:
+      operationId: post-reframe-image
+      summary: Reframe (legacy)
+      description: >
+        Reframe a square image to a chosen resolution. The supported image formats include JPEG, PNG, and WebP.
+
+
+        Image links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image re-frames generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or Image failed the safety checks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to reframe an image in a new resolution.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_file:
+                  type: string
+                  format: binary
+                  description: >-
+                    The image being reframed (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    time.
+                resolution:
+                  $ref: '#/components/schemas/Resolution'
+                model:
+                  $ref: '#/components/schemas/ModelEnum'
+                num_images:
+                  $ref: '#/components/schemas/NumImages'
+                seed:
+                  $ref: '#/components/schemas/Seed'
+                style_type:
+                  $ref: '#/components/schemas/StyleType'
+              required:
+                - image_file
+                - resolution
+                - model
+  /datasets:
+    get:
+      operationId: list-datasets
+      summary: List datasets
+      description: Lists all datasets for the authenticated user
+      tags:
+        - subpackage_datasets
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Datasets retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListDatasetsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+    post:
+      operationId: create-dataset
+      summary: Create a new dataset
+      description: Creates a new dataset
+      tags:
+        - subpackage_datasets
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dataset created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: Request to create a new dataset
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDatasetRequest'
+  /datasets/{dataset_id}:
+    get:
+      operationId: get-dataset
+      summary: Get a dataset
+      description: |
+        Returns a dataset by ID, including the total number of files and a list of each file's name and size in bytes.
+      tags:
+        - subpackage_datasets
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Dataset retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetDatasetResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                description: Any type
+  /datasets/{dataset_id}/upload_assets:
+    post:
+      operationId: upload-dataset-assets
+      summary: Upload assets to a dataset
+      description: >
+        Upload image assets to a dataset for model training. Accepts individual images (JPEG, PNG, WebP), optional .txt
+        caption sidecar files, and/or ZIP archives containing images and captions. A dataset can contain up to 100
+        images.
+      tags:
+        - subpackage_datasets
+      parameters:
+        - name: dataset_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Upload summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadDatasetAssetsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >
+                    Image files (JPEG, PNG, WebP), .txt caption sidecar files, and/or ZIP archives containing images and
+                    captions. Caption .txt files are matched to images by filename stem (e.g. sunset.txt provides the
+                    caption for sunset.jpg). Captions are optional!
+              required:
+                - files
+  /v1/ideogram-v3/train-model:
+    post:
+      operationId: train-model-v-3
+      summary: Train a custom Ideogram v3 model
+      description: >
+        Start training a custom Ideogram v3 model from a dataset using default hyperparameters. The dataset must contain
+        at least 15 images and a maximum of 100 images.
+      tags:
+        - subpackage_models
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Training started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainDatasetModelResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Dataset not found
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: Training configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainModelV3Request'
+  /models:
+    get:
+      operationId: list-custom-models
+      summary: List models
+      description: >
+        Lists custom models for the authenticated user. Use the `scope` parameter to control which models are returned.
+        If omitted, returns both owned models and models shared with the user's organization via the model registry.
+        `owned` returns only models created by the user. `shared` returns only models shared via the model registry,
+        excluding the user's own models.
+      tags:
+        - subpackage_models
+      parameters:
+        - name: scope
+          in: query
+          description: >
+            Controls which models are returned. Omit to return both owned and shared models combined. `owned` returns
+            only models created by the authenticated user. `shared` returns only models shared with the user's
+            organization via the model registry.
+          required: false
+          schema:
+            $ref: '#/components/schemas/ModelsGetParametersScope'
+        - name: status
+          in: query
+          description: >
+            Filter by model status. Applied to owned models only; shared models in the model registry are already
+            filtered to available versions. Example: `?status=TRAINING&status=COMPLETED`
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ModelStatus'
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Models retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListModelsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+  /models/{model_id}:
+    get:
+      operationId: get-custom-model
+      summary: Get model details
+      description: >
+        Get detailed information about a specific custom model. The user must either own the model or the model must be
+        shared with the user's organization via the model registry. Returns 404 if the model is not found or not
+        accessible.
+      tags:
+        - subpackage_models
+      parameters:
+        - name: model_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetModelResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Model not found
+          content:
+            application/json:
+              schema:
+                description: Any type
+servers:
+  - url: https://api.ideogram.ai
+components:
+  schemas:
+    ResolutionV3:
+      type: string
+      enum:
+        - 512x1536
+        - 576x1408
+        - 576x1472
+        - 576x1536
+        - 640x1344
+        - 640x1408
+        - 640x1472
+        - 640x1536
+        - 704x1152
+        - 704x1216
+        - 704x1280
+        - 704x1344
+        - 704x1408
+        - 704x1472
+        - 736x1312
+        - 768x1088
+        - 768x1216
+        - 768x1280
+        - 768x1344
+        - 800x1280
+        - 832x960
+        - 832x1024
+        - 832x1088
+        - 832x1152
+        - 832x1216
+        - 832x1248
+        - 864x1152
+        - 896x960
+        - 896x1024
+        - 896x1088
+        - 896x1120
+        - 896x1152
+        - 960x832
+        - 960x896
+        - 960x1024
+        - 960x1088
+        - 1024x832
+        - 1024x896
+        - 1024x960
+        - 1024x1024
+        - 1088x768
+        - 1088x832
+        - 1088x896
+        - 1088x960
+        - 1120x896
+        - 1152x704
+        - 1152x832
+        - 1152x864
+        - 1152x896
+        - 1216x704
+        - 1216x768
+        - 1216x832
+        - 1248x832
+        - 1280x704
+        - 1280x768
+        - 1280x800
+        - 1312x736
+        - 1344x640
+        - 1344x704
+        - 1344x768
+        - 1408x576
+        - 1408x640
+        - 1408x704
+        - 1472x576
+        - 1472x640
+        - 1472x704
+        - 1536x512
+        - 1536x576
+        - 1536x640
+      description: The resolutions supported for Ideogram 3.0.
+      title: ResolutionV3
+    AspectRatioV3:
+      type: string
+      enum:
+        - 1x3
+        - 3x1
+        - 1x2
+        - 2x1
+        - 9x16
+        - 16x9
+        - 10x16
+        - 16x10
+        - 2x3
+        - 3x2
+        - 3x4
+        - 4x3
+        - 4x5
+        - 5x4
+        - 1x1
+      description: >-
+        The aspect ratio to use for image generation, which determines the image's resolution. Cannot be used in
+        conjunction with resolution. Defaults to 1x1.
+      title: AspectRatioV3
+    RenderingSpeed:
+      type: string
+      enum:
+        - FLASH
+        - TURBO
+        - DEFAULT
+        - QUALITY
+      default: DEFAULT
+      description: The rendering speed to use.
+      title: RenderingSpeed
+    MagicPromptOption:
+      type: string
+      enum:
+        - AUTO
+        - 'ON'
+        - 'OFF'
+      description: Determine if MagicPrompt should be used in generating the request or not.
+      title: MagicPromptOption
+    ColorPalettePresetName:
+      type: string
+      enum:
+        - EMBER
+        - FRESH
+        - JUNGLE
+        - MAGIC
+        - MELON
+        - MOSAIC
+        - PASTEL
+        - ULTRAMARINE
+      description: A color palette preset value.
+      title: ColorPalettePresetName
+    ColorPaletteWithPresetName:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/ColorPalettePresetName'
+      required:
+        - name
+      title: ColorPaletteWithPresetName
+    ColorPaletteMember:
+      type: object
+      properties:
+        color_hex:
+          type: string
+          description: The hexadecimal representation of the color with an optional chosen weight.
+        color_weight:
+          type: number
+          format: double
+          description: The weight of the color in the color palette.
+      required:
+        - color_hex
+      description: A member of a color palette.
+      title: ColorPaletteMember
+    ColorPaletteWithMembers:
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColorPaletteMember'
+          description: |
+            A list of ColorPaletteMembers that define the color palette. Each color palette member
+            consists of a required color hex and an optional weight between 0.05 and 1.0 (inclusive).
+            It is recommended that these weights descend from highest to lowest for the color hexes provided.
+      required:
+        - members
+      description: A color palette represented only via its members. Cannot be used in conjunction with preset name.
+      title: ColorPaletteWithMembers
+    ColorPaletteWithPresetNameOrMembers:
+      oneOf:
+        - $ref: '#/components/schemas/ColorPaletteWithPresetName'
+        - $ref: '#/components/schemas/ColorPaletteWithMembers'
+      description: >-
+        A color palette for generation, must EITHER be specified via one of the presets (name) or explicitly via
+        hexadecimal representations of the color with optional weights (members). Not supported by V_1, V_1_TURBO, V_2A
+        and V_2A_TURBO models.
+      title: ColorPaletteWithPresetNameOrMembers
+    StyleCode:
+      type: string
+      description: The 8 character hexadecimal representation of the style code.
+      title: StyleCode
+    StyleTypeV3:
+      type: string
+      enum:
+        - AUTO
+        - GENERAL
+        - REALISTIC
+        - DESIGN
+        - FICTION
+      default: GENERAL
+      description: The style type to generate with.
+      title: StyleTypeV3
+    StylePresetV3:
+      type: string
+      enum:
+        - 80S_ILLUSTRATION
+        - 90S_NOSTALGIA
+        - ABSTRACT_ORGANIC
+        - ANALOG_NOSTALGIA
+        - ART_BRUT
+        - ART_DECO
+        - ART_POSTER
+        - AURA
+        - AVANT_GARDE
+        - BAUHAUS
+        - BLUEPRINT
+        - BLURRY_MOTION
+        - BRIGHT_ART
+        - C4D_CARTOON
+        - CHILDRENS_BOOK
+        - COLLAGE
+        - COLORING_BOOK_I
+        - COLORING_BOOK_II
+        - CUBISM
+        - DARK_AURA
+        - DOODLE
+        - DOUBLE_EXPOSURE
+        - DRAMATIC_CINEMA
+        - EDITORIAL
+        - EMOTIONAL_MINIMAL
+        - ETHEREAL_PARTY
+        - EXPIRED_FILM
+        - FLAT_ART
+        - FLAT_VECTOR
+        - FOREST_REVERIE
+        - GEO_MINIMALIST
+        - GLASS_PRISM
+        - GOLDEN_HOUR
+        - GRAFFITI_I
+        - GRAFFITI_II
+        - HALFTONE_PRINT
+        - HIGH_CONTRAST
+        - HIPPIE_ERA
+        - ICONIC
+        - JAPANDI_FUSION
+        - JAZZY
+        - LONG_EXPOSURE
+        - MAGAZINE_EDITORIAL
+        - MINIMAL_ILLUSTRATION
+        - MIXED_MEDIA
+        - MONOCHROME
+        - NIGHTLIFE
+        - OIL_PAINTING
+        - OLD_CARTOONS
+        - PAINT_GESTURE
+        - POP_ART
+        - RETRO_ETCHING
+        - RIVIERA_POP
+        - SPOTLIGHT_80S
+        - STYLIZED_RED
+        - SURREAL_COLLAGE
+        - TRAVEL_POSTER
+        - VINTAGE_GEO
+        - VINTAGE_POSTER
+        - WATERCOLOR
+        - WEIRD
+        - WOODBLOCK_PRINT
+      description: A predefined style preset that applies a specific artistic style to the generated image.
+      title: StylePresetV3
+    ImageGenerationObjectV3:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          $ref: '#/components/schemas/ResolutionV3'
+        upscaled_resolution:
+          type: string
+          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
+        is_image_safe:
+          type: boolean
+          description: Whether this request passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleTypeV3'
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      title: ImageGenerationObjectV3
+    ImageGenerationResponseV3:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageGenerationObjectV3'
+          description: A list of ImageObjects that contain the generated image(s).
+      required:
+        - created
+        - data
+      description: >-
+        The response which contains information about the generated image, including the download link.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: ImageGenerationResponseV3
+    GenerateImageSafetyError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      title: GenerateImageSafetyError
+    UpscaleFactor:
+      type: string
+      enum:
+        - X1
+        - X2
+        - X4
+      default: X1
+      description: >-
+        Upscale the initially generated image by the given factor. Upscale factors other than X1 will incur additional
+        cost.
+      title: UpscaleFactor
+    V1IdeogramV3GenerateTransparentPostRequestBodyContentMultipartFormDataSchemaRenderingSpeed:
+      type: string
+      enum:
+        - TURBO
+        - DEFAULT
+        - QUALITY
+      default: DEFAULT
+      description: >-
+        The rendering speed to use. FLASH is not supported for transparent-background generation; requests with
+        rendering_speed=FLASH will return a 400.
+      title: V1IdeogramV3GenerateTransparentPostRequestBodyContentMultipartFormDataSchemaRenderingSpeed
+    NumImages:
+      type: integer
+      default: 1
+      description: The number of images to generate.
+      title: NumImages
+    Seed:
+      type: integer
+      description: Random seed. Set for reproducible generation.
+      title: Seed
+    StyleCodes:
+      type: array
+      items:
+        $ref: '#/components/schemas/StyleCode'
+      description: >-
+        A list of 8 character hexadecimal codes representing the style of the image. Cannot be used in conjunction with
+        style_reference_images or style_type.
+      title: StyleCodes
+    RemoveBackgroundImageObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the foreground image. Empty when the image fails safety checks.
+        is_image_safe:
+          type: boolean
+          description: Whether the foreground image passes safety checks. If false, the url field will be empty.
+      required:
+        - is_image_safe
+      title: RemoveBackgroundImageObject
+    RemoveBackgroundResponse:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RemoveBackgroundImageObject'
+          description: A list containing the single foreground image. The endpoint always returns exactly one entry.
+      required:
+        - created
+        - data
+      description: >-
+        The response containing the foreground image with the background removed.
+
+        Image links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: RemoveBackgroundResponse
+    LayerizeTextResponse:
+      type: object
+      properties:
+        base_image_url:
+          type: string
+          format: uri
+          description: URL of the image with all detected text removed.
+        original_image_url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: URL of the original image with text intact.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+      required:
+        - base_image_url
+        - seed
+      description: >
+        The response containing detected text blocks and a text-erased base image.
+
+
+        Image links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: LayerizeTextResponse
+    V1EditImageObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          type: string
+          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
+        upscaled_resolution:
+          type: string
+          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
+        is_image_safe:
+          type: boolean
+          description: Whether this request passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleTypeV3'
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      title: V1EditImageObject
+    V1EditImagesResponse:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/V1EditImageObject'
+          description: A list of ImageObjects that contain the edited image(s).
+      required:
+        - created
+        - data
+      description: >-
+        The response which contains information about the edited image, including the download link.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: V1EditImagesResponse
+    UpscaleInitialImageRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: An optional prompt to guide the upscale
+        resemblance:
+          type: integer
+          default: 50
+        detail:
+          type: integer
+          default: 50
+        magic_prompt_option:
+          $ref: '#/components/schemas/MagicPromptOption'
+        num_images:
+          type: integer
+          default: 1
+          description: The number of images to generate.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+      description: A request to upscale a provided image with the help of an optional prompt.
+      title: UpscaleInitialImageRequest
+    StyleType:
+      type: string
+      enum:
+        - AUTO
+        - GENERAL
+        - FICTION
+        - REALISTIC
+        - DESIGN
+        - RENDER_3D
+        - ANIME
+      description: >-
+        The style type to generate with; this is only applicable for models V_2 and above and should not be specified
+        for model versions V_1.
+      title: StyleType
+    ImageObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          type: string
+          description: The resolution of the final image.
+        upscaled_resolution:
+          type: string
+          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
+        is_image_safe:
+          type: boolean
+          description: Whether this request passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleType'
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      title: ImageObject
+    GenerateImageResponse:
+      type: object
+      properties:
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageObject'
+          description: A list of ImageObjects that contain the generated image(s).
+      required:
+        - created
+        - data
+      description: >-
+        The response which contains information about the generated image, including the download link.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: GenerateImageResponse
+    DescribeModelVersion:
+      type: string
+      enum:
+        - V_2
+        - V_3
+        - V_4
+      default: V_3
+      description: The model version to use for describing images. Defaults to V_3.
+      title: DescribeModelVersion
+    Description:
+      type: object
+      properties:
+        text:
+          type: string
+          description: The generated description for the provided image.
+      title: Description
+    DescribeResponse:
+      type: object
+      properties:
+        descriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Description'
+          description: A collection of descriptions for given content.
+      description: The response for a describe request encapsulates a list of descriptions.
+      title: DescribeResponse
+    ImageSafetyError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      title: ImageSafetyError
+    AspectRatio:
+      type: string
+      enum:
+        - ASPECT_10_16
+        - ASPECT_16_10
+        - ASPECT_9_16
+        - ASPECT_16_9
+        - ASPECT_3_2
+        - ASPECT_2_3
+        - ASPECT_4_3
+        - ASPECT_3_4
+        - ASPECT_1_1
+        - ASPECT_1_3
+        - ASPECT_3_1
+      description: >-
+        (Cannot be used in conjunction with resolution) The aspect ratio to use for image generation, which determines
+        the image's resolution. Defaults to ASPECT_1_1.
+      title: AspectRatio
+    ModelEnum:
+      type: string
+      enum:
+        - V_1
+        - V_1_TURBO
+        - V_2
+        - V_2_TURBO
+        - V_2A
+        - V_2A_TURBO
+        - AUTO
+      default: V_2
+      description: >-
+        The model used to generate an image or edit one. /generate and /remix supports all model types, however, /edit
+        is only supported for V_2 and V_2_TURBO.
+      title: ModelEnum
+    Resolution:
+      type: string
+      enum:
+        - RESOLUTION_512_1536
+        - RESOLUTION_576_1408
+        - RESOLUTION_576_1472
+        - RESOLUTION_576_1536
+        - RESOLUTION_640_1024
+        - RESOLUTION_640_1344
+        - RESOLUTION_640_1408
+        - RESOLUTION_640_1472
+        - RESOLUTION_640_1536
+        - RESOLUTION_704_1152
+        - RESOLUTION_704_1216
+        - RESOLUTION_704_1280
+        - RESOLUTION_704_1344
+        - RESOLUTION_704_1408
+        - RESOLUTION_704_1472
+        - RESOLUTION_720_1280
+        - RESOLUTION_736_1312
+        - RESOLUTION_768_1024
+        - RESOLUTION_768_1088
+        - RESOLUTION_768_1152
+        - RESOLUTION_768_1216
+        - RESOLUTION_768_1232
+        - RESOLUTION_768_1280
+        - RESOLUTION_768_1344
+        - RESOLUTION_832_960
+        - RESOLUTION_832_1024
+        - RESOLUTION_832_1088
+        - RESOLUTION_832_1152
+        - RESOLUTION_832_1216
+        - RESOLUTION_832_1248
+        - RESOLUTION_864_1152
+        - RESOLUTION_896_960
+        - RESOLUTION_896_1024
+        - RESOLUTION_896_1088
+        - RESOLUTION_896_1120
+        - RESOLUTION_896_1152
+        - RESOLUTION_960_832
+        - RESOLUTION_960_896
+        - RESOLUTION_960_1024
+        - RESOLUTION_960_1088
+        - RESOLUTION_1024_640
+        - RESOLUTION_1024_768
+        - RESOLUTION_1024_832
+        - RESOLUTION_1024_896
+        - RESOLUTION_1024_960
+        - RESOLUTION_1024_1024
+        - RESOLUTION_1088_768
+        - RESOLUTION_1088_832
+        - RESOLUTION_1088_896
+        - RESOLUTION_1088_960
+        - RESOLUTION_1120_896
+        - RESOLUTION_1152_704
+        - RESOLUTION_1152_768
+        - RESOLUTION_1152_832
+        - RESOLUTION_1152_864
+        - RESOLUTION_1152_896
+        - RESOLUTION_1216_704
+        - RESOLUTION_1216_768
+        - RESOLUTION_1216_832
+        - RESOLUTION_1232_768
+        - RESOLUTION_1248_832
+        - RESOLUTION_1280_704
+        - RESOLUTION_1280_720
+        - RESOLUTION_1280_768
+        - RESOLUTION_1280_800
+        - RESOLUTION_1312_736
+        - RESOLUTION_1344_640
+        - RESOLUTION_1344_704
+        - RESOLUTION_1344_768
+        - RESOLUTION_1408_576
+        - RESOLUTION_1408_640
+        - RESOLUTION_1408_704
+        - RESOLUTION_1472_576
+        - RESOLUTION_1472_640
+        - RESOLUTION_1472_704
+        - RESOLUTION_1536_512
+        - RESOLUTION_1536_576
+        - RESOLUTION_1536_640
+      description: >-
+        (For model_version for 2.0 only, cannot be used in conjunction with aspect_ratio) The resolution to use for
+        image generation, represented in width x height. If not specified, defaults to using aspect_ratio.
+      title: Resolution
+    ImageRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: The prompt to use to generate the image.
+        aspect_ratio:
+          $ref: '#/components/schemas/AspectRatio'
+        model:
+          $ref: '#/components/schemas/ModelEnum'
+        magic_prompt_option:
+          $ref: '#/components/schemas/MagicPromptOption'
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleType'
+        negative_prompt:
+          type: string
+          description: >-
+            Only available for model versions V_1, V_1_TURBO, V_2 and V_2_TURBO. Description of what to exclude from an
+            image. Descriptions in the prompt take precedence to descriptions in the negative prompt.
+        num_images:
+          type: integer
+          default: 1
+          description: The number of images to generate.
+        resolution:
+          $ref: '#/components/schemas/Resolution'
+        color_palette:
+          $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+      required:
+        - prompt
+      title: ImageRequest
+    GenerateImageRequest:
+      type: object
+      properties:
+        image_request:
+          $ref: '#/components/schemas/ImageRequest'
+      required:
+        - image_request
+      title: GenerateImageRequest
+    InitialImageRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: The prompt to use to generate the image.
+        aspect_ratio:
+          $ref: '#/components/schemas/AspectRatio'
+        model:
+          $ref: '#/components/schemas/ModelEnum'
+        magic_prompt_option:
+          $ref: '#/components/schemas/MagicPromptOption'
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleType'
+        negative_prompt:
+          type: string
+          description: >-
+            Only available for model versions V_1, V_1_TURBO, V_2 and V_2_TURBO. Description of what to exclude from an
+            image. Descriptions in the prompt take precedence to descriptions in the negative prompt.
+        num_images:
+          type: integer
+          default: 1
+          description: The number of images to generate.
+        resolution:
+          $ref: '#/components/schemas/Resolution'
+        color_palette:
+          $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
+        image_weight:
+          type: integer
+          default: 50
+      required:
+        - prompt
+      description: A request to generate a new image using a provided image and a prompt.
+      title: InitialImageRequest
+    AssetType:
+      type: string
+      enum:
+        - ASSET
+        - CANVAS_ASSET
+        - LAYERED_ASSET
+        - RESPONSE
+        - UPLOAD
+      title: AssetType
+    AssetIdentifier:
+      type: object
+      properties:
+        asset_type:
+          $ref: '#/components/schemas/AssetType'
+        asset_id:
+          type: string
+      required:
+        - asset_type
+        - asset_id
+      description: An identifier for an ideogram asset.
+      title: AssetIdentifier
+    Dataset:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          description: Unique identifier for the dataset.
+        name:
+          type: string
+          description: Display name of the dataset.
+        user_id:
+          type: string
+          description: ID of the user who owns this dataset.
+        creation_time:
+          type: string
+          format: date-time
+          description: When the dataset was created.
+        cover_asset_identifier:
+          $ref: '#/components/schemas/AssetIdentifier'
+      required:
+        - dataset_id
+        - name
+        - user_id
+        - creation_time
+      description: A dataset for organizing training images.
+      title: Dataset
+    ListDatasetsResponse:
+      type: object
+      properties:
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dataset'
+          description: List of datasets for the authenticated user.
+      required:
+        - datasets
+      title: ListDatasetsResponse
+    CreateDatasetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the dataset.
+      required:
+        - name
+      title: CreateDatasetRequest
+    DatasetFile:
+      type: object
+      properties:
+        file_name:
+          type:
+            - string
+            - 'null'
+          description: Filename of the file in the dataset.
+        file_size_bytes:
+          type:
+            - integer
+            - 'null'
+          description: Size of the file in bytes, if available.
+      required:
+        - file_name
+      description: A file in a dataset.
+      title: DatasetFile
+    GetDatasetResponse:
+      type: object
+      properties:
+        dataset:
+          $ref: '#/components/schemas/Dataset'
+        file_count:
+          type: integer
+          description: Total number of files in the dataset.
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetFile'
+          description: List of files in the dataset.
+        custom_model_ids:
+          type: array
+          items:
+            type: string
+          description: |
+            IDs of all custom models trained from this dataset. Empty array if no model has been trained yet.
+      required:
+        - dataset
+        - file_count
+        - files
+        - custom_model_ids
+      description: Detailed view of a dataset, including its files.
+      title: GetDatasetResponse
+    DatasetUploadSucceededAsset:
+      type: object
+      properties:
+        asset_identifier:
+          $ref: '#/components/schemas/AssetIdentifier'
+        file_name:
+          type:
+            - string
+            - 'null'
+          description: Original filename of the uploaded image.
+      required:
+        - asset_identifier
+      title: DatasetUploadSucceededAsset
+    DatasetAssetFailureReason:
+      type: string
+      enum:
+        - FAILED_SAFETY_CHECK
+        - FILE_TOO_LARGE
+        - INTERNAL_ERROR
+        - INVALID_CAPTION
+        - INVALID_IMAGE
+        - INVALID_ZIP
+        - TOO_MANY_IMAGES
+      description: Reason why an asset failed to upload.
+      title: DatasetAssetFailureReason
+    DatasetUploadFailedAsset:
+      type: object
+      properties:
+        file_name:
+          type:
+            - string
+            - 'null'
+          description: Original filename of the failed image.
+        failure_reason:
+          $ref: '#/components/schemas/DatasetAssetFailureReason'
+      required:
+        - failure_reason
+      title: DatasetUploadFailedAsset
+    UploadDatasetAssetsResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total number of images processed.
+        success_count:
+          type: integer
+          description: Number of images successfully uploaded.
+        failure_count:
+          type: integer
+          description: Number of images that failed to upload.
+        successful_assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetUploadSucceededAsset'
+          description: Details of successfully uploaded assets.
+        failed_assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetUploadFailedAsset'
+          description: Details of assets that failed to upload.
+      required:
+        - total_count
+        - success_count
+        - failure_count
+      title: UploadDatasetAssetsResponse
+    TrainModelV3Request:
+      type: object
+      properties:
+        dataset_id:
+          type: string
+          description: ID of the dataset to train the model from.
+        model_name:
+          type: string
+          description: |
+            Name for the trained model. Must be 5-30 characters, alphanumeric with spaces and hyphens allowed.
+      required:
+        - dataset_id
+        - model_name
+      description: |
+        Training request for a custom Ideogram v3 model using default hyperparameters.
+      title: TrainModelV3Request
+    TrainDatasetModelResponse:
+      type: object
+      properties:
+        model_id:
+          type: string
+          description: Unique identifier of the created model.
+        dataset_id:
+          type: string
+          description: Identifier of the dataset used for training.
+        training_status:
+          type: string
+          description: Current training status of the model.
+        model_name:
+          type: string
+          description: Name of the model.
+      required:
+        - model_id
+        - dataset_id
+        - training_status
+        - model_name
+      title: TrainDatasetModelResponse
+    ModelsGetParametersScope:
+      type: string
+      enum:
+        - owned
+        - shared
+      title: ModelsGetParametersScope
+    ModelStatus:
+      type: string
+      enum:
+        - CREATING
+        - DRAFT
+        - TRAINING
+        - COMPLETED
+        - ERRORED
+        - ARCHIVED
+      description: The status of a custom model.
+      title: ModelStatus
+    CustomModel:
+      type: object
+      properties:
+        model_id:
+          type: string
+          description: Unique identifier for the model (base64 URL-safe encoded UUID).
+        custom_model_uri:
+          type:
+            - string
+            - 'null'
+          description: |
+            A custom model URI in the format model/<model_name>/version/<version_name>.
+            Use this URI when generating images with this model. Only present for models
+            that have been registered in the model registry.
+        name:
+          type: string
+          description: Display name of the model.
+        status:
+          $ref: '#/components/schemas/ModelStatus'
+        dataset_id:
+          type:
+            - string
+            - 'null'
+          description: ID of the dataset (collection) the model was trained from.
+        creation_time:
+          type: string
+          format: date-time
+          description: When the model was created.
+        last_update_time:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: When the model was last updated.
+        is_available_for_generation:
+          type: boolean
+          description: Whether the model is available for image generation.
+        is_owned:
+          type: boolean
+          description: Whether the authenticated user owns this model.
+      required:
+        - model_id
+        - name
+        - status
+        - creation_time
+        - is_available_for_generation
+        - is_owned
+      description: A custom model.
+      title: CustomModel
+    ListModelsResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomModel'
+          description: List of models.
+      required:
+        - models
+      title: ListModelsResponse
+    GetModelResponse:
+      type: object
+      properties:
+        model:
+          $ref: '#/components/schemas/CustomModel'
+      required:
+        - model
+      title: GetModelResponse
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Api-Key
+      description: API key for access control. Use in the header with the name \"Api-Key\"

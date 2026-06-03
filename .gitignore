@@ -14,6 +14,12 @@ node_modules/
 # Generated drift reports
 .drift-report.md
 
+# Generated release notes (consumed by sync-daily webhook / GitHub Release)
+.release-notes.md
+
+# Generated daily change report (consumed by sync-daily webhook)
+.sync-report.md
+
 # Generated doc site (built by scripts/build-site.js, deployed via Pages)
 site/
 

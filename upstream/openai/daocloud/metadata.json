@@ -1,0 +1,16 @@
+{
+  "protocol": "openai",
+  "provider": "daocloud",
+  "displayName": "DaoCloud d.run (OpenAI-compatible)",
+  "kind": "overlay",
+  "base": "avs://openai/official",
+  "overlayPath": "upstream/openai/daocloud/overlay.yml",
+  "lastEdited": "2026-06-03T00:00:00Z",
+  "lastReviewed": "2026-06-03",
+  "lastReviewedDocs": [
+    "https://docs.daocloud.io/en/hydra/api-call/",
+    "https://docs.d.run/"
+  ],
+  "autoSync": false,
+  "note": "DaoCloud d.run 模型网关(底层 vLLM),OpenAI-compatible。base 改用 chat.d.run/v1(共享公共面),证书 *.d.run(Sectigo)。⚠️ sh-02.d.run 为自部署区域端点且 TLS 证书已过期(2026-05-26),不作默认。daocloud-api-docs 仓库仅含 K8s 平台组件规范,非 LLM → overlay。差异:model 用租户命名空间 u-xxxx/name。"
+}

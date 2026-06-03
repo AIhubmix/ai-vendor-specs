@@ -1,0 +1,24 @@
+# upstream/openai/chutes overlay
+#
+# Chutes(基于 Bittensor 的去中心化推理),推理面 llm.chutes.ai/v1 提供 OpenAI-compatible
+# /chat/completions。⚠️ 鉴权用 Bearer cpk_... key。基础 shape 复用 openai/official。
+# 注:api.chutes.ai/openapi.json 是「管理面」规范(166 路径,零 chat/completions),
+# 不描述推理面,故推理走 overlay 而非 spec。
+#
+# 来源核验:chutes.ai/llms-full.txt(2026-06-03);base 证书 *.chutes.ai
+#
+# === 扩展(非 OpenAI 标准)===
+# - GET /v1/models 返回 supported_features / supported_sampling_parameters / 定价 / TEE 标志
+
+base: avs://openai/official
+
+info:
+  title: Chutes (OpenAI-compatible)
+  description: |
+    Chutes 去中心化 serverless 推理,OpenAI 协议兼容 /chat/completions。
+    鉴权 Bearer cpk_ key。/v1/models 含 supported_features/定价 扩展(详见顶部注释)。
+    权威来源:https://chutes.ai/docs/getting-started/quickstart
+
+servers:
+  - url: https://llm.chutes.ai/v1
+    description: Chutes Inference (OpenAI-compatible)

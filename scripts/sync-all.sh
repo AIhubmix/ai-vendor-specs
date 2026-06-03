@@ -12,7 +12,21 @@ bash scripts/sync/cohere-official.sh && echo ""
 bash scripts/sync/gemini-official.sh && echo ""
 bash scripts/sync/vertex-official.sh && echo ""
 
-# anthropic/bedrock 仅有 overlay.yml(无独立 spec),由消费方 build 时 resolve
+# ── 新增 spec(2026-06 扩充)──────────────────────────────────────────
+bash scripts/sync/cerebras.sh && echo ""
+bash scripts/sync/deepinfra.sh && echo ""
+bash scripts/sync/siliconflow.sh && echo ""
+bash scripts/sync/moonshot.sh && echo ""
+bash scripts/sync/zhipu-official.sh && echo ""
+bash scripts/sync/mistral-official.sh && echo ""
+bash scripts/sync/perplexity-official.sh && echo ""
+bash scripts/sync/ideogram-official.sh && echo ""
+bash scripts/sync/jina-official.sh && echo ""
+bash scripts/sync/flux-official.sh && echo ""
+
+# overlay 类(openai/{bytedance,sophnet,baidu,chutes,alibaba,yi,stepfun,nvidia,
+# minimax,baichuan,xiaomi,daocloud} 及 anthropic/bedrock)仅有 overlay.yml,
+# 不在此 sync(手工维护),由消费方 build 时 resolve。
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📊 同步完成统计:"
