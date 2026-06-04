@@ -979,7 +979,7 @@
                 "minimum": 1,
                 "type": "integer"
               },
-              "snippet_mode": {
+              "search_context_size": {
                 "description": "Controls how much content is extracted from result pages.\n\n- `low` — short passages most relevant to the query.\n- `medium` — a balanced amount of content per document.\n- `high` (default) — detailed content relevant to the query.\n\nOmit when using `max_tokens` or `max_tokens_per_page`.",
                 "type": "string"
               },

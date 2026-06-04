@@ -3,6 +3,308 @@ info:
   title: API Reference
   version: 1.0.0
 paths:
+  /v1/ideogram-v4/generate:
+    post:
+      operationId: post-generate-image-v-4
+      summary: Generate with Ideogram 4.0
+      description: >
+        Generates images synchronously using the Ideogram 4.0 model.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with Ideogram 4.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text_prompt:
+                  type: string
+                  description: |
+                    A natural-language prompt for image generation. When supplied,
+                    magic-prompt is enabled automatically. Mutually exclusive with
+                    `json_prompt`.
+                json_prompt:
+                  $ref: '#/components/schemas/V4JsonPrompt'
+                  description: |
+                    A structured prompt that conforms to the Ideogram 4.0 JSON
+                    contract. When supplied, magic-prompt is disabled and the
+                    structured prompt is consumed by the diffusion model directly.
+                    Mutually exclusive with `text_prompt`.
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV4'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                  description: |
+                    The rendering speed to use. For Ideogram V4, `rendering_speed=FLASH`
+                    is coming soon; requests with `rendering_speed=FLASH` currently
+                    return a 400.
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). The effective gate is the OR of this field and the organization's
+                    `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/ideogram-v4/remix:
+    post:
+      operationId: post-remix-image-v-4
+      summary: Remix with Ideogram 4.0
+      description: >
+        Remix an image synchronously using the Ideogram 4.0 model with an initial image and a prompt.
+
+
+        Mirrors `/v1/ideogram-v3/remix` semantics (including `image_weight` for how strongly the
+
+        output should resemble the input image) but routes the request through the V_4_0 model.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to remix an image with Ideogram 4.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The initial image binary (max 10MB); only JPEG, WebP and PNG formats are supported.
+                text_prompt:
+                  type: string
+                  description: The text prompt that guides the remix.
+                image_weight:
+                  type: integer
+                  description: |
+                    Optional. How strongly the output should resemble the input image. Higher values keep
+                    the input image's structure; lower values allow the prompt to drive the output more.
+                    When omitted, the weight is chosen automatically from the edit instruction; supplying
+                    a value overrides that automatic choice.
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV4'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). See GenerateImageRequestV3 for details.
+              required:
+                - image
+                - text_prompt
+  /v1/ideogram-v4/magic-prompt:
+    post:
+      operationId: post-magic-prompt-v-4
+      summary: Generate a Magic Prompt with Ideogram 4.0
+      description: |
+        Transforms a basic prompt into an enhanced Ideogram 4.0 magic prompt.
+        The magic prompt model version is fixed; callers cannot select it.
+        When `aspect_ratio` is `AUTO` (the default), the model selects the most
+        suitable aspect ratio for the prompt and returns it in the response.
+      tags:
+        - subpackage_prompt
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Magic prompt generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MagicPromptV4Response'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized to generate magic prompts.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an Ideogram 4.0 magic prompt.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MagicPromptV4Request'
+  /v1/ideogram-v4/describe:
+    post:
+      operationId: post-describe-v-4
+      summary: Describe with Ideogram 4.0
+      description: |
+        Describe an image with Ideogram 4.0 and return a structured
+        `V4JsonPrompt`. The returned `json_prompt` is a working JSON prompt
+        that can be passed directly as `json_prompt` to the
+        `/v1/ideogram-v4/generate` family of endpoints.
+
+        Supported image formats include JPEG, PNG, and WebP.
+      tags:
+        - subpackage_vision
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Structured V4 prompt generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DescribeResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Image failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '503':
+          description: Took too long to finish.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                include_bbox:
+                  type: boolean
+                  default: true
+                  description: |
+                    When true (default), the response preserves bounding boxes on each
+                    element so the prompt can be pasted into `/v1/ideogram-v4/generate`
+                    as `json_prompt` and reproduce the source layout. Set to false to
+                    drop bounding boxes and let the sampler place elements freely.
+              required:
+                - image_file
   /v1/ideogram-v3/generate:
     post:
       operationId: post-generate-image-v-3
@@ -1781,6 +2083,323 @@ servers:
   - url: https://api.ideogram.ai
 components:
   schemas:
+    V4StyleDescription:
+      type: object
+      properties:
+        aesthetics:
+          type: string
+          description: Aesthetic notes (mood, vibe, references).
+        art_style:
+          type: string
+          description: Optional art-style hint (e.g., illustration, oil painting).
+        lighting:
+          type: string
+          description: Lighting description.
+        medium:
+          type: string
+          description: Medium description (e.g., photograph, digital art).
+        photo:
+          type: string
+          description: Optional photographic style notes (e.g., lens, film stock).
+      required:
+        - aesthetics
+        - lighting
+        - medium
+      description: Optional style description supplied alongside a V4 JSON prompt.
+      title: V4StyleDescription
+    V4ObjPromptElementType:
+      type: string
+      enum:
+        - obj
+      description: Discriminator. Must be `obj`.
+      title: V4ObjPromptElementType
+    V4ObjPromptElement:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/V4ObjPromptElementType'
+          description: Discriminator. Must be `obj`.
+        bbox:
+          type: array
+          items:
+            type: integer
+          description: |
+            Bounding box for an element, expressed as four integers in `[0, 1000]`
+            with `[y_min, x_min, y_max, x_max]` semantics (row-first). Values are
+            normalized so the canvas is `1000 x 1000` regardless of the final
+            resolution.
+        desc:
+          type: string
+          description: Description of the object element.
+      required:
+        - type
+        - desc
+      description: A non-text element (object, character, background detail) in the V4 prompt layout.
+      title: V4ObjPromptElement
+    V4TextPromptElementType:
+      type: string
+      enum:
+        - text
+      description: Discriminator. Must be `text`.
+      title: V4TextPromptElementType
+    V4TextPromptElement:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/V4TextPromptElementType'
+          description: Discriminator. Must be `text`.
+        bbox:
+          type: array
+          items:
+            type: integer
+          description: |
+            Bounding box for an element, expressed as four integers in `[0, 1000]`
+            with `[y_min, x_min, y_max, x_max]` semantics (row-first). Values are
+            normalized so the canvas is `1000 x 1000` regardless of the final
+            resolution.
+        text:
+          type: string
+          description: The literal text to render in the image.
+        desc:
+          type: string
+          description: Description of the text element (style, role, placement notes).
+      required:
+        - type
+        - text
+        - desc
+      description: A text element to render in the V4 prompt layout.
+      title: V4TextPromptElement
+    V4PromptElement:
+      oneOf:
+        - $ref: '#/components/schemas/V4ObjPromptElement'
+        - $ref: '#/components/schemas/V4TextPromptElement'
+      description: |
+        A single element in the V4 prompt's compositional deconstruction.
+        Discriminated by the `type` field.
+      title: V4PromptElement
+    V4CompositionalDeconstruction:
+      type: object
+      properties:
+        background:
+          type: string
+          description: Description of the background of the scene.
+        elements:
+          type: array
+          items:
+            $ref: '#/components/schemas/V4PromptElement'
+          description: Ordered list of elements (objects and text) composing the scene.
+      required:
+        - background
+        - elements
+      description: The compositional breakdown of a V4 prompt — background plus an ordered list of elements.
+      title: V4CompositionalDeconstruction
+    V4JsonPrompt:
+      type: object
+      properties:
+        high_level_description:
+          type: string
+          description: One- or two-sentence overall description of the desired image.
+        style_description:
+          $ref: '#/components/schemas/V4StyleDescription'
+        compositional_deconstruction:
+          $ref: '#/components/schemas/V4CompositionalDeconstruction'
+      required:
+        - high_level_description
+        - compositional_deconstruction
+      description: |
+        Structured prompt for Ideogram 4.0 generation. When `json_prompt` is
+        supplied, magic-prompt is disabled and the diffusion model consumes
+        the JSON contract directly. Mutually exclusive with `text_prompt`
+        and the legacy `prompt` field.
+      title: V4JsonPrompt
+    ResolutionV4:
+      type: string
+      enum:
+        - 2048x2048
+        - 1440x2880
+        - 2880x1440
+        - 1664x2496
+        - 2496x1664
+        - 1792x2240
+        - 2240x1792
+        - 1440x2560
+        - 2560x1440
+        - 1600x2560
+        - 2560x1600
+        - 1728x2304
+        - 2304x1728
+        - 1296x3168
+        - 3168x1296
+        - 1152x2944
+        - 2944x1152
+        - 1248x3328
+        - 3328x1248
+        - 1280x3072
+        - 3072x1280
+        - 1024x3072
+        - 3072x1024
+      description: The 2K resolutions supported for Ideogram 4.0 image generation.
+      title: ResolutionV4
+    RenderingSpeed:
+      type: string
+      enum:
+        - FLASH
+        - TURBO
+        - DEFAULT
+        - QUALITY
+      default: DEFAULT
+      description: The rendering speed to use.
+      title: RenderingSpeed
+    ImageGenerationResponseV4ResponseType:
+      type: string
+      enum:
+        - url
+      description: Discriminator for the postGenerateDesignV4 oneOf response. Always "url" for this shape.
+      title: ImageGenerationResponseV4ResponseType
+    ImageGenerationObjectV4:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          $ref: '#/components/schemas/ResolutionV4'
+        is_image_safe:
+          type: boolean
+          description: Whether this request passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      title: ImageGenerationObjectV4
+    ImageGenerationResponseV4:
+      type: object
+      properties:
+        response_type:
+          $ref: '#/components/schemas/ImageGenerationResponseV4ResponseType'
+          description: Discriminator for the postGenerateDesignV4 oneOf response. Always "url" for this shape.
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageGenerationObjectV4'
+          description: A list of ImageObjects that contain the generated image(s).
+      required:
+        - created
+        - data
+      description: >-
+        The response which contains information about the generated image, including the download link.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: ImageGenerationResponseV4
+    GenerateImageSafetyError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      title: GenerateImageSafetyError
+    AspectRatioV4:
+      type: string
+      enum:
+        - AUTO
+        - 1x4
+        - 1x3
+        - 1x2
+        - 9x16
+        - 10x16
+        - 2x3
+        - 3x4
+        - 4x5
+        - 1x1
+        - 5x4
+        - 4x3
+        - 3x2
+        - 16x10
+        - 16x9
+        - 2x1
+        - 3x1
+        - 4x1
+      default: AUTO
+      description: |
+        The aspect ratio for an Ideogram 4.0 magic prompt. `AUTO` lets the
+        model select the most suitable ratio from the prompt; any other value
+        pins the ratio. The non-AUTO values are the buckets the 4.0 model
+        supports.
+      title: AspectRatioV4
+    MagicPromptV4Request:
+      type: object
+      properties:
+        text_prompt:
+          type: string
+          description: |
+            The natural-language prompt to enhance into an Ideogram 4.0 magic
+            prompt. Named `text_prompt` to match the Ideogram 4.0 generate
+            request surface.
+        aspect_ratio:
+          $ref: '#/components/schemas/AspectRatioV4'
+          description: |
+            Target aspect ratio. Defaults to `AUTO`, which lets the model
+            select the most suitable ratio and return it in the response.
+      required:
+        - text_prompt
+      description: A request to generate an Ideogram 4.0 magic prompt.
+      title: MagicPromptV4Request
+    MagicPromptV4Response:
+      type: object
+      properties:
+        json_prompt:
+          $ref: '#/components/schemas/V4JsonPrompt'
+          description: |
+            The enhanced prompt as an Ideogram 4.0 structured JSON prompt. This
+            conforms to the same contract as `json_prompt` on
+            `/v1/ideogram-v4/generate`, so it can be passed straight back to
+            that endpoint.
+        aspect_ratio:
+          $ref: '#/components/schemas/AspectRatioV4'
+          description: |
+            The resolved aspect ratio. When the request used `AUTO`, this is
+            the ratio the model selected; otherwise it echoes the request.
+      required:
+        - json_prompt
+        - aspect_ratio
+      description: The response containing the generated Ideogram 4.0 magic prompt.
+      title: MagicPromptV4Response
+    DescribeResponseV4:
+      type: object
+      properties:
+        json_prompt:
+          $ref: '#/components/schemas/V4JsonPrompt'
+      required:
+        - json_prompt
+      description: |
+        The response for an Ideogram 4.0 describe request. The `json_prompt`
+        field is a structured `V4JsonPrompt` that can be passed back as
+        `json_prompt` to the `/v1/ideogram-v4/generate` family of endpoints.
+      title: DescribeResponseV4
+    ImageSafetyError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      title: ImageSafetyError
     ResolutionV3:
       type: string
       enum:
@@ -1877,16 +2496,6 @@ components:
         The aspect ratio to use for image generation, which determines the image's resolution. Cannot be used in
         conjunction with resolution. Defaults to 1x1.
       title: AspectRatioV3
-    RenderingSpeed:
-      type: string
-      enum:
-        - FLASH
-        - TURBO
-        - DEFAULT
-        - QUALITY
-      default: DEFAULT
-      description: The rendering speed to use.
-      title: RenderingSpeed
     MagicPromptOption:
       type: string
       enum:
@@ -2088,14 +2697,6 @@ components:
         Images links are available for a limited period of time; if you would like to keep the image, you must download
         it.
       title: ImageGenerationResponseV3
-    GenerateImageSafetyError:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-        - error
-      title: GenerateImageSafetyError
     UpscaleFactor:
       type: string
       enum:
@@ -2322,6 +2923,13 @@ components:
     GenerateImageResponse:
       type: object
       properties:
+        request_id:
+          type: string
+          description: |
+            URL-safe base64 ID of the sampling request. Present when the caller
+            supplied `webhook_url` and the request was accepted for async
+            delivery; in that case `data` is omitted and the generated images
+            will be POSTed to the customer's `webhook_url` when ready.
         created:
           type: string
           format: date-time
@@ -2333,7 +2941,6 @@ components:
           description: A list of ImageObjects that contain the generated image(s).
       required:
         - created
-        - data
       description: >-
         The response which contains information about the generated image, including the download link.
 
@@ -2366,14 +2973,6 @@ components:
           description: A collection of descriptions for given content.
       description: The response for a describe request encapsulates a list of descriptions.
       title: DescribeResponse
-    ImageSafetyError:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-        - error
-      title: ImageSafetyError
     AspectRatio:
       type: string
       enum:
