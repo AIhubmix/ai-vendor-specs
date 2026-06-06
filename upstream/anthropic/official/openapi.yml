@@ -31744,12 +31744,16 @@
           {
             "const": "claude-opus-4-1",
             "description": "Exceptional model for specialized complex tasks",
-            "x-stainless-nominal": false
+            "x-stainless-nominal": false,
+            "deprecated": true,
+            "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
           },
           {
             "const": "claude-opus-4-1-20250805",
             "description": "Exceptional model for specialized complex tasks",
-            "x-stainless-nominal": false
+            "x-stainless-nominal": false,
+            "deprecated": true,
+            "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
           },
           {
             "const": "claude-opus-4-0",
