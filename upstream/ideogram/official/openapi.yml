@@ -2081,6 +2081,7 @@ paths:
                 description: Any type
 servers:
   - url: https://api.ideogram.ai
+    description: https://api.ideogram.ai
 components:
   schemas:
     V4StyleDescription:
