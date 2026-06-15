@@ -378,8 +378,8 @@
 						"properties": {
 							"model": {
 								"type": "string",
-								"description": "模型 ID",
-								"enum": ["kimi-k2.7-code"],
+								"description": "模型 ID。可选 `kimi-k2.7-code` 或其高速版 `kimi-k2.7-code-highspeed`；两者为同一模型、参数完全一致，高速版输出速度约 180 Tokens/s（短上下文场景可达 260 Tokens/s）。",
+								"enum": ["kimi-k2.7-code", "kimi-k2.7-code-highspeed"],
 								"default": "kimi-k2.7-code"
 							},
 							"thinking": {
@@ -550,6 +550,7 @@
 						"default": "kimi-k2.5",
 						"enum": [
 							"kimi-k2.7-code",
+							"kimi-k2.7-code-highspeed",
 							"kimi-k2.6",
 							"kimi-k2.5",
 							"moonshot-v1-8k",
@@ -1218,6 +1219,7 @@
 											"propertyName": "model",
 											"mapping": {
 												"kimi-k2.7-code": "#/components/schemas/KimiK27CodeChatRequest",
+												"kimi-k2.7-code-highspeed": "#/components/schemas/KimiK27CodeChatRequest",
 												"kimi-k2.6": "#/components/schemas/KimiK26ChatRequest",
 												"kimi-k2.5": "#/components/schemas/KimiK25ChatRequest",
 										"moonshot-v1-8k": "#/components/schemas/MoonshotV1ChatRequest",
