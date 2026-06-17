@@ -1,6 +1,6 @@
 {
   "name": "@aihubmix/ai-vendor-specs",
-  "version": "1.20260616.0",
+  "version": "1.20260617.0",
   "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
   "main": "scripts/overlay/apply.js",
   "exports": {
