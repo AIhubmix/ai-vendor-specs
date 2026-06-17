@@ -26,6 +26,7 @@
 					"role": {
 						"type": "string",
 						"enum": ["system", "user", "assistant"],
+						"example": "user",
 						"description": "消息发送者的角色"
 					},
 					"content": {
@@ -88,6 +89,7 @@
 								}
 							}
 						],
+						"example": "你好",
 						"description": "消息内容。可以是纯文本字符串，也可以是包含 text/image_url/video_url 类型的对象数组（用于多模态输入）"
 					},
 					"name": {

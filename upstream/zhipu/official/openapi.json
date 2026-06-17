@@ -52,15 +52,15 @@
               "examples": {
                 "Basic Example": {
                   "value": {
-                    "model": "glm-5.1",
+                    "model": "glm-5.2",
                     "messages": [
                       {
                         "role": "system",
-                        "content": "You are a useful AI assistant."
+                        "content": "You are a helpful coding assistant."
                       },
                       {
                         "role": "user",
-                        "content": "Please tell us about the development of artificial intelligence."
+                        "content": "Write a Python function to calculate the factorial of a number."
                       }
                     ],
                     "temperature": 1,
@@ -69,11 +69,15 @@
                 },
                 "Stream Example": {
                   "value": {
-                    "model": "glm-5.1",
+                    "model": "glm-5.2",
                     "messages": [
                       {
+                        "role": "system",
+                        "content": "You are a helpful coding assistant."
+                      },
+                      {
                         "role": "user",
-                        "content": "Write a poem about spring."
+                        "content": "Write a Python function to calculate the factorial of a number."
                       }
                     ],
                     "temperature": 1,
@@ -82,11 +86,15 @@
                 },
                 "Thinking Example": {
                   "value": {
-                    "model": "glm-5.1",
+                    "model": "glm-5.2",
                     "messages": [
                       {
+                        "role": "system",
+                        "content": "You are a helpful coding assistant."
+                      },
+                      {
                         "role": "user",
-                        "content": "Write a poem about spring."
+                        "content": "Write a Python function to calculate the factorial of a number."
                       }
                     ],
                     "thinking": {
@@ -97,7 +105,7 @@
                 },
                 "Multi Conversation": {
                   "value": {
-                    "model": "glm-5.1",
+                    "model": "glm-5.2",
                     "messages": [
                       {
                         "role": "system",
@@ -199,7 +207,7 @@
                 },
                 "Function Call Example": {
                   "value": {
-                    "model": "glm-5.1",
+                    "model": "glm-5.2",
                     "messages": [
                       {
                         "role": "user",
@@ -1200,10 +1208,11 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "The model code to be called. GLM-5.1, GLM-5, GLM-5-Turbo are the latest flagship model series, foundational models specifically designed for agent applications.",
-            "example": "glm-5.1",
-            "default": "glm-5.1",
+            "description": "The model code to be called. GLM-5.2, GLM-5.1, GLM-5-Turbo are the latest flagship model series, foundational models specifically designed for agent applications.",
+            "example": "glm-5.2",
+            "default": "glm-5.2",
             "enum": [
+              "glm-5.2",
               "glm-5.1",
               "glm-5-turbo",
               "glm-5",
@@ -1400,9 +1409,24 @@
           "thinking": {
             "$ref": "#/components/schemas/ChatThinking"
           },
+          "reasoning_effort": {
+            "type": "string",
+            "description": "Controls the model's reasoning effort level, takes effect when `thinking` is enabled. Default is `max`. Only supported by `GLM-5.2`. For compatibility with other protocols, passing `none` or `minimal` will cause the model to skip thinking; `low` and `medium` will be mapped to `high`; `xhigh` will be mapped to `max`.",
+            "example": "max",
+            "default": "max",
+            "enum": [
+              "max",
+              "xhigh",
+              "high",
+              "medium",
+              "low",
+              "minimal",
+              "none"
+            ]
+          },
           "temperature": {
             "type": "number",
-            "description": "Sampling temperature, controls the randomness of the output, must be a positive number within the range: `[0.0, 1.0]`. The GLM-5.1, GLM-5, GLM-4.7, GLM-4.6 series default value is `1.0`, GLM-4.5 series default value is `0.6`, GLM-4-32B-0414-128K default value is `0.75`.",
+            "description": "Sampling temperature, controls the randomness of the output, must be a positive number within the range: `[0.0, 1.0]`. The GLM-5.2, GLM-5.1, GLM-5, GLM-4.7, GLM-4.6 series default value is `1.0`, GLM-4.5 series default value is `0.6`, GLM-4-32B-0414-128K default value is `0.75`.",
             "format": "float",
             "example": 1,
             "default": 1,
@@ -1411,7 +1435,7 @@
           },
           "top_p": {
             "type": "number",
-            "description": "Another method of temperature sampling, value range is: `[0.01, 1.0]`. The GLM-5.1, GLM-5, GLM-4.7, GLM-4.6, GLM-4.5 series default value is `0.95`, GLM-4-32B-0414-128K default value is `0.9`.",
+            "description": "Another method of temperature sampling, value range is: `[0.01, 1.0]`. The GLM-5.2, GLM-5.1, GLM-5, GLM-4.7, GLM-4.6, GLM-4.5 series default value is `0.95`, GLM-4-32B-0414-128K default value is `0.9`.",
             "format": "float",
             "example": 0.95,
             "default": 0.95,
