@@ -89,6 +89,153 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/ideogram-v4/async/generate:
+    post:
+      operationId: post-generate-image-v-4-async
+      summary: Generate with Ideogram 4.0 asynchronously via webhook
+      description: |
+        Accepts an Ideogram 4.0 generation request for asynchronous processing and
+        returns immediately with a generation_id. The generated images are POSTed to
+        the supplied `webhook_url` once ready, in a payload that mirrors the
+        synchronous response with an added generation_id for correlation.
+
+        See [Webhooks](/ideogram-api/webhooks) for the delivery payload and how to verify webhook signatures.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: webhook_url
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WebhookUrl'
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request accepted for asynchronous delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with Ideogram 4.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text_prompt:
+                  type: string
+                  description: |
+                    A natural-language prompt for image generation. When supplied,
+                    magic-prompt is enabled automatically. Mutually exclusive with
+                    `json_prompt`.
+                json_prompt:
+                  $ref: '#/components/schemas/V4JsonPrompt'
+                  description: |
+                    A structured prompt that conforms to the Ideogram 4.0 JSON
+                    contract. When supplied, magic-prompt is disabled and the
+                    structured prompt is consumed by the diffusion model directly.
+                    Mutually exclusive with `text_prompt`.
+                resolution:
+                  $ref: '#/components/schemas/ResolutionV4'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeed'
+                  description: |
+                    The rendering speed to use. For Ideogram V4, `rendering_speed=FLASH`
+                    is coming soon; requests with `rendering_speed=FLASH` currently
+                    return a 400.
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). The effective gate is the OR of this field and the organization's
+                    `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/generations/{generation_id}:
+    get:
+      operationId: get-generation
+      summary: Poll a generation
+      description: >-
+        Retrieves the current status of an asynchronous generation, and its results once complete. Use the
+        `generation_id` returned by the async generation endpoint. While the generation is `pending` or has `failed`,
+        the response contains only `generation_id`, `status`, and `created`; the `response_type` and `data` fields are
+        present only once `status` is `completed`.
+      tags:
+        - subpackage_generate
+      parameters:
+        - name: generation_id
+          in: path
+          description: URL-safe base64 ID of the generation returned by the async generation endpoint.
+          required: true
+          schema:
+            type: string
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Generation status retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationResponse'
+        '400':
+          description: Invalid request ID provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Request not found.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
   /v1/ideogram-v4/remix:
     post:
       operationId: post-remix-image-v-4
@@ -2102,10 +2249,6 @@ components:
         photo:
           type: string
           description: Optional photographic style notes (e.g., lens, film stock).
-      required:
-        - aesthetics
-        - lighting
-        - medium
       description: Optional style description supplied alongside a V4 JSON prompt.
       title: V4StyleDescription
     V4ObjPromptElementType:
@@ -2315,6 +2458,113 @@ components:
       required:
         - error
       title: GenerateImageSafetyError
+    WebhookUrl:
+      type: string
+      format: uri
+      description: |
+        HTTPS URL that Ideogram delivers the generated result to. Ideogram sends a
+        JSON POST to this URL once all images for the request have finished
+        generating. The body mirrors the synchronous generate response:
+        `request_id`, `created`, and a `data` array
+        containing every generated image (`url`, `prompt`, `resolution`, `seed`,
+        `is_image_safe`). Each delivery is signed with Ed25519 and verifiable
+        against the public keys at `/v1/.well-known/jwks.json`. Must be HTTPS;
+        private and loopback hosts and the cloud metadata service are rejected.
+      title: WebhookUrl
+    AsyncImageGenerationResponseV4:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: |
+            URL-safe base64 ID of the accepted generation. Matches the
+            `generation_id` field delivered in the webhook payload, and the
+            `{generation_id}` accepted by the generation polling endpoint.
+      required:
+        - generation_id
+      description: |
+        Acknowledgement returned by the async (webhook) generation endpoints. The
+        request is accepted for asynchronous processing and the generated images
+        are POSTed to the supplied `webhook_url` once ready; this body carries only
+        the generation_id so the caller can correlate the eventual webhook delivery.
+      title: AsyncImageGenerationResponseV4
+    GenerationResponseStatus:
+      type: string
+      enum:
+        - pending
+        - completed
+        - failed
+      description: >-
+        Current status of the generation. `pending`: still in progress; the response contains only `generation_id`,
+        `status`, and `created`. `completed`: finished successfully; the response also includes `response_type` and
+        `data`. `failed`: generation did not succeed; the response contains only `generation_id`, `status`, and
+        `created`.
+      title: GenerationResponseStatus
+    GenerationResponseResponseType:
+      type: string
+      enum:
+        - url
+      description: Present when `status` is `completed`; always "url" for this shape.
+      title: GenerationResponseResponseType
+    ImageGenerationObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          type: string
+          description: The resolution of the generated image, formatted as "{width}x{height}".
+        is_image_safe:
+          type: boolean
+          description: Whether this image passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      description: A single generated image. Model-agnostic shape returned by the generation polling endpoint.
+      title: ImageGenerationObject
+    GenerationResponse:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: URL-safe base64 ID of the generation.
+        status:
+          $ref: '#/components/schemas/GenerationResponseStatus'
+          description: >-
+            Current status of the generation. `pending`: still in progress; the response contains only `generation_id`,
+            `status`, and `created`. `completed`: finished successfully; the response also includes `response_type` and
+            `data`. `failed`: generation did not succeed; the response contains only `generation_id`, `status`, and
+            `created`.
+        created:
+          type: string
+          format: date-time
+          description: The time the generation was created.
+        response_type:
+          $ref: '#/components/schemas/GenerationResponseResponseType'
+          description: Present when `status` is `completed`; always "url" for this shape.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageGenerationObject'
+          description: A list of generated images. Present when `status` is `completed`.
+      required:
+        - generation_id
+        - status
+        - created
+      description: The current status and, when complete, result data for an asynchronous generation.
+      title: GenerationResponse
     AspectRatioV4:
       type: string
       enum:
