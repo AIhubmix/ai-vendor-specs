@@ -437,6 +437,18 @@
                       "owned_by": "xai"
                     },
                     {
+                      "id": "perplexity/glm-5.2",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "perplexity"
+                    },
+                    {
+                      "id": "perplexity/kimi-k2.7-code",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "perplexity"
+                    },
+                    {
                       "id": "perplexity/sonar",
                       "object": "model",
                       "created": 0,
@@ -633,8 +645,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000,
-                "exclusiveMinimum": 0
+                "maximum": 128000.0,
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
@@ -689,8 +701,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 2
+                "minimum": 0.0,
+                "maximum": 2.0
               },
               {
                 "type": "null"
@@ -703,8 +715,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 1
+                "minimum": 0.0,
+                "maximum": 1.0
               },
               {
                 "type": "null"
@@ -4557,7 +4569,7 @@
           },
           "owned_by": {
             "type": "string",
-            "description": "The provider that owns the model (e.g. `openai`, `anthropic`, `google`, `perplexity`, `xai`, `nvidia`).",
+            "description": "The provider that owns the model (e.g. `openai`, `anthropic`, `google`, `perplexity`, `xai`, `z-ai`, `moonshotai`, `nvidia`).",
             "example": "openai"
           }
         },
