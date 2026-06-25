@@ -63,7 +63,7 @@
                         "content": "Write a Python function to calculate the factorial of a number."
                       }
                     ],
-                    "temperature": 1,
+                    "temperature": 1.0,
                     "stream": false
                   }
                 },
@@ -80,7 +80,7 @@
                         "content": "Write a Python function to calculate the factorial of a number."
                       }
                     ],
-                    "temperature": 1,
+                    "temperature": 1.0,
                     "stream": true
                   }
                 },
@@ -1239,9 +1239,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "user"
-                      ],
+                      "enum": ["user"],
                       "description": "Role of the message author",
                       "default": "user"
                     },
@@ -1255,10 +1253,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
                 {
                   "title": "System Message",
@@ -1266,9 +1261,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "system"
-                      ],
+                      "enum": ["system"],
                       "description": "Role of the message author",
                       "default": "system"
                     },
@@ -1282,11 +1275,9 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
+
                 {
                   "title": "Assistant Message",
                   "type": "object",
@@ -1294,9 +1285,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "assistant"
-                      ],
+                      "enum": ["assistant"],
                       "description": "Role of the message author",
                       "default": "assistant"
                     },
@@ -1322,11 +1311,7 @@
                           "type": {
                             "type": "string",
                             "description": "Tool type, supports web_search, retrieval, function",
-                            "enum": [
-                              "function",
-                              "web_search",
-                              "retrieval"
-                            ]
+                            "enum": ["function", "web_search", "retrieval"]
                           },
                           "function": {
                             "type": "object",
@@ -1341,22 +1326,14 @@
                                 "description": "Function parameters, JSON format string"
                               }
                             },
-                            "required": [
-                              "name",
-                              "arguments"
-                            ]
+                            "required": ["name", "arguments"]
                           }
                         },
-                        "required": [
-                          "id",
-                          "type"
-                        ]
+                        "required": ["id", "type"]
                       }
                     }
                   },
-                  "required": [
-                    "role"
-                  ]
+                  "required": ["role"]
                 },
                 {
                   "title": "Tool Message",
@@ -1364,9 +1341,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "tool"
-                      ],
+                      "enum": ["tool"],
                       "description": "Role of the message author",
                       "default": "tool"
                     },
@@ -1384,11 +1359,7 @@
                       "description": "Indicates the tool call ID corresponding to this message"
                     }
                   },
-                  "required": [
-                    "role",
-                    "content",
-                    "tool_call_id"
-                  ]
+                  "required": ["role", "content", "tool_call_id"]
                 }
               ]
             },
@@ -1428,10 +1399,10 @@
             "type": "number",
             "description": "Sampling temperature, controls the randomness of the output, must be a positive number within the range: `[0.0, 1.0]`. The GLM-5.2, GLM-5.1, GLM-5, GLM-4.7, GLM-4.6 series default value is `1.0`, GLM-4.5 series default value is `0.6`, GLM-4-32B-0414-128K default value is `0.75`.",
             "format": "float",
-            "example": 1,
-            "default": 1,
-            "minimum": 0,
-            "maximum": 1
+            "example": 1.0,
+            "default": 1.0,
+            "minimum": 0.0,
+            "maximum": 1.0
           },
           "top_p": {
             "type": "number",
@@ -1440,7 +1411,7 @@
             "example": 0.95,
             "default": 0.95,
             "minimum": 0.01,
-            "maximum": 1
+            "maximum": 1.0
           },
           "max_tokens": {
             "type": "integer",
@@ -1498,17 +1469,12 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "text",
-                  "json_object"
-                ],
+                "enum": ["text", "json_object"],
                 "default": "text",
                 "description": "Output format type: text for plain text, json_object for JSON-formatted output."
               }
             },
-            "required": [
-              "type"
-            ]
+            "required": ["type"]
           },
           "request_id": {
             "type": "string",
@@ -1556,9 +1522,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "user"
-                      ],
+                      "enum": ["user"],
                       "description": "Role of the message author",
                       "default": "user"
                     },
@@ -1579,10 +1543,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
                 {
                   "title": "System Message",
@@ -1590,9 +1551,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "system"
-                      ],
+                      "enum": ["system"],
                       "description": "Role of the message author",
                       "default": "system"
                     },
@@ -1606,11 +1565,9 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
+
                 {
                   "title": "Assistant Message",
                   "type": "object",
@@ -1618,9 +1575,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "assistant"
-                      ],
+                      "enum": ["assistant"],
                       "description": "Role of the message author",
                       "default": "assistant"
                     },
@@ -1634,9 +1589,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role"
-                  ]
+                  "required": ["role"]
                 }
               ]
             },
@@ -1663,8 +1616,8 @@
             "format": "float",
             "example": 0.8,
             "default": 0.8,
-            "minimum": 0,
-            "maximum": 1
+            "minimum": 0.0,
+            "maximum": 1.0
           },
           "top_p": {
             "type": "number",
@@ -1673,7 +1626,7 @@
             "example": 0.6,
             "default": 0.6,
             "minimum": 0.01,
-            "maximum": 1
+            "maximum": 1.0
           },
           "max_tokens": {
             "type": "integer",
@@ -1735,9 +1688,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "text"
-                ],
+                "enum": ["text"],
                 "description": "Content type is text",
                 "default": "text"
               },
@@ -1746,10 +1697,7 @@
                 "description": "Text content"
               }
             },
-            "required": [
-              "type",
-              "text"
-            ],
+            "required": ["type", "text"],
             "additionalProperties": false
           },
           {
@@ -1758,9 +1706,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "image_url"
-                ],
+                "enum": ["image_url"],
                 "description": "Content type is image URL",
                 "default": "image_url"
               },
@@ -1773,16 +1719,11 @@
                     "description": "Image URL or Base64 encoding. Image size limit is under 5M per image, with pixels not exceeding 6000*6000. Supports jpg, png, jpeg formats."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "image_url"
-            ],
+            "required": ["type", "image_url"],
             "additionalProperties": false
           },
           {
@@ -1791,9 +1732,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "input_audio"
-                ],
+                "enum": ["input_audio"],
                 "description": "Content type is audio input",
                 "default": "input_audio"
               },
@@ -1808,34 +1747,24 @@
                   "format": {
                     "type": "string",
                     "description": "Audio file format, supports wav and mp3",
-                    "enum": [
-                      "wav",
-                      "mp3"
-                    ]
+                    "enum": ["wav", "mp3"]
                   }
                 },
-                "required": [
-                  "data",
-                  "format"
-                ],
+                "required": ["data", "format"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "input_audio"
-            ],
+            "required": ["type", "input_audio"],
             "additionalProperties": false
           },
           {
             "title": "Video",
             "type": "object",
+
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "video_url"
-                ],
+                "enum": ["video_url"],
                 "description": "Content type is video URL",
                 "default": "video_url"
               },
@@ -1848,16 +1777,11 @@
                     "description": "Video URL address."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "video_url"
-            ],
+            "required": ["type", "video_url"],
             "additionalProperties": false
           },
           {
@@ -1866,9 +1790,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "file_url"
-                ],
+                "enum": ["file_url"],
                 "description": "Content type is file URL",
                 "default": "file_url"
               },
@@ -1881,16 +1803,11 @@
                     "description": "File URL address. Supports formats such as PDF and Word, with a maximum of 50 pages for parsing."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "file_url"
-            ],
+            "required": ["type", "file_url"],
             "additionalProperties": false
           }
         ]
@@ -1903,9 +1820,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "text"
-                ],
+                "enum": ["text"],
                 "description": "Content type is text",
                 "default": "text"
               },
@@ -1914,10 +1829,7 @@
                 "description": "Text content"
               }
             },
-            "required": [
-              "type",
-              "text"
-            ],
+            "required": ["type", "text"],
             "additionalProperties": false
           },
           {
@@ -1926,9 +1838,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "image_url"
-                ],
+                "enum": ["image_url"],
                 "description": "Content type is image URL",
                 "default": "image_url"
               },
@@ -1941,27 +1851,21 @@
                     "description": "Image URL or Base64 encoding. Image size limit is under 5M per image, with pixels not exceeding 6000*6000. GLM-5V GLM4.6V series are limited to 150 sheets, GLM4.5V limit 50 sheets. Supports jpg, png, jpeg formats."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "image_url"
-            ],
+            "required": ["type", "image_url"],
             "additionalProperties": false
           },
           {
             "title": "Video",
             "type": "object",
+
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "video_url"
-                ],
+                "enum": ["video_url"],
                 "description": "Content type is video URL",
                 "default": "video_url"
               },
@@ -1974,16 +1878,11 @@
                     "description": "Video URL address.The video size is limited to within 200 MB, GLM-5V GLM4.6V series are limited to 2 videos, GLM4.5V limit 1 video, and the format supports `mp4`，`mkv`，`mov`."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "video_url"
-            ],
+            "required": ["type", "video_url"],
             "additionalProperties": false
           },
           {
@@ -1992,9 +1891,7 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": [
-                  "file_url"
-                ],
+                "enum": ["file_url"],
                 "description": "Content type is file URL, not support passing both the `file_url` and `image_url` or `video_url` parameters at the same time.",
                 "default": "file_url"
               },
@@ -2007,16 +1904,11 @@
                     "description": "File URL address. Only GLM-5V-Turbo, GLM-4.6V, GLM-4.5V supported. Supports formats such as pdf、txt、word、jsonl、xlsx、pptx, with a maximum of 50."
                   }
                 },
-                "required": [
-                  "url"
-                ],
+                "required": ["url"],
                 "additionalProperties": false
               }
             },
-            "required": [
-              "type",
-              "file_url"
-            ],
+            "required": ["type", "file_url"],
             "additionalProperties": false
           }
         ]
@@ -2027,7 +1919,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "description": "Whether to enable the chain of thought(When enabled, GLM-5.2 GLM-5.1 GLM-5 GLM-5-Turbo GLM-5V-Turbo GLM-4.7 GLM-4.5V will think compulsorily, while GLM-4.6, GLM-4.6V, GLM-4.5 and others will automatically determine whether to think), default: enabled",
+            "description": "Whether to enable the chain of thought(When enabled, GLM-5.2 GLM-5.1 GLM-5 GLM-5-Turbo GLM-5V-Turbo GLM-4.6 GLM-4.5 and others will automatically determine whether to think, while GLM-4.7 and GLM-4.5V will think compulsorily), default: enabled",
             "default": "enabled",
             "enum": [
               "enabled",
@@ -3191,9 +3083,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "user"
-                      ],
+                      "enum": ["user"],
                       "description": "Role of the message author",
                       "default": "user"
                     },
@@ -3214,10 +3104,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
                 {
                   "title": "System Message",
@@ -3225,9 +3112,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "system"
-                      ],
+                      "enum": ["system"],
                       "description": "Role of the message author",
                       "default": "system"
                     },
@@ -3241,11 +3126,9 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role",
-                    "content"
-                  ]
+                  "required": ["role", "content"]
                 },
+
                 {
                   "title": "Assistant Message",
                   "type": "object",
@@ -3253,9 +3136,7 @@
                   "properties": {
                     "role": {
                       "type": "string",
-                      "enum": [
-                        "assistant"
-                      ],
+                      "enum": ["assistant"],
                       "description": "Role of the message author",
                       "default": "assistant"
                     },
@@ -3269,9 +3150,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "role"
-                  ]
+                  "required": ["role"]
                 }
               ]
             },
@@ -4455,12 +4334,7 @@
             },
             "minItems": 4,
             "maxItems": 4,
-            "example": [
-              0.1,
-              0.1,
-              0.5,
-              0.3
-            ]
+            "example": [0.1, 0.1, 0.5, 0.3]
           },
           "content": {
             "type": "string",

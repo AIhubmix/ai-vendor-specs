@@ -18,6 +18,18 @@
               "title": "Anthropic-Version"
             },
             "description": "The version of the Claude API you want to use.\n\nRead more about versioning and our version history [here](https://docs.claude.com/en/api/versioning)."
+          },
+          {
+            "name": "anthropic-user-profile-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The user profile ID to attribute this request to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header.",
+              "title": "Anthropic-User-Profile-Id",
+              "x-stainless-param": "user_profile_id"
+            },
+            "description": "The user profile ID to attribute this request to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header."
           }
         ],
         "responses": {
@@ -276,6 +288,18 @@
               "title": "Anthropic-Version"
             },
             "description": "The version of the Claude API you want to use.\n\nRead more about versioning and our version history [here](https://docs.claude.com/en/api/versioning)."
+          },
+          {
+            "name": "anthropic-user-profile-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The user profile ID to attribute the requests in this batch to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header. Applies to every request in the batch; an individual request whose `user_profile_id` body field conflicts with this header is errored.",
+              "title": "Anthropic-User-Profile-Id",
+              "x-stainless-param": "user_profile_id"
+            },
+            "description": "The user profile ID to attribute the requests in this batch to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header. Applies to every request in the batch; an individual request whose `user_profile_id` body field conflicts with this header is errored."
           }
         ],
         "responses": {
@@ -647,6 +671,18 @@
               "title": "Anthropic-Version"
             },
             "description": "The version of the Claude API you want to use.\n\nRead more about versioning and our version history [here](https://docs.claude.com/en/api/versioning)."
+          },
+          {
+            "name": "anthropic-user-profile-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The user profile ID to attribute this request to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header.",
+              "title": "Anthropic-User-Profile-Id",
+              "x-stainless-param": "user_profile_id"
+            },
+            "description": "The user profile ID to attribute this request to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header."
           }
         ],
         "responses": {
@@ -873,6 +909,18 @@
               "title": "Anthropic-Version"
             },
             "description": "The version of the Claude API you want to use.\n\nRead more about versioning and our version history [here](https://docs.claude.com/en/api/versioning)."
+          },
+          {
+            "name": "anthropic-user-profile-id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The user profile ID to attribute the requests in this batch to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header. Applies to every request in the batch; an individual request whose `user_profile_id` body field conflicts with this header is errored.",
+              "title": "Anthropic-User-Profile-Id",
+              "x-stainless-param": "user_profile_id"
+            },
+            "description": "The user profile ID to attribute the requests in this batch to. Use when acting on behalf of a party other than your organization. Requires the `user-profiles` beta header. Applies to every request in the batch; an individual request whose `user_profile_id` body field conflicts with this header is errored."
           }
         ],
         "responses": {
@@ -13877,7 +13925,7 @@
         "additionalProperties": false,
         "properties": {
           "ttl": {
-            "description": "The time-to-live for the cache control breakpoint.\n\nThis may be one the following values:\n- `5m`: 5 minutes\n- `1h`: 1 hour\n\nDefaults to `5m`.",
+            "description": "The time-to-live for the cache control breakpoint.\n\nThis may be one the following values:\n- `5m`: 5 minutes\n- `1h`: 1 hour\n\nDefaults to `5m`. See [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.",
             "enum": ["5m", "1h"],
             "title": "Ttl",
             "type": "string",
@@ -15271,7 +15319,8 @@
           "stream": {
             "description": "Whether to incrementally stream the response using server-sent events.\n\nSee [streaming](https://docs.claude.com/en/api/messages-streaming) for details.",
             "title": "Stream",
-            "type": "boolean"
+            "type": "boolean",
+            "example": false
           },
           "system": {
             "anyOf": [
@@ -15368,11 +15417,6 @@
             "title": "Top P",
             "type": "number",
             "x-stainless-deprecation-message": "Deprecated. Models released after Claude Opus 4.6 do not support setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all other values will be rejected with a 400 error."
-          },
-          "user_profile_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "description": "The user profile ID to attribute this request to. Use when acting on behalf of a party other than your organization.",
-            "title": "User Profile Id"
           }
         },
         "required": ["model", "messages", "max_tokens"],
@@ -17550,7 +17594,7 @@
             "examples": [[{ "type": "agent_toolset_20260401" }]]
           },
           "mcp_servers": {
-            "description": "MCP servers this agent connects to. Maximum 20. Names must be unique within the array.",
+            "description": "MCP servers this agent connects to. Maximum 20. Names must be unique within the array. Every server must be referenced by an `mcp_toolset` in `tools`; unreferenced servers are rejected. See the [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).",
             "type": "array",
             "items": { "$ref": "#/components/schemas/BetaManagedAgentsMCPServerParams" }
           },
@@ -22936,7 +22980,7 @@
             "nullable": true
           },
           "mcp_servers": {
-            "description": "MCP servers. Full replacement. Omit to preserve; send empty array or null to clear. Names must be unique. Maximum 20.",
+            "description": "MCP servers. Full replacement. Omit to preserve; send empty array or `null` to clear. Names must be unique. Maximum 20. Every server must be referenced by an `mcp_toolset` in the agent's resulting `tools`; unreferenced servers are rejected. See the [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).",
             "type": "array",
             "items": { "$ref": "#/components/schemas/BetaManagedAgentsMCPServerParams" },
             "nullable": true
@@ -24603,7 +24647,7 @@
       },
       "BetaRefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "military_weapons"],
         "title": "RefusalCategory",
         "type": "string"
       },
@@ -29254,7 +29298,7 @@
         "additionalProperties": false,
         "properties": {
           "ttl": {
-            "description": "The time-to-live for the cache control breakpoint.\n\nThis may be one the following values:\n- `5m`: 5 minutes\n- `1h`: 1 hour\n\nDefaults to `5m`.",
+            "description": "The time-to-live for the cache control breakpoint.\n\nThis may be one the following values:\n- `5m`: 5 minutes\n- `1h`: 1 hour\n\nDefaults to `5m`. See [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching) for details.",
             "enum": ["5m", "1h"],
             "title": "Ttl",
             "type": "string",
@@ -30010,7 +30054,8 @@
           "stream": {
             "description": "Whether to incrementally stream the response using server-sent events.\n\nSee [streaming](https://docs.claude.com/en/api/messages-streaming) for details.",
             "title": "Stream",
-            "type": "boolean"
+            "type": "boolean",
+            "example": false
           },
           "system": {
             "anyOf": [
@@ -31016,7 +31061,7 @@
       },
       "RefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "military_weapons"],
         "title": "RefusalCategory",
         "type": "string"
       },
