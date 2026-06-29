@@ -563,21 +563,37 @@
                   "$ref": "#/components/schemas/ComputerUsageResponse"
                 },
                 "example": {
+                  "categories": [
+                    "Model",
+                    "Credit Source"
+                  ],
                   "data": [
                     {
                       "start_time": 1746057600,
                       "end_time": 1746144000,
                       "count": 350,
-                      "by_category": [
-                        {
-                          "category": "paid",
-                          "count": 250
-                        },
-                        {
-                          "category": "promo",
-                          "count": 80
-                        }
-                      ]
+                      "by_categories": {
+                        "Model": [
+                          {
+                            "category": "claude-opus-4-8",
+                            "count": 210
+                          },
+                          {
+                            "category": "claude-sonnet-4-6",
+                            "count": 120
+                          }
+                        ],
+                        "Credit Source": [
+                          {
+                            "category": "paid",
+                            "count": 250
+                          },
+                          {
+                            "category": "promo",
+                            "count": 80
+                          }
+                        ]
+                      }
                     }
                   ],
                   "has_more": false,
@@ -4607,7 +4623,7 @@
       },
       "ComputerUsageCategoryCount": {
         "type": "object",
-        "description": "A bucket's count for one value of the dataset's dimension — e.g. a connector name for connectors, a duration band for task_durations, or paid/promo for credit_usage.",
+        "description": "A bucket's count for one value of a category breakdown — e.g. a connector name for connectors, a duration band for task_durations, or paid/promo for credit_usage's Credit Source axis.",
         "properties": {
           "category": {
             "type": "string"
@@ -4634,12 +4650,16 @@
           },
           "count": {
             "type": "integer",
-            "description": "Bucket total. For credit_usage this may exceed the sum of by_category: usage without a category attribution counts toward the total but not the breakdown."
+            "description": "Bucket total. For credit_usage this may exceed the sum of any single breakdown — usage without a category attribution counts toward the total but not the breakdown."
           },
-          "by_category": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ComputerUsageCategoryCount"
+          "by_categories": {
+            "type": "object",
+            "description": "Category breakdowns for this bucket, keyed by the labels declared in the response's top-level `categories` list. An empty list means the bucket has no data for that breakdown.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ComputerUsageCategoryCount"
+              }
             }
           }
         },
@@ -4647,12 +4667,19 @@
           "start_time",
           "end_time",
           "count",
-          "by_category"
+          "by_categories"
         ]
       },
       "ComputerUsageResponse": {
         "type": "object",
         "properties": {
+          "categories": {
+            "type": "array",
+            "description": "Category breakdown labels the requested dataset surfaces, in canonical render order. Each label is a key in every bucket's `by_categories`.",
+            "items": {
+              "type": "string"
+            }
+          },
           "data": {
             "type": "array",
             "description": "Every bucket in the page's window, in chronological order. Buckets without data carry count 0 and an empty breakdown.",
@@ -4673,6 +4700,7 @@
           }
         },
         "required": [
+          "categories",
           "data",
           "has_more"
         ]
