@@ -10719,20 +10719,6 @@
             "description": "`0` (or omitted) returns all descendants below `path_prefix` (recursive). `1` returns immediate children only; deeper entries roll up as `memory_prefix` items. `depth=1` behaves like `ls`; omitting `depth` behaves like `find`."
           },
           {
-            "name": "order_by",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" },
-            "description": "Query parameter for order_by"
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "required": false,
-            "schema": { "$ref": "#/components/schemas/BetaManagedAgentsListOrder" },
-            "description": "Query parameter for order"
-          },
-          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -21101,7 +21087,7 @@
         "additionalProperties": false,
         "properties": {
           "data": {
-            "description": "One page of results. Each item is either a `memory` object or, when `depth` was set, a `memory_prefix` rollup marker. Items appear in the requested `order_by`/`order`.",
+            "description": "One page of results. Each item is either a `memory` object or, when `depth` was set, a `memory_prefix` rollup marker. Items are returned in a stable, server-defined order.",
             "type": "array",
             "items": { "$ref": "#/components/schemas/BetaManagedAgentsMemoryListItem" }
           },
@@ -36764,7 +36750,8 @@
               "cache-diagnosis-2026-04-07",
               "thinking-token-count-2026-05-13",
               "server-side-fallback-2026-06-01",
-              "fallback-credit-2026-06-01"
+              "fallback-credit-2026-06-01",
+              "agent-memory-2026-07-22"
             ],
             "x-stainless-nominal": false
           }
