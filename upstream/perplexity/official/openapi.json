@@ -419,6 +419,12 @@
                       "owned_by": "google"
                     },
                     {
+                      "id": "xai/grok-4.5",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "xai"
+                    },
+                    {
                       "id": "xai/grok-4.3",
                       "object": "model",
                       "created": 0,
@@ -667,8 +673,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000,
-                "exclusiveMinimum": 0
+                "maximum": 128000.0,
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
@@ -723,8 +729,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 2
+                "minimum": 0.0,
+                "maximum": 2.0
               },
               {
                 "type": "null"
@@ -737,8 +743,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 1
+                "minimum": 0.0,
+                "maximum": 1.0
               },
               {
                 "type": "null"
@@ -2539,7 +2545,7 @@
             "type": "string"
           },
           "max_output_tokens": {
-            "description": "Maximum tokens to generate",
+            "description": "Maximum tokens to generate. This is a shared optional Agent API request parameter, but it is required when using anthropic/* models. If omitted for an Anthropic model, the API returns HTTP 400 with: validation failed: max_output_tokens is required when using Anthropic models.",
             "format": "int32",
             "minimum": 1,
             "type": "integer"
