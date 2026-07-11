@@ -355,6 +355,71 @@
               }
             },
             "description": "Successful response. Content type depends on `stream` parameter:\n- `stream: false` (default): `application/json` with Response\n- `stream: true`: `text/event-stream` with SSE events\n"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/ErrorInfo"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Invalid request. Includes an unresolvable `previous_response_id`: the referenced response does not exist, belongs to a different account, has failed, or is still running."
+          }
+        }
+      }
+    },
+    "/v1/agent/{id}": {
+      "get": {
+        "description": "Retrieve a response created earlier. Returns a JSON snapshot of the response. Only responses created with `store` omitted or `true` can be retrieved; `store: false` responses return a 404.",
+        "operationId": "retrieveAgent",
+        "summary": "Retrieve Agent Response",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Response id (`resp_<...>`)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsesResponse"
+                }
+              }
+            },
+            "description": "JSON snapshot of the response."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "$ref": "#/components/schemas/ErrorInfo"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unknown id, or the response belongs to a different account, or the response was created with `store: false`."
           }
         }
       }
@@ -673,8 +738,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 128000,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -729,8 +794,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 2.0
+                "minimum": 0,
+                "maximum": 2
               },
               {
                 "type": "null"
@@ -743,8 +808,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 1.0
+                "minimum": 0,
+                "maximum": 1
               },
               {
                 "type": "null"
@@ -2574,6 +2639,10 @@
             "description": "Preset configuration name (e.g., \"fast\", \"low\", \"medium\", \"high\", \"xhigh\").\nPre-configured model with system prompt and search parameters.\nRequired if model is not provided.\n",
             "type": "string"
           },
+          "previous_response_id": {
+            "description": "OpenAI-compatible previous response id for multi-turn response chains. When set, the new response continues from the completed prior response's saved state. The prior response must belong to the same account and have completed.",
+            "type": "string"
+          },
           "reasoning": {
             "$ref": "#/components/schemas/ReasoningConfig"
           },
@@ -2581,7 +2650,7 @@
             "$ref": "#/components/schemas/ResponseFormat"
           },
           "store": {
-            "description": "OpenAI-compatible storage toggle. Accepted for request compatibility; the echoed response always reports `store: true`.",
+            "description": "OpenAI-compatible storage toggle. When false, the response is hidden from later retrieve calls, and the echoed response reports `store: false`. It can still be used as a `previous_response_id` continuation source.",
             "type": "boolean"
           },
           "stream": {
