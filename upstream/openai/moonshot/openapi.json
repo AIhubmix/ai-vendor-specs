@@ -28,10 +28,11 @@
             "enum": [
               "system",
               "user",
-              "assistant"
+              "assistant",
+              "tool"
             ],
             "example": "user",
-            "description": "消息发送者的角色"
+            "description": "消息发送者的角色，支持 system、user、assistant、tool"
           },
           "content": {
             "oneOf": [
@@ -200,7 +201,7 @@
         "properties": {
           "messages": {
             "type": "array",
-            "description": "包含迄今为止对话的消息列表。每个元素格式为 {\"role\": \"user\", \"content\": \"你好\"}。role 支持 system、user、assistant 其一，content 不得为空。content 字段可以是 string，也可以是 array[object]（用于多模态输入）",
+            "description": "包含迄今为止对话的消息列表。每个元素格式为 {\"role\": \"user\", \"content\": \"你好\"}。role 支持 system、user、assistant、tool 其一，content 不得为空。content 字段可以是 string，也可以是 array[object]（用于多模态输入）",
             "items": {
               "$ref": "#/components/schemas/Message"
             }
@@ -301,6 +302,48 @@
           "safety_identifier": {
             "type": "string",
             "description": "用于检测可能违反使用政策的用户的稳定标识符。应为唯一标识每个用户的字符串。建议对用户名或邮箱进行哈希处理以避免发送可识别信息"
+          },
+          "tool_choice": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "none",
+                  "required"
+                ],
+                "description": "auto：模型自行决定是否调用工具；none：不调用工具；required：强制调用工具"
+              },
+              {
+                "type": "object",
+                "description": "强制调用指定工具",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "function"
+                    ]
+                  },
+                  "function": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "要调用的函数名称"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "function"
+                ]
+              }
+            ],
+            "description": "控制模型是否调用工具。`auto`（默认）：模型自行决定是否调用工具；`none`：不调用工具；`required`：强制调用工具；也可传入特定函数对象强制调用指定工具。"
           }
         },
         "required": [
@@ -598,6 +641,13 @@
                           }
                         }
                       }
+                    },
+                    "reasoning_content": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "推理过程（仅在思考模式启用时返回）"
                     }
                   }
                 },
@@ -614,6 +664,148 @@
           },
           "usage": {
             "type": "object",
+            "properties": {
+              "prompt_tokens": {
+                "type": "integer",
+                "description": "提示中的 Token 数量"
+              },
+              "completion_tokens": {
+                "type": "integer",
+                "description": "补全中的 Token 数量"
+              },
+              "total_tokens": {
+                "type": "integer",
+                "description": "使用的总 Token 数量"
+              },
+              "cached_tokens": {
+                "type": "integer",
+                "description": "命中缓存的 Token 数量"
+              }
+            }
+          }
+        }
+      },
+      "ChatCompletionChunk": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "补全结果的唯一标识符"
+          },
+          "object": {
+            "type": "string",
+            "description": "对象类型",
+            "example": "chat.completion.chunk"
+          },
+          "created": {
+            "type": "integer",
+            "description": "补全创建时的 Unix 时间戳"
+          },
+          "model": {
+            "type": "string",
+            "description": "用于补全的模型"
+          },
+          "choices": {
+            "type": "array",
+            "description": "补全选项列表",
+            "items": {
+              "$ref": "#/components/schemas/ChoiceDelta"
+            }
+          },
+          "usage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Token 使用统计。包含 usage 的最终 chunk 中为对象，其他 chunk 中为 null",
+            "properties": {
+              "prompt_tokens": {
+                "type": "integer",
+                "description": "提示中的 Token 数量"
+              },
+              "completion_tokens": {
+                "type": "integer",
+                "description": "补全中的 Token 数量"
+              },
+              "total_tokens": {
+                "type": "integer",
+                "description": "使用的总 Token 数量"
+              },
+              "cached_tokens": {
+                "type": "integer",
+                "description": "命中缓存的 Token 数量"
+              }
+            }
+          }
+        }
+      },
+      "ChoiceDelta": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "description": "选项索引"
+          },
+          "delta": {
+            "type": "object",
+            "description": "增量内容对象",
+            "properties": {
+              "role": {
+                "type": "string",
+                "description": "消息角色（仅在首个 chunk 中出现）"
+              },
+              "content": {
+                "type": "string",
+                "description": "消息内容片段"
+              },
+              "tool_calls": {
+                "type": "array",
+                "description": "模型发起的工具调用片段",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "function"
+                      ]
+                    },
+                    "function": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "arguments": {
+                          "type": "string",
+                          "description": "函数参数的 JSON 字符串"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "finish_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "stop",
+              "length",
+              "tool_calls",
+              null
+            ],
+            "description": "停止原因，仅在最后一个 chunk 中出现"
+          },
+          "usage": {
+            "type": "object",
+            "description": "Token 使用统计（可选）",
             "properties": {
               "prompt_tokens": {
                 "type": "integer",
@@ -707,7 +899,7 @@
           },
           "messages": {
             "type": "array",
-            "description": "包含迄今为止对话的消息列表。每个元素格式为 {\"role\": \"user\", \"content\": \"你好\"}。role 支持 system、user、assistant 其一，content 不得为空",
+            "description": "包含迄今为止对话的消息列表。每个元素格式为 {\"role\": \"user\", \"content\": \"你好\"}。role 支持 system、user、assistant、tool 其一，content 不得为空",
             "items": {
               "$ref": "#/components/schemas/Message"
             }
@@ -1069,6 +1261,49 @@
         "required": [
           "error"
         ]
+      },
+      "CacheObject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "缓存 ID"
+          },
+          "object": {
+            "type": "string",
+            "description": "对象类型",
+            "example": "cache"
+          },
+          "model": {
+            "type": "string",
+            "description": "模型 ID"
+          },
+          "status": {
+            "type": "string",
+            "description": "缓存状态：pending（创建中）、active（已就绪）、expired（已过期）",
+            "enum": [
+              "pending",
+              "active",
+              "expired"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "description": "创建时间（Unix 时间戳）"
+          },
+          "expires_at": {
+            "type": "integer",
+            "description": "过期时间（Unix 时间戳）"
+          },
+          "ttl": {
+            "type": "integer",
+            "description": "缓存存活时间（秒）"
+          },
+          "name": {
+            "type": "string",
+            "description": "缓存的业务标识名称"
+          }
+        }
       }
     }
   },
@@ -1948,6 +2183,171 @@
           },
           "404": {
             "description": "批处理任务未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/caching": {
+      "post": {
+        "summary": "创建缓存",
+        "description": "创建一个上下文缓存，用于在后续对话请求中复用。传入希望缓存的 messages（通常是 system prompt 或知识文档）和工具定义。",
+        "tags": [
+          "Caching"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "description": "模型 ID"
+                  },
+                  "messages": {
+                    "type": "array",
+                    "description": "要缓存的消息列表",
+                    "items": {
+                      "$ref": "#/components/schemas/Message"
+                    }
+                  },
+                  "tools": {
+                    "type": "array",
+                    "description": "要缓存的工具定义列表（可选）",
+                    "items": {
+                      "$ref": "#/components/schemas/ToolDefinition"
+                    }
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "缓存的业务标识名称（可选）"
+                  },
+                  "ttl": {
+                    "type": "integer",
+                    "description": "缓存存活时间（秒），可选。例如 3600 = 1 小时"
+                  }
+                },
+                "required": [
+                  "model",
+                  "messages"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "已创建的缓存对象",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CacheObject"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求错误 - 参数无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权 - API 密钥无效或缺失",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/caching/{cache_id}": {
+      "get": {
+        "summary": "获取缓存状态",
+        "description": "获取指定缓存的当前状态和元数据。",
+        "tags": [
+          "Caching"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cache_id",
+            "in": "path",
+            "required": true,
+            "description": "缓存 ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "缓存对象",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CacheObject"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权 - API 密钥无效或缺失",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "缓存未找到",
             "content": {
               "application/json": {
                 "schema": {
