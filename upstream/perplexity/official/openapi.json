@@ -2619,6 +2619,10 @@
           "input": {
             "$ref": "#/components/schemas/Input"
           },
+          "background": {
+            "description": "Run the response asynchronously. With `stream: false`, the request returns immediately with `status: \"queued\"`; poll `GET /v1/responses/{id}` until the response reaches a terminal status. Background runs are durable, so you can also stream them and reconnect after a drop.",
+            "type": "boolean"
+          },
           "instructions": {
             "description": "System instructions for the model",
             "type": "string"
@@ -2634,9 +2638,9 @@
             "type": "integer"
           },
           "max_steps": {
-            "description": "Maximum number of research loop steps.\nIf provided, overrides the preset's max_steps value.\nMust be >= 1 if specified. Maximum allowed is 10.\n",
+            "description": "Maximum number of research loop steps.\nIf provided, overrides the preset's max_steps value.\nMust be >= 1 if specified. Maximum allowed is 100.\n",
             "format": "int32",
-            "maximum": 10,
+            "maximum": 100,
             "minimum": 1,
             "type": "integer"
           },
@@ -2681,6 +2685,20 @@
               "$ref": "#/components/schemas/Tool"
             },
             "type": "array"
+          },
+          "temperature": {
+            "description": "OpenAI-compatible sampling temperature forwarded to generation.",
+            "format": "double",
+            "maximum": 2,
+            "minimum": 0,
+            "type": "number"
+          },
+          "top_p": {
+            "description": "OpenAI-compatible nucleus sampling parameter forwarded to generation.",
+            "format": "double",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
           }
         },
         "required": [
@@ -3382,8 +3400,10 @@
         "enum": [
           "completed",
           "failed",
+          "incomplete",
           "in_progress",
-          "requires_action"
+          "queued",
+          "cancelled"
         ],
         "type": "string",
         "title": "Status"
@@ -3415,6 +3435,7 @@
           "effort": {
             "description": "How much effort the model should spend on reasoning",
             "enum": [
+              "minimal",
               "low",
               "medium",
               "high",
@@ -3662,6 +3683,22 @@
           "filters": {
             "$ref": "#/components/schemas/WebSearchFilters",
             "description": "Domain and date filters for search results"
+          },
+          "search_context_size": {
+            "description": "Named search context budget. Explicit max_tokens / max_tokens_per_page budgets override it.",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "max_results": {
+            "description": "Upper bound on the number of search results collected per call. Must be between 1 and 50; values outside that range are rejected with a 400 error.",
+            "format": "int32",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
           },
           "max_tokens": {
             "description": "Maximum total tokens for search context",

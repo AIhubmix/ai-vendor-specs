@@ -1261,49 +1261,6 @@
         "required": [
           "error"
         ]
-      },
-      "CacheObject": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "缓存 ID"
-          },
-          "object": {
-            "type": "string",
-            "description": "对象类型",
-            "example": "cache"
-          },
-          "model": {
-            "type": "string",
-            "description": "模型 ID"
-          },
-          "status": {
-            "type": "string",
-            "description": "缓存状态：pending（创建中）、active（已就绪）、expired（已过期）",
-            "enum": [
-              "pending",
-              "active",
-              "expired"
-            ]
-          },
-          "created_at": {
-            "type": "integer",
-            "description": "创建时间（Unix 时间戳）"
-          },
-          "expires_at": {
-            "type": "integer",
-            "description": "过期时间（Unix 时间戳）"
-          },
-          "ttl": {
-            "type": "integer",
-            "description": "缓存存活时间（秒）"
-          },
-          "name": {
-            "type": "string",
-            "description": "缓存的业务标识名称"
-          }
-        }
       }
     }
   },
@@ -1827,6 +1784,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ChatCompletionResponse"
                 }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatCompletionChunk"
+                }
               }
             }
           },
@@ -2183,171 +2145,6 @@
           },
           "404": {
             "description": "批处理任务未找到",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/caching": {
-      "post": {
-        "summary": "创建缓存",
-        "description": "创建一个上下文缓存，用于在后续对话请求中复用。传入希望缓存的 messages（通常是 system prompt 或知识文档）和工具定义。",
-        "tags": [
-          "Caching"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "model": {
-                    "type": "string",
-                    "description": "模型 ID"
-                  },
-                  "messages": {
-                    "type": "array",
-                    "description": "要缓存的消息列表",
-                    "items": {
-                      "$ref": "#/components/schemas/Message"
-                    }
-                  },
-                  "tools": {
-                    "type": "array",
-                    "description": "要缓存的工具定义列表（可选）",
-                    "items": {
-                      "$ref": "#/components/schemas/ToolDefinition"
-                    }
-                  },
-                  "name": {
-                    "type": "string",
-                    "description": "缓存的业务标识名称（可选）"
-                  },
-                  "ttl": {
-                    "type": "integer",
-                    "description": "缓存存活时间（秒），可选。例如 3600 = 1 小时"
-                  }
-                },
-                "required": [
-                  "model",
-                  "messages"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "已创建的缓存对象",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CacheObject"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "请求错误 - 参数无效",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权 - API 密钥无效或缺失",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "服务器错误",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/caching/{cache_id}": {
-      "get": {
-        "summary": "获取缓存状态",
-        "description": "获取指定缓存的当前状态和元数据。",
-        "tags": [
-          "Caching"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "cache_id",
-            "in": "path",
-            "required": true,
-            "description": "缓存 ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "缓存对象",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CacheObject"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权 - API 密钥无效或缺失",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "缓存未找到",
             "content": {
               "application/json": {
                 "schema": {
