@@ -1,7 +1,7 @@
 components:
   schemas:
     AssistantMessageRequest:
-      additionalProperties: true
+      additionalProperties: false
       description: A message request from an assistant.
       properties:
         content:
@@ -11,11 +11,13 @@ components:
                 $ref: '#/components/schemas/TextContent'
               type: array
             - type: 'null'
+          default: null
           title: Content
         name:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Name
         reasoning:
           anyOf:
@@ -24,12 +26,11 @@ components:
                 $ref: '#/components/schemas/TextContent'
               type: array
             - type: 'null'
+          default: null
           title: Reasoning
         role:
           const: assistant
           default: assistant
-          enum:
-            - assistant
           title: Role
           type: string
         tool_calls:
@@ -38,11 +39,12 @@ components:
                 $ref: '#/components/schemas/AssistantToolCall'
               type: array
             - type: 'null'
+          default: null
           title: Tool Calls
       title: AssistantMessageRequest
       type: object
     AssistantToolCall:
-      additionalProperties: true
+      additionalProperties: false
       description: A tool call for an assistant.
       properties:
         function:
@@ -50,10 +52,14 @@ components:
         id:
           title: Id
           type: string
+        index:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          default: null
+          title: Index
         type:
           const: function
-          enum:
-            - function
           title: Type
           type: string
       required:
@@ -63,7 +69,7 @@ components:
       title: AssistantToolCall
       type: object
     AssistantToolCallFunction:
-      additionalProperties: true
+      additionalProperties: false
       description: A function call for an assistant tool.
       properties:
         arguments:
@@ -78,7 +84,7 @@ components:
       title: AssistantToolCallFunction
       type: object
     ChatChunkChoice:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         delta:
           anyOf:
@@ -109,6 +115,7 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          deprecated: true
           title: Text
         tokens:
           anyOf:
@@ -116,13 +123,14 @@ components:
                 type: integer
               type: array
             - type: 'null'
+          deprecated: true
           title: Tokens
       required:
         - index
       title: ChatChunkChoice
       type: object
     ChatChunkResponse:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - choices:
             - delta:
@@ -180,9 +188,7 @@ components:
           title: Model
           type: string
         object:
-          enum:
-            - chat.completion.chunk
-            - text_completion
+          const: chat.completion.chunk
           title: Object
           type: string
         service_tier:
@@ -210,16 +216,18 @@ components:
       title: ChatChunkResponse
       type: object
     ChatCompletionChoice:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         finish_reason:
-          enum:
-            - stop
-            - length
-            - content_filter
-            - tool_calls
+          anyOf:
+            - enum:
+                - stop
+                - length
+                - content_filter
+                - tool_calls
+              type: string
+            - type: 'null'
           title: Finish Reason
-          type: string
         index:
           title: Index
           type: integer
@@ -234,13 +242,12 @@ components:
             - $ref: '#/components/schemas/ChatCompletionLogProbs'
             - type: 'null'
       required:
-        - finish_reason
         - index
         - message
       title: ChatCompletionChoice
       type: object
     ChatCompletionLogProbs:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         content:
           anyOf:
@@ -256,14 +263,11 @@ components:
               type: array
             - type: 'null'
           title: Refusal
-      required:
-        - content
-        - refusal
       title: ChatCompletionLogProbs
       type: object
     ChatCompletionRequest:
       additionalProperties: false
-      description: Request for chat completions endpoint
+      description: Generic base class for chat completion requests.
       examples:
         - max_completion_tokens: -1
           messages:
@@ -275,6 +279,7 @@ components:
           min_tokens: 1000
           model: llama3.1-8b
           seed: 0
+          stop_sequence: null
           stream: false
           temperature: 0
           top_p: 1
@@ -283,6 +288,7 @@ components:
           anyOf:
             - type: boolean
             - type: 'null'
+          default: null
           description: When True, removes reasoning content from messages that appear
             before the latest user message.
           title: Clear Thinking
@@ -290,16 +296,17 @@ components:
           anyOf:
             - type: boolean
             - type: 'null'
+          default: null
           description: Disables reasoning for reasoning models. If set to True, the
             model will not use any reasoning in its response.
           title: Disable Reasoning
         frequency_penalty:
           anyOf:
-            - maximum: 2.0
-              minimum: -2.0
+            - maximum: 2
+              minimum: -2
               type: number
             - type: 'null'
-          default: 0
+          default: 0.0
           description: Number between -2.0 and 2.0. Positive values penalize new tokens
             based on their existing frequency in the text so far, decreasing the model's
             likelihood to repeat the same line verbatim.
@@ -310,6 +317,7 @@ components:
                 type: number
               type: object
             - type: 'null'
+          default: null
           description: 'Modify the likelihood of specified tokens appearing in the
             completion.
 
@@ -332,50 +340,59 @@ components:
           title: Logprobs
         max_completion_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: An upper bound for the number of tokens that can be generated
             for a completion, including visible output tokens and reasoning tokens.
           title: Max Completion Tokens
         max_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: The maximum number of tokens that can be generated in the chat
             completion. The total length of input tokens and generated tokens is limited
             by the model's context length. This value is now deprecated in favor of
             max_completion_tokens.
           title: Max Tokens
         messages:
-          anyOf:
-            - items:
-                discriminator:
-                  mapping:
-                    assistant: '#/components/schemas/AssistantMessageRequest'
-                    system: '#/components/schemas/SystemMessageRequest'
-                    tool: '#/components/schemas/ToolMessageRequest'
-                    user: '#/components/schemas/UserMessageRequest'
-                  propertyName: role
-                oneOf:
-                  - $ref: '#/components/schemas/SystemMessageRequest'
-                  - $ref: '#/components/schemas/UserMessageRequest'
-                  - $ref: '#/components/schemas/AssistantMessageRequest'
-                  - $ref: '#/components/schemas/ToolMessageRequest'
-              type: array
-            - type: 'null'
+          items:
+            discriminator:
+              mapping:
+                assistant: '#/components/schemas/AssistantMessageRequest'
+                developer: '#/components/schemas/DeveloperMessageRequest'
+                system: '#/components/schemas/SystemMessageRequest'
+                tool: '#/components/schemas/ToolMessageRequest'
+                user: '#/components/schemas/UserMessageRequest'
+              propertyName: role
+            oneOf:
+              - $ref: '#/components/schemas/SystemMessageRequest'
+              - $ref: '#/components/schemas/DeveloperMessageRequest'
+              - $ref: '#/components/schemas/UserMessageRequest'
+              - $ref: '#/components/schemas/AssistantMessageRequest'
+              - $ref: '#/components/schemas/ToolMessageRequest'
+          minItems: 1
           title: Messages
+          type: array
         min_completion_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: The minimum number of tokens to generate for a completion.
             If not specified or set to 0, the model will generate as many tokens as
             it deems necessary. Setting to -1 sets to max sequence length.
           title: Min Completion Tokens
         min_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: The minimum number of tokens to generate for a completion.
             If not specified or set to 0, the model will generate as many tokens as
             it deems necessary. Setting to -1 sets to max sequence length.
@@ -383,9 +400,21 @@ components:
         model:
           title: Model
           type: string
+        model_parameters:
+          anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+          default: null
+          description: Model-specific parameters. The accepted keys and values are
+            defined per-model by the model's ``model_parameters`` schema. The schema
+            is used downstream to validate the contents of this field. Unsupported
+            for models that declare none.
+          title: Model Parameters
         n:
           anyOf:
-            - type: integer
+            - minimum: 1
+              type: integer
             - type: 'null'
           default: 1
           description: How many chat completion choices to generate for each input
@@ -402,6 +431,7 @@ components:
           anyOf:
             - $ref: '#/components/schemas/Prediction'
             - type: 'null'
+          default: null
           description: Configuration for a Predicted Output, which can greatly improve
             response times when large parts of the model response are known ahead
             of time. This is most common when regenerating a file with only minor
@@ -412,26 +442,34 @@ components:
               minimum: -2.0
               type: number
             - type: 'null'
-          default: 0
+          default: 0.0
           description: Number between -2.0 and 2.0. Positive values penalize new tokens
             based on whether they appear in the text so far, increasing the model's
             likelihood to talk about new topics.
           title: Presence Penalty
-        reasoning_effort:
+        prompt_cache_key:
           anyOf:
-            - enum:
-                - low
-                - medium
-                - high
+            - maxLength: 1024
               type: string
             - type: 'null'
+          default: null
+          description: An optional opaque string. The requests with the same prompt
+            cache key would highly likely share the same prompt prefixes. Examples
+            would be IDs of chat conversations, IDs of users, the hashes of system
+            prompts, etc.
+          title: Prompt Cache Key
+        reasoning_effort:
+          anyOf:
+            - $ref: '#/components/schemas/ReasoningEffort'
+            - type: 'null'
+          default: null
           description: Constrains effort on reasoning for reasoning models. Currently
-            supported values are low, medium, and high. Reducing reasoning effort
+            supported values are none, low, medium, and high. Reducing reasoning effort
             can result in faster responses and fewer tokens used on reasoning in a
             response. If set to None, the model will use the default reasoning effort
-            for the model.
-          title: Reasoning Effort
+            for the model. If set to 'none', the model will not reason
         reasoning_format:
+          $ref: '#/components/schemas/ReasoningFormat'
           default: none
           description: Determines how reasoning is returned in the response. If set
             to `parsed`, the reasoning will be returned in the `reasoning` field of
@@ -442,14 +480,6 @@ components:
             If set to `text_parsed`, the reasoning will be returned in the `reasoning`
             field of the response message as a string, similar to `parsed`, but logprobs
             will not be separated into `reasoning_logprobs` and `logprobs`.
-          enum:
-            - none
-            - parsed
-            - text_parsed
-            - raw
-            - hidden
-          title: Reasoning Format
-          type: string
         response_format:
           anyOf:
             - discriminator:
@@ -463,25 +493,22 @@ components:
                 - $ref: '#/components/schemas/ResponseFormatJSONObject'
                 - $ref: '#/components/schemas/ResponseFormatJSONSchema'
             - type: 'null'
+          default: null
           title: Response Format
         seed:
           anyOf:
             - type: integer
             - type: 'null'
+          default: null
           description: If specified, our system will make a best effort to sample
             deterministically, such that repeated requests with the same `seed` and
             parameters should return the same result. Determinism is not guaranteed.
           title: Seed
         service_tier:
           anyOf:
-            - enum:
-                - auto
-                - default
-                - flex
-                - priority
-              type: string
+            - $ref: '#/components/schemas/ServiceTier'
             - type: 'null'
-          title: Service Tier
+          default: null
         stop:
           anyOf:
             - type: string
@@ -490,6 +517,7 @@ components:
               maxItems: 4
               type: array
             - type: 'null'
+          default: null
           description: Up to 4 sequences where the API will stop generating further
             tokens. The returned text will not contain the stop sequence.
           title: Stop
@@ -503,27 +531,25 @@ components:
           anyOf:
             - $ref: '#/components/schemas/StreamOptions'
             - type: 'null'
+          default: null
         temperature:
           anyOf:
-            - maximum: 1.5
-              minimum: 0.0
+            - maximum: 2.0
+              minimum: 0
               type: number
             - type: 'null'
           default: 1.0
-          description: What sampling temperature to use, between 0 and 1.5. Higher
-            values like 0.8 will make the output more random, while lower values like
-            0.2 will make it more focused and deterministic. We generally recommend
-            altering this or `top_p` but not both.
+          description: What sampling temperature to use, between 0 and 2. Higher values
+            like 0.8 will make the output more random, while lower values like 0.2
+            will make it more focused and deterministic. We generally recommend altering
+            this or `top_p` but not both.
           title: Temperature
         tool_choice:
           anyOf:
-            - enum:
-                - none
-                - auto
-                - required
-              type: string
+            - $ref: '#/components/schemas/ToolChoice'
             - $ref: '#/components/schemas/ChoiceObject'
             - type: 'null'
+          default: null
           title: Tool Choice
         tools:
           anyOf:
@@ -531,21 +557,23 @@ components:
                 $ref: '#/components/schemas/Tool'
               type: array
             - type: 'null'
+          default: null
           title: Tools
         top_logprobs:
           anyOf:
-            - maximum: 20.0
-              minimum: 0.0
+            - maximum: 20
+              minimum: 0
               type: integer
             - type: 'null'
+          default: null
           description: An integer between 0 and 20 specifying the number of most likely
             tokens to return at each token position, each with an associated log probability.
             logprobs must be set to true if this parameter is used.
           title: Top Logprobs
         top_p:
           anyOf:
-            - maximum: 1.0
-              minimum: 0.0
+            - maximum: 1
+              minimum: 0
               type: number
             - type: 'null'
           default: 1.0
@@ -559,15 +587,17 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           description: 'A unique identifier representing your end-user, which can
             help Cerebras to monitor and detect abuse. '
           title: User
       required:
         - model
+        - messages
       title: ChatCompletionRequest
       type: object
     ChatCompletionResponse:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - choices:
             - finish_reason: stop
@@ -629,8 +659,6 @@ components:
           type: string
         object:
           const: chat.completion
-          enum:
-            - chat.completion
           title: Object
           type: string
         service_tier:
@@ -642,9 +670,13 @@ components:
           title: System Fingerprint
           type: string
         time_info:
-          $ref: '#/components/schemas/TimeInfo'
+          anyOf:
+            - $ref: '#/components/schemas/TimeInfo'
+            - type: 'null'
         usage:
-          $ref: '#/components/schemas/Usage'
+          anyOf:
+            - $ref: '#/components/schemas/Usage'
+            - type: 'null'
       required:
         - id
         - choices
@@ -652,12 +684,10 @@ components:
         - model
         - system_fingerprint
         - object
-        - usage
-        - time_info
       title: ChatCompletionResponse
       type: object
     ChatCompletionResponseMessage:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         content:
           anyOf:
@@ -680,7 +710,7 @@ components:
         tool_calls:
           anyOf:
             - items:
-                $ref: '#/components/schemas/AssistantToolCall'
+                $ref: '#/components/schemas/ChunkAssistantToolCall'
               type: array
             - type: 'null'
           title: Tool Calls
@@ -689,7 +719,7 @@ components:
       title: ChatCompletionResponseMessage
       type: object
     ChoiceObject:
-      additionalProperties: true
+      additionalProperties: false
       description: A choice object.
       properties:
         function:
@@ -703,7 +733,7 @@ components:
       title: ChoiceObject
       type: object
     ChoiceObjectFunction:
-      additionalProperties: true
+      additionalProperties: false
       description: A function for a choice object.
       properties:
         name:
@@ -714,7 +744,7 @@ components:
       title: ChoiceObjectFunction
       type: object
     ChunkAssistantToolCall:
-      additionalProperties: true
+      additionalProperties: false
       description: Streaming only. Represents a function call in an assistant tool
         call.
       properties:
@@ -732,8 +762,6 @@ components:
           title: Index
         type:
           const: function
-          enum:
-            - function
           title: Type
           type: string
       required:
@@ -742,7 +770,7 @@ components:
       title: ChunkAssistantToolCall
       type: object
     ChunkAssistantToolCallFunction:
-      additionalProperties: true
+      additionalProperties: false
       description: Streaming only. Represents a function in an assistant tool call.
       properties:
         arguments:
@@ -758,7 +786,7 @@ components:
       title: ChunkAssistantToolCallFunction
       type: object
     ChunkResponseMessage:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         content:
           anyOf:
@@ -786,6 +814,7 @@ components:
                 type: integer
               type: array
             - type: 'null'
+          deprecated: true
           title: Tokens
         tool_calls:
           anyOf:
@@ -797,51 +826,8 @@ components:
       title: ChunkResponseMessage
       type: object
     CompletionChoice:
-      additionalProperties: true
+      additionalProperties: false
       properties:
-        finish_reason:
-          anyOf:
-            - enum:
-                - stop
-                - length
-                - content_filter
-              type: string
-            - type: 'null'
-          title: Finish Reason
-        index:
-          title: Index
-          type: integer
-        logprobs:
-          anyOf:
-            - $ref: '#/components/schemas/CompletionLogProbs'
-            - type: 'null'
-        reasoning_logprobs:
-          anyOf:
-            - $ref: '#/components/schemas/ChatCompletionLogProbs'
-            - type: 'null'
-        text:
-          anyOf:
-            - type: string
-            - type: 'null'
-          title: Text
-        tokens:
-          anyOf:
-            - items:
-                type: integer
-              type: array
-            - type: 'null'
-          title: Tokens
-      required:
-        - index
-      title: CompletionChoice
-      type: object
-    CompletionChunkChoice:
-      additionalProperties: true
-      properties:
-        delta:
-          anyOf:
-            - $ref: '#/components/schemas/ChunkResponseMessage'
-            - type: 'null'
         finish_reason:
           anyOf:
             - enum:
@@ -859,10 +845,6 @@ components:
           anyOf:
             - $ref: '#/components/schemas/CompletionLogProbs'
             - type: 'null'
-        reasoning_logprobs:
-          anyOf:
-            - $ref: '#/components/schemas/ChatCompletionLogProbs'
-            - type: 'null'
         text:
           anyOf:
             - type: string
@@ -877,98 +859,10 @@ components:
           title: Tokens
       required:
         - index
-      title: CompletionChunkChoice
-      type: object
-    CompletionChunkResponse:
-      additionalProperties: true
-      examples:
-        - choices:
-            - delta:
-                role: assistant
-              index: 0
-          created: 1721088719
-          id: response_1721
-          model: llama3.1-8b
-          object: chat.completion.chunk
-          system_fingerprint: '88719'
-        - choices:
-            - delta:
-                content: 'Generative '
-              index: 0
-          created: 1721088719
-          id: response_1721
-          model: llama3.1-8b
-          object: chat.completion.chunk
-          system_fingerprint: '88719'
-        - choices:
-            - delta: {}
-              finish_reason: stop
-              index: 0
-          created: 1721088719
-          id: response_1721
-          model: llama3.1-8b
-          object: chat.completion.chunk
-          system_fingerprint: '88719'
-          time_info:
-            completion_time: 0.44
-            prompt_time: 0.02
-            queue_time: 0.0
-            total_time: 0.46
-          usage:
-            completion_tokens: 1020
-            prompt_tokens: 40
-            prompt_tokens_details:
-              cached_tokens: 1020
-            total_tokens: 1060
-      properties:
-        choices:
-          anyOf:
-            - items:
-                $ref: '#/components/schemas/CompletionChunkChoice'
-              type: array
-            - type: 'null'
-          title: Choices
-        created:
-          title: Created
-          type: integer
-        id:
-          title: Id
-          type: string
-        model:
-          title: Model
-          type: string
-        object:
-          enum:
-            - chat.completion.chunk
-            - text_completion
-          title: Object
-          type: string
-        service_tier:
-          anyOf:
-            - type: string
-            - type: 'null'
-          title: Service Tier
-        system_fingerprint:
-          title: System Fingerprint
-          type: string
-        time_info:
-          anyOf:
-            - $ref: '#/components/schemas/TimeInfo'
-            - type: 'null'
-        usage:
-          anyOf:
-            - $ref: '#/components/schemas/Usage'
-            - type: 'null'
-      required:
-        - id
-        - created
-        - model
-        - system_fingerprint
-        - object
-      title: CompletionChunkResponse
+      title: CompletionChoice
       type: object
     CompletionLogProbs:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         text_offset:
           anyOf:
@@ -1012,8 +906,8 @@ components:
       properties:
         best_of:
           anyOf:
-            - maximum: 20.0
-              minimum: 0.0
+            - maximum: 20
+              minimum: 0
               type: integer
             - type: 'null'
           default: 1
@@ -1035,11 +929,11 @@ components:
           title: Echo
         frequency_penalty:
           anyOf:
-            - maximum: 2.0
-              minimum: -2.0
+            - maximum: 2
+              minimum: -2
               type: number
             - type: 'null'
-          default: 0
+          default: 0.0
           description: Number between -2.0 and 2.0. Positive values penalize new tokens
             based on their existing frequency in the text so far, decreasing the model's
             likelihood to repeat the same line verbatim.
@@ -1048,6 +942,7 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           description: The grammar root used for structured output generation.
           title: Grammar Root
         logit_bias:
@@ -1056,6 +951,7 @@ components:
                 type: number
               type: object
             - type: 'null'
+          default: null
           description: "Modify the likelihood of specified tokens appearing in the\
             \ completion.\n \n Accepts a JSON object that maps tokens (specified by\
             \ their token ID in the tokenizer) to an associated bias value from -100\
@@ -1067,10 +963,11 @@ components:
           title: Logit Bias
         logprobs:
           anyOf:
-            - maximum: 20.0
-              minimum: 0.0
+            - maximum: 20
+              minimum: 0
               type: integer
             - type: 'null'
+          default: null
           description: Include the log probabilities on the logprobs most likely output
             tokens, as well the chosen tokens. For example, if logprobs is 5, the
             API will return a list of the 5 most likely tokens. The API will always
@@ -1079,16 +976,20 @@ components:
           title: Logprobs
         max_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: 'The maximum number of tokens that can be generated in the
             chat completion. The total length of input tokens and generated tokens
             is limited by the model''s context length. '
           title: Max Tokens
         min_tokens:
           anyOf:
-            - type: integer
+            - minimum: -1
+              type: integer
             - type: 'null'
+          default: null
           description: The minimum number of tokens to generate for a completion.
             If not specified or set to 0, the model will generate as many tokens as
             it deems necessary. Setting to -1 sets to max sequence length.
@@ -1098,7 +999,8 @@ components:
           type: string
         n:
           anyOf:
-            - type: integer
+            - minimum: 1
+              type: integer
             - type: 'null'
           default: 1
           description: How many chat completion choices to generate for each input
@@ -1111,7 +1013,7 @@ components:
               minimum: -2.0
               type: number
             - type: 'null'
-          default: 0
+          default: 0.0
           description: Number between -2.0 and 2.0. Positive values penalize new tokens
             based on whether they appear in the text so far, increasing the model's
             likelihood to talk about new topics.
@@ -1123,32 +1025,41 @@ components:
                 type: string
               type: array
             - items:
+                minimum: 0
                 type: integer
               type: array
             - items:
                 items:
+                  minimum: 0
                   type: integer
                 type: array
               type: array
           description: The prompt(s) to generate completions for, encoded as a string,
             array of strings, array of tokens, or array of token arrays.
           title: Prompt
+        prompt_cache_key:
+          anyOf:
+            - maxLength: 1024
+              type: string
+            - type: 'null'
+          default: null
+          description: An optional opaque string. The requests with the same prompt
+            cache key would highly likely share the same prompt prefixes. Examples
+            would be IDs of chat conversations, IDs of users, the hashes of system
+            prompts, etc.
+          title: Prompt Cache Key
         reasoning_format:
-          default: parsed
+          anyOf:
+            - $ref: '#/components/schemas/ReasoningFormat'
+            - type: 'null'
+          default: null
+          deprecated: true
           description: Determines how reasoning is returned in the response. If set
             to `parsed`, the reasoning will be returned in the `reasoning` field of
             the response message as a string. If set to `raw`, the reasoning will
             be returned in the `content` field of the response message with special
             tokens. If set to `hidden`, the reasoning will not be returned in the
             response.
-          enum:
-            - none
-            - parsed
-            - text_parsed
-            - raw
-            - hidden
-          title: Reasoning Format
-          type: string
         return_raw_tokens:
           anyOf:
             - type: boolean
@@ -1160,6 +1071,7 @@ components:
           anyOf:
             - type: integer
             - type: 'null'
+          default: null
           description: If specified, our system will make a best effort to sample
             deterministically, such that repeated requests with the same `seed` and
             parameters should return the same result. Determinism is not guaranteed.
@@ -1172,6 +1084,7 @@ components:
               maxItems: 4
               type: array
             - type: 'null'
+          default: null
           description: Up to 4 sequences where the API will stop generating further
             tokens. The returned text will not contain the stop sequence.
           title: Stop
@@ -1185,29 +1098,31 @@ components:
           anyOf:
             - $ref: '#/components/schemas/StreamOptions'
             - type: 'null'
+          default: null
         suffix:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           description: The suffix that comes after a completion of inserted text.
             (OpenAI feature, not supported)
           title: Suffix
         temperature:
           anyOf:
-            - maximum: 1.5
-              minimum: 0.0
+            - maximum: 2.0
+              minimum: 0
               type: number
             - type: 'null'
           default: 1.0
-          description: What sampling temperature to use, between 0 and 1.5. Higher
-            values like 0.8 will make the output more random, while lower values like
-            0.2 will make it more focused and deterministic. We generally recommend
-            altering this or `top_p` but not both.
+          description: What sampling temperature to use, between 0 and 2. Higher values
+            like 0.8 will make the output more random, while lower values like 0.2
+            will make it more focused and deterministic. We generally recommend altering
+            this or `top_p` but not both.
           title: Temperature
         top_p:
           anyOf:
-            - maximum: 1.0
-              minimum: 0.0
+            - maximum: 1
+              minimum: 0
               type: number
             - type: 'null'
           default: 1.0
@@ -1221,6 +1136,7 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           description: 'A unique identifier representing your end-user, which can
             help Cerebras to monitor and detect abuse. '
           title: User
@@ -1230,7 +1146,7 @@ components:
       title: CompletionRequest
       type: object
     CompletionResponse:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - choices:
             - finish_reason: stop
@@ -1287,8 +1203,6 @@ components:
           type: string
         object:
           const: text_completion
-          enum:
-            - text_completion
           title: Object
           type: string
         system_fingerprint:
@@ -1312,7 +1226,7 @@ components:
       title: CompletionResponse
       type: object
     CompletionTokensDetails:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - accepted_prediction_tokens: 900
           rejected_prediction_tokens: 100
@@ -1322,6 +1236,11 @@ components:
             - type: integer
             - type: 'null'
           title: Accepted Prediction Tokens
+        reasoning_tokens:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Reasoning Tokens
         rejected_prediction_tokens:
           anyOf:
             - type: integer
@@ -1338,11 +1257,59 @@ components:
     CreateCompletionResponse:
       anyOf:
         - $ref: '#/components/schemas/CompletionResponse'
-        - $ref: '#/components/schemas/CompletionChunkResponse'
         - $ref: '#/components/schemas/ErrorChunkResponse'
       title: CreateCompletionResponse
+    DatacenterLocation:
+      description: Datacenter location information.
+      properties:
+        country_code:
+          description: ISO 3166 Alpha-2 country code
+          title: Country Code
+          type: string
+      required:
+        - country_code
+      title: DatacenterLocation
+      type: object
+    DeveloperMessageRequest:
+      additionalProperties: false
+      description: 'A message request from the developer:
+
+        Currently only for openai models, where they are functionally the same as
+        system'
+      properties:
+        content:
+          anyOf:
+            - type: string
+            - items:
+                discriminator:
+                  mapping:
+                    image: '#/components/schemas/ImageContent'
+                    image_url: '#/components/schemas/ImageUrlContent'
+                    text: '#/components/schemas/TextContent'
+                  propertyName: type
+                oneOf:
+                  - $ref: '#/components/schemas/TextContent'
+                  - $ref: '#/components/schemas/ImageUrlContent'
+                  - $ref: '#/components/schemas/ImageContent'
+              type: array
+          title: Content
+        name:
+          anyOf:
+            - type: string
+            - type: 'null'
+          default: null
+          title: Name
+        role:
+          const: developer
+          default: developer
+          title: Role
+          type: string
+      required:
+        - content
+      title: DeveloperMessageRequest
+      type: object
     ErrorChunkContent:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         code:
           anyOf:
@@ -1377,7 +1344,7 @@ components:
       title: ErrorChunkContent
       type: object
     ErrorChunkResponse:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         error:
           $ref: '#/components/schemas/ErrorChunkContent'
@@ -1390,13 +1357,14 @@ components:
       title: ErrorChunkResponse
       type: object
     FunctionObject:
-      additionalProperties: true
+      additionalProperties: false
       description: A function object.
       properties:
         description:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Description
         name:
           title: Name
@@ -1405,6 +1373,7 @@ components:
           anyOf:
             - $ref: '#/components/schemas/Parameters'
             - type: 'null'
+          default: null
         strict:
           default: false
           title: Strict
@@ -1472,8 +1441,6 @@ components:
         object:
           const: model
           default: model
-          enum:
-            - model
           title: Object
           type: string
         owned_by:
@@ -1500,8 +1467,6 @@ components:
         object:
           const: list
           default: list
-          enum:
-            - list
           title: Object
           type: string
       required:
@@ -1525,7 +1490,7 @@ components:
       title: HuggingFacePricing
       type: object
     ImageContent:
-      additionalProperties: true
+      additionalProperties: false
       description: Image URL content for a message.
       properties:
         image:
@@ -1533,8 +1498,6 @@ components:
           type: string
         type:
           const: image
-          enum:
-            - image
           title: Type
           type: string
       required:
@@ -1543,7 +1506,7 @@ components:
       title: ImageContent
       type: object
     ImageUrl:
-      additionalProperties: true
+      additionalProperties: false
       description: Image URL
       properties:
         detail:
@@ -1560,15 +1523,13 @@ components:
       title: ImageUrl
       type: object
     ImageUrlContent:
-      additionalProperties: true
+      additionalProperties: false
       description: Image URL content for a message.
       properties:
         image_url:
           $ref: '#/components/schemas/ImageUrl'
         type:
           const: image_url
-          enum:
-            - image_url
           title: Type
           type: string
       required:
@@ -1577,33 +1538,37 @@ components:
       title: ImageUrlContent
       type: object
     JSONSchema:
-      additionalProperties: true
+      additionalProperties: false
       description: A JSON Schema object.
       properties:
         description:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Description
         name:
           title: Name
           type: string
         schema:
           anyOf:
-            - type: object
+            - additionalProperties: true
+              type: object
             - type: 'null'
+          default: null
           title: Schema
         strict:
           anyOf:
             - type: boolean
             - type: 'null'
+          default: null
           title: Strict
       required:
         - name
       title: JSONSchema
       type: object
     LogProbsContent:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         bytes:
           anyOf:
@@ -1757,7 +1722,7 @@ components:
       title: ModelLimits
       type: object
     ModelMetadata:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         created:
           default: 0
@@ -1769,8 +1734,6 @@ components:
         object:
           const: model
           default: model
-          enum:
-            - model
           title: Object
           type: string
         owned_by:
@@ -1782,7 +1745,7 @@ components:
       title: ModelMetadata
       type: object
     ModelMetadataList:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         data:
           items:
@@ -1792,8 +1755,6 @@ components:
         object:
           const: list
           default: list
-          enum:
-            - list
           title: Object
           type: string
       required:
@@ -1808,10 +1769,12 @@ components:
       properties:
         completion:
           description: Cost per token for completion (output) tokens in USD.
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Completion
           type: string
         prompt:
           description: Cost per token for prompt (input) tokens in USD.
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
           title: Prompt
           type: string
       required:
@@ -1819,40 +1782,20 @@ components:
         - completion
       title: ModelPricing
       type: object
-    OpenRouterArchitecture:
-      description: OpenRouter architecture format.
+    OpenRouterInfo:
+      description: OpenRouter metadata.
       properties:
-        input_modalities:
-          items:
-            type: string
-          title: Input Modalities
-          type: array
-        instruct_type:
-          anyOf:
-            - type: string
-            - type: 'null'
-          title: Instruct Type
-        modality:
-          default: text->text
-          description: e.g., 'text->text'
-          title: Modality
+        slug:
+          description: OpenRouter slug for the model
+          title: Slug
           type: string
-        output_modalities:
-          items:
-            type: string
-          title: Output Modalities
-          type: array
-        tokenizer:
-          default: unknown
-          title: Tokenizer
-          type: string
-      title: OpenRouterArchitecture
+      required:
+        - slug
+      title: OpenRouterInfo
       type: object
     OpenRouterModel:
       description: Model in OpenRouter-compatible format.
       properties:
-        architecture:
-          $ref: '#/components/schemas/OpenRouterArchitecture'
         context_length:
           title: Context Length
           type: integer
@@ -1860,40 +1803,76 @@ components:
           description: Unix timestamp when model was created
           title: Created
           type: integer
+        datacenters:
+          description: Datacenter locations
+          items:
+            $ref: '#/components/schemas/DatacenterLocation'
+          title: Datacenters
+          type: array
         description:
           default: ''
+          description: Model description
           title: Description
+          type: string
+        hugging_face_id:
+          default: ''
+          description: The corresponding HuggingFace Hub model ID, if available
+          title: Hugging Face Id
           type: string
         id:
           description: Model ID with provider prefix, e.g., 'cerebras/llama3.1-8b'
           title: Id
           type: string
+        input_modalities:
+          description: Supported input modalities (text, image, file)
+          items:
+            type: string
+          title: Input Modalities
+          type: array
         max_output_length:
-          anyOf:
-            - type: integer
-            - type: 'null'
           description: Maximum number of output tokens
           title: Max Output Length
+          type: integer
         name:
           title: Name
           type: string
+        openrouter:
+          anyOf:
+            - $ref: '#/components/schemas/OpenRouterInfo'
+            - type: 'null'
+          description: OpenRouter metadata
+        output_modalities:
+          description: Supported output modalities (text, image, file)
+          items:
+            type: string
+          title: Output Modalities
+          type: array
         pricing:
           $ref: '#/components/schemas/OpenRouterPricing'
         quantization:
-          anyOf:
-            - type: string
-            - type: 'null'
-          description: Model quantization (e.g., 'int8', 'fp16')
+          default: fp16
+          description: Model quantization (fp16 only for Cerebras)
           title: Quantization
-        supported_parameters:
-          $ref: '#/components/schemas/OpenRouterSupportedParameters'
+          type: string
+        supported_features:
+          description: List of supported features
+          items:
+            type: string
+          title: Supported Features
+          type: array
+        supported_sampling_parameters:
+          description: List of supported sampling parameters
+          items:
+            type: string
+          title: Supported Sampling Parameters
+          type: array
       required:
         - id
         - name
         - created
         - context_length
+        - max_output_length
         - pricing
-        - architecture
       title: OpenRouterModel
       type: object
     OpenRouterModelsResponse:
@@ -1920,6 +1899,16 @@ components:
           description: Cost per image as string
           title: Image
           type: string
+        input_cache_read:
+          default: '0'
+          description: Cost per cached input token read as string
+          title: Input Cache Read
+          type: string
+        input_cache_write:
+          default: '0'
+          description: Cost per cached input token write as string
+          title: Input Cache Write
+          type: string
         prompt:
           description: Cost per input token as string
           title: Prompt
@@ -1934,64 +1923,8 @@ components:
         - completion
       title: OpenRouterPricing
       type: object
-    OpenRouterSupportedParameters:
-      description: OpenRouter supported_parameters format.
-      properties:
-        frequency_penalty:
-          default: false
-          title: Frequency Penalty
-          type: boolean
-        logit_bias:
-          default: false
-          title: Logit Bias
-          type: boolean
-        logprobs:
-          default: false
-          title: Logprobs
-          type: boolean
-        max_tokens:
-          default: true
-          title: Max Tokens
-          type: boolean
-        presence_penalty:
-          default: false
-          title: Presence Penalty
-          type: boolean
-        repetition_penalty:
-          default: false
-          title: Repetition Penalty
-          type: boolean
-        seed:
-          default: true
-          title: Seed
-          type: boolean
-        stop:
-          default: true
-          title: Stop
-          type: boolean
-        temperature:
-          default: true
-          title: Temperature
-          type: boolean
-        tool_choice:
-          default: false
-          title: Tool Choice
-          type: boolean
-        tools:
-          default: false
-          title: Tools
-          type: boolean
-        top_logprobs:
-          default: false
-          title: Top Logprobs
-          type: boolean
-        top_p:
-          default: true
-          title: Top P
-          type: boolean
-      title: OpenRouterSupportedParameters
-      type: object
     Parameters:
+      additionalProperties: true
       description: 'Represents the parameters a function accepts.
 
         This model is designed to be flexible to accommodate any JSON Schema.
@@ -2000,7 +1933,7 @@ components:
       title: Parameters
       type: object
     Prediction:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         content:
           anyOf:
@@ -2011,8 +1944,6 @@ components:
           title: Content
         type:
           const: content
-          enum:
-            - content
           title: Type
           type: string
       required:
@@ -2021,7 +1952,7 @@ components:
       title: Prediction
       type: object
     PromptTokensDetails:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - cached_tokens: 1020
       properties:
@@ -2037,12 +1968,10 @@ components:
         with extensions for OpenRouter/HuggingFace compatibility.'
       properties:
         architecture:
-          allOf:
-            - $ref: '#/components/schemas/ModelArchitecture'
+          $ref: '#/components/schemas/ModelArchitecture'
           description: Technical architecture details of the model.
         capabilities:
-          allOf:
-            - $ref: '#/components/schemas/ModelCapabilities'
+          $ref: '#/components/schemas/ModelCapabilities'
           description: The capabilities supported by the model.
         created:
           description: The Unix timestamp (in seconds) when the model was created.
@@ -2050,14 +1979,12 @@ components:
           title: Created
           type: integer
         datacenter_locations:
-          anyOf:
-            - items:
-                type: string
-              type: array
-            - type: 'null'
           description: List of datacenter locations where this model is deployed (e.g.,
-            ['us-east-1', 'eu-west-1']). May be null if location information is unavailable.
+            ['us-east-1', 'eu-west-1']).
+          items:
+            type: string
           title: Datacenter Locations
+          type: array
         deprecated:
           default: false
           description: Indicates if the model is deprecated and should not be used
@@ -2084,8 +2011,7 @@ components:
           title: Id
           type: string
         limits:
-          allOf:
-            - $ref: '#/components/schemas/ModelLimits'
+          $ref: '#/components/schemas/ModelLimits'
           description: Usage limits and constraints for the model.
         name:
           description: The human-readable name of the model.
@@ -2096,8 +2022,6 @@ components:
           const: model
           default: model
           description: The object type, which is always 'model'.
-          enum:
-            - model
           title: Object
           type: string
         owned_by:
@@ -2111,8 +2035,7 @@ components:
           title: Preview
           type: boolean
         pricing:
-          allOf:
-            - $ref: '#/components/schemas/ModelPricing'
+          $ref: '#/components/schemas/ModelPricing'
           description: Pricing details for the model.
         quantization:
           anyOf:
@@ -2148,22 +2071,35 @@ components:
           const: list
           default: list
           description: Object type (always 'list')
-          enum:
-            - list
           title: Object
           type: string
       required:
         - data
       title: PublicModelsListResponse
       type: object
+    ReasoningEffort:
+      enum:
+        - none
+        - low
+        - medium
+        - high
+      title: ReasoningEffort
+      type: string
+    ReasoningFormat:
+      enum:
+        - none
+        - parsed
+        - text_parsed
+        - raw
+        - hidden
+      title: ReasoningFormat
+      type: string
     ResponseFormatJSONObject:
-      additionalProperties: true
+      additionalProperties: false
       description: A response format for a JSON object.
       properties:
         type:
           const: json_object
-          enum:
-            - json_object
           title: Type
           type: string
       required:
@@ -2171,15 +2107,13 @@ components:
       title: ResponseFormatJSONObject
       type: object
     ResponseFormatJSONSchema:
-      additionalProperties: true
+      additionalProperties: false
       description: A response format for a JSON schema.
       properties:
         json_schema:
           $ref: '#/components/schemas/JSONSchema'
         type:
           const: json_schema
-          enum:
-            - json_schema
           title: Type
           type: string
       required:
@@ -2188,27 +2122,34 @@ components:
       title: ResponseFormatJSONSchema
       type: object
     ResponseFormatText:
-      additionalProperties: true
+      additionalProperties: false
       description: A response format for text.
       properties:
         type:
           const: text
-          enum:
-            - text
           title: Type
           type: string
       required:
         - type
       title: ResponseFormatText
       type: object
+    ServiceTier:
+      enum:
+        - auto
+        - default
+        - flex
+        - priority
+      title: ServiceTier
+      type: string
     StreamOptions:
-      additionalProperties: true
+      additionalProperties: false
       description: Options for streaming.
       properties:
         include_usage:
           anyOf:
             - type: boolean
             - type: 'null'
+          default: null
           title: Include Usage
       title: StreamOptions
       type: object
@@ -2273,7 +2214,7 @@ components:
       title: SupportedParameters
       type: object
     SystemMessageRequest:
-      additionalProperties: true
+      additionalProperties: false
       description: A message request from the system.
       properties:
         content:
@@ -2296,12 +2237,11 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Name
         role:
           const: system
           default: system
-          enum:
-            - system
           title: Role
           type: string
       required:
@@ -2309,7 +2249,7 @@ components:
       title: SystemMessageRequest
       type: object
     TextContent:
-      additionalProperties: true
+      additionalProperties: false
       description: Text content for a message.
       properties:
         text:
@@ -2317,8 +2257,6 @@ components:
           type: string
         type:
           const: text
-          enum:
-            - text
           title: Type
           type: string
       required:
@@ -2327,7 +2265,11 @@ components:
       title: TextContent
       type: object
     TimeInfo:
-      additionalProperties: true
+      additionalProperties: false
+      description: 'Time information for different phases of request processing.
+
+
+        All times are measured in seconds.'
       examples:
         - completion_time: 0.44
           prompt_time: 0.02
@@ -2335,29 +2277,39 @@ components:
           total_time: 0.46
       properties:
         completion_time:
-          default: 0
-          minimum: 0.0
+          anyOf:
+            - minimum: 0.0
+              type: number
+            - type: 'null'
           title: Completion Time
-          type: number
+        created:
+          anyOf:
+            - minimum: 0.0
+              type: number
+            - type: 'null'
+          title: Created
         prompt_time:
-          default: 0
-          minimum: 0.0
+          anyOf:
+            - minimum: 0.0
+              type: number
+            - type: 'null'
           title: Prompt Time
-          type: number
         queue_time:
-          default: 0
-          minimum: 0.0
+          anyOf:
+            - minimum: 0.0
+              type: number
+            - type: 'null'
           title: Queue Time
-          type: number
         total_time:
-          default: 0
-          minimum: 0.0
+          anyOf:
+            - minimum: 0.0
+              type: number
+            - type: 'null'
           title: Total Time
-          type: number
       title: TimeInfo
       type: object
     Tool:
-      additionalProperties: true
+      additionalProperties: false
       description: A tool object
       properties:
         function:
@@ -2370,8 +2322,16 @@ components:
         - function
       title: Tool
       type: object
+    ToolChoice:
+      description: A tool choice object.
+      enum:
+        - none
+        - auto
+        - required
+      title: ToolChoice
+      type: string
     ToolMessageRequest:
-      additionalProperties: true
+      additionalProperties: false
       description: A message request from a tool.
       properties:
         content:
@@ -2385,12 +2345,11 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Name
         role:
           const: tool
           default: tool
-          enum:
-            - tool
           title: Role
           type: string
         tool_call_id:
@@ -2402,7 +2361,7 @@ components:
       title: ToolMessageRequest
       type: object
     TopLogProbs:
-      additionalProperties: true
+      additionalProperties: false
       properties:
         bytes:
           anyOf:
@@ -2423,7 +2382,7 @@ components:
       title: TopLogProbs
       type: object
     Usage:
-      additionalProperties: true
+      additionalProperties: false
       examples:
         - completion_tokens: 1020
           prompt_tokens: 40
@@ -2439,6 +2398,11 @@ components:
           anyOf:
             - $ref: '#/components/schemas/CompletionTokensDetails'
             - type: 'null'
+        image_tokens:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Image Tokens
         prompt_tokens:
           default: 0
           title: Prompt Tokens
@@ -2454,7 +2418,7 @@ components:
       title: Usage
       type: object
     UserMessageRequest:
-      additionalProperties: true
+      additionalProperties: false
       description: A message request from the user.
       properties:
         content:
@@ -2477,12 +2441,11 @@ components:
           anyOf:
             - type: string
             - type: 'null'
+          default: null
           title: Name
         role:
           const: user
           default: user
-          enum:
-            - user
           title: Role
           type: string
       required:
@@ -2532,12 +2495,10 @@ paths:
           name: format
           required: false
           schema:
-            allOf:
-              - $ref: '#/components/schemas/ModelFormat'
+            $ref: '#/components/schemas/ModelFormat'
             default: default
             description: 'Output format: ''default'' (Cerebras schema), ''openrouter'',
               or ''huggingface'''
-            title: Format
         - in: header
           name: X-Amz-Cf-Id
           required: false
@@ -2576,12 +2537,9 @@ paths:
         - Public Models
   /public/v1/models/{model_id}:
     get:
-      description: 'Retrieve a specific PUBLIC model by ID (no auth required).
-
-
-        Security: Only returns the model if modelVisibility=''PUBLIC''.
-
-        Returns 404 if model doesn''t exist or is HIDDEN.'
+      description: Retrieve a specific publicly available model by ID (modelVisibility='PUBLIC'
+        only). Use the `format` parameter to get responses compatible with OpenRouter
+        or HuggingFace APIs.
       operationId: get_public_model_public_v1_models__model_id__get
       parameters:
         - in: path
@@ -2590,6 +2548,16 @@ paths:
           schema:
             title: Model Id
             type: string
+        - description: 'Output format: ''default'' (Cerebras schema), ''openrouter'',
+            or ''huggingface'''
+          in: query
+          name: format
+          required: false
+          schema:
+            $ref: '#/components/schemas/ModelFormat'
+            default: default
+            description: 'Output format: ''default'' (Cerebras schema), ''openrouter'',
+              or ''huggingface'''
         - in: header
           name: X-Amz-Cf-Id
           required: false
@@ -2611,7 +2579,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicModel'
+                anyOf:
+                  - $ref: '#/components/schemas/PublicModel'
+                  - $ref: '#/components/schemas/OpenRouterModel'
+                  - $ref: '#/components/schemas/HuggingFaceModel'
+                title: Response Get Public Model Public V1 Models  Model Id  Get
           description: Successful Response
         '422':
           content:
@@ -2653,6 +2625,15 @@ paths:
       requestBody:
         content:
           application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+          application/msgpack:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+          application/vnd.msgpack:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+          application/x-msgpack:
             schema:
               $ref: '#/components/schemas/ChatCompletionRequest'
         required: true
@@ -2705,6 +2686,15 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CompletionRequest'
+          application/msgpack:
+            schema:
+              $ref: '#/components/schemas/CompletionRequest'
+          application/vnd.msgpack:
+            schema:
+              $ref: '#/components/schemas/CompletionRequest'
+          application/x-msgpack:
+            schema:
+              $ref: '#/components/schemas/CompletionRequest'
         required: true
       responses:
         '200':
@@ -2726,6 +2716,16 @@ paths:
     get:
       operationId: list_models_v1_models_get
       parameters:
+        - description: 'Output format: ''default'' (OpenAI-compatible), ''openrouter'',
+            or ''huggingface'''
+          in: query
+          name: format
+          required: false
+          schema:
+            $ref: '#/components/schemas/ModelFormat'
+            default: default
+            description: 'Output format: ''default'' (OpenAI-compatible), ''openrouter'',
+              or ''huggingface'''
         - in: header
           name: X-Amz-Cf-Id
           required: false
@@ -2747,7 +2747,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModelMetadataList'
+                anyOf:
+                  - $ref: '#/components/schemas/ModelMetadataList'
+                  - $ref: '#/components/schemas/OpenRouterModelsResponse'
+                  - $ref: '#/components/schemas/HuggingFaceModelsResponse'
+                title: Response List Models V1 Models Get
           description: Successful Response
         '422':
           content:
@@ -2768,6 +2772,16 @@ paths:
           schema:
             title: Model Id
             type: string
+        - description: 'Output format: ''default'' (OpenAI-compatible), ''openrouter'',
+            or ''huggingface'''
+          in: query
+          name: format
+          required: false
+          schema:
+            $ref: '#/components/schemas/ModelFormat'
+            default: default
+            description: 'Output format: ''default'' (OpenAI-compatible), ''openrouter'',
+              or ''huggingface'''
         - in: header
           name: X-Amz-Cf-Id
           required: false
@@ -2789,7 +2803,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModelMetadata'
+                anyOf:
+                  - $ref: '#/components/schemas/ModelMetadata'
+                  - $ref: '#/components/schemas/OpenRouterModel'
+                  - $ref: '#/components/schemas/HuggingFaceModel'
+                  - $ref: '#/components/schemas/PublicModel'
+                title: Response Get Model V1 Models  Model Id  Get
           description: Successful Response
         '422':
           content:
@@ -2815,5 +2834,5 @@ security:
 
 
 # Git Metadata
-# Timestamp: 2025-12-31 10:44:06 -0500
-# Hash: ced8cf723edc4757038dc2a7da8e0264a6c518fc
+# Timestamp: 2026-07-08 14:36:54 -0700
+# Hash: 06d895abc492ecd6e4e2d4bdfc1344387474f567

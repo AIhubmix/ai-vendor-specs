@@ -196,6 +196,189 @@
           "function"
         ]
       },
+      "KimiK3DynamicToolMessage": {
+        "type": "object",
+        "description": "Kimi K3 动态加载工具消息。该消息只能使用 system 角色，通过 tools 字段在当前对话位置声明后续对话可用的工具，且不包含 content 字段。",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "system"
+            ],
+            "description": "动态加载工具消息的角色，固定为 system"
+          },
+          "tools": {
+            "type": "array",
+            "description": "从该消息位置开始可供模型调用的工具列表",
+            "items": {
+              "$ref": "#/components/schemas/ToolDefinition"
+            },
+            "maxItems": 128
+          }
+        },
+        "required": [
+          "role",
+          "tools"
+        ],
+        "additionalProperties": false
+      },
+      "KimiK3Message": {
+        "oneOf": [
+          {
+            "title": "标准消息",
+            "$ref": "#/components/schemas/Message"
+          },
+          {
+            "title": "动态工具消息",
+            "$ref": "#/components/schemas/KimiK3DynamicToolMessage"
+          }
+        ],
+        "description": "Kimi K3 对话消息。既支持标准消息，也支持不含 content、通过 tools 声明动态工具的 system 消息。"
+      },
+      "ChatRequestCommon": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "integer",
+            "deprecated": true,
+            "description": "已弃用，请使用 max_completion_tokens"
+          },
+          "max_completion_tokens": {
+            "type": "integer",
+            "description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入加 max_completion_tokens 超出模型上下文窗口，将返回 invalid_request_error。"
+          },
+          "response_format": {
+            "type": "object",
+            "description": "控制模型输出格式。默认值为 {\"type\": \"text\"}，即纯文本输出。设置为 {\"type\": \"json_object\"} 可启用 JSON 模式，确保输出为合法 JSON 对象（需在 prompt 中引导模型输出 JSON 并指定格式）。设置为 {\"type\": \"json_schema\"} 可启用 Structured Output，按指定的 JSON Schema 约束输出结构（推荐，需配合 json_schema 字段使用）。如果您在使用 JSON Schema 时遇到校验问题，欢迎到 walle GitHub Issues (https://github.com/MoonshotAI/walle/issues) 提交反馈。",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "json_object",
+                  "json_schema"
+                ],
+                "description": "输出格式类型。text：默认，纯文本输出；json_object：保证输出为合法 JSON 对象；json_schema：按指定 JSON Schema 约束输出（推荐，需配合 json_schema 字段使用）"
+              },
+              "json_schema": {
+                "type": "object",
+                "description": "当 type 为 json_schema 时使用，定义输出应遵循的 JSON Schema",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Schema 名称，用于标识"
+                  },
+                  "strict": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "是否严格按 schema 约束输出。默认为 true。为 true 时 schema 需符合 MFJS 规范，不符合会返回错误或 warning；为 false 时仅保证输出为合法 JSON 对象，不强制约束内部结构。"
+                  },
+                  "schema": {
+                    "type": "object",
+                    "description": "JSON Schema 对象，定义输出应遵循的结构。需符合 MFJS（Moonshot Flavored JSON Schema）规范。可使用 walle CLI 工具自检：go install github.com/moonshotai/walle/cmd/walle@latest && walle -schema '你的schema' -level strict",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "name",
+                  "schema"
+                ]
+              }
+            }
+          },
+          "stop": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5
+              }
+            ],
+            "default": null,
+            "description": "停用词，完全匹配时将停止输出。匹配到的词本身不会被输出。最多允许 5 个字符串，每个不超过 32 字节"
+          },
+          "stream": {
+            "type": "boolean",
+            "default": false,
+            "description": "是否以流式方式返回响应，默认 false"
+          },
+          "stream_options": {
+            "type": "object",
+            "description": "流式响应选项",
+            "properties": {
+              "include_usage": {
+                "type": "boolean",
+                "default": false,
+                "description": "如果设置，将在 data: [DONE] 消息之前额外发送一个 chunk。该 chunk 的 usage 字段显示整个请求的 Token 使用统计，choices 字段为空数组。其他所有 chunk 也会包含 usage 字段，但值为 null。注意：如果流中断，可能无法收到包含总 Token 用量的最终 chunk"
+              }
+            }
+          },
+          "tools": {
+            "type": "array",
+            "description": "模型可调用的工具列表",
+            "items": {
+              "$ref": "#/components/schemas/ToolDefinition"
+            },
+            "maxItems": 128
+          },
+          "prompt_cache_key": {
+            "type": "string",
+            "default": null,
+            "description": "用于缓存相似请求的响应以优化缓存命中率。对于 Coding Agent，通常是代表单个会话的 session id 或 task id；退出并恢复会话时应保持不变。对于 Kimi Code Plan，此字段为必填以提高缓存命中率。对于其他多轮对话 Agent，也建议使用此字段"
+          },
+          "safety_identifier": {
+            "type": "string",
+            "description": "用于检测可能违反使用政策的用户的稳定标识符。应为唯一标识每个用户的字符串。建议对用户名或邮箱进行哈希处理以避免发送可识别信息"
+          },
+          "tool_choice": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "none",
+                  "required"
+                ],
+                "description": "auto：模型自行决定是否调用工具；none：不调用工具；required：强制调用工具"
+              },
+              {
+                "type": "object",
+                "description": "强制调用指定工具",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "function"
+                    ]
+                  },
+                  "function": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "要调用的函数名称"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "function"
+                ]
+              }
+            ],
+            "description": "控制模型是否调用工具。`auto`（默认）：模型自行决定是否调用工具；`none`：不调用工具；`required`：强制调用工具；也可传入特定函数对象强制调用指定工具。"
+          }
+        }
+      },
       "ChatRequestBase": {
         "type": "object",
         "properties": {
@@ -213,7 +396,7 @@
           },
           "max_completion_tokens": {
             "type": "integer",
-            "description": "聊天补全生成的最大 Token 数量。如果不给的话，默认给一个不错的整数比如 1024。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入加 max_completion_tokens 超出模型上下文窗口，将返回 invalid_request_error。"
+            "description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入加 max_completion_tokens 超出模型上下文窗口，将返回 invalid_request_error。"
           },
           "response_format": {
             "type": "object",
@@ -348,6 +531,46 @@
         },
         "required": [
           "messages"
+        ]
+      },
+      "KimiK3ChatRequest": {
+        "title": "kimi-k3",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ChatRequestCommon"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "model": {
+                "type": "string",
+                "description": "模型 ID",
+                "enum": [
+                  "kimi-k3"
+                ],
+                "default": "kimi-k3"
+              },
+              "messages": {
+                "type": "array",
+                "description": "Kimi K3 对话消息列表。除标准消息外，还可在任意对话位置插入 {\"role\": \"system\", \"tools\": [...]} 消息动态加载工具；该动态工具消息不包含 content 字段，并且只影响后续对话。",
+                "items": {
+                  "$ref": "#/components/schemas/KimiK3Message"
+                }
+              },
+              "reasoning_effort": {
+                "type": "string",
+                "enum": [
+                  "max"
+                ],
+                "default": "max",
+                "description": "Kimi K3 始终启用思考，并开启 Preserved Thinking。思考强度仅支持 max。"
+              }
+            },
+            "required": [
+              "model",
+              "messages"
+            ]
+          }
         ]
       },
       "MoonshotV1ChatRequest": {
@@ -1744,6 +1967,9 @@
               "schema": {
                 "oneOf": [
                   {
+                    "$ref": "#/components/schemas/KimiK3ChatRequest"
+                  },
+                  {
                     "$ref": "#/components/schemas/KimiK27CodeChatRequest"
                   },
                   {
@@ -1759,6 +1985,7 @@
                 "discriminator": {
                   "propertyName": "model",
                   "mapping": {
+                    "kimi-k3": "#/components/schemas/KimiK3ChatRequest",
                     "kimi-k2.7-code": "#/components/schemas/KimiK27CodeChatRequest",
                     "kimi-k2.7-code-highspeed": "#/components/schemas/KimiK27CodeChatRequest",
                     "kimi-k2.6": "#/components/schemas/KimiK26ChatRequest",

@@ -682,12 +682,6 @@
                       "owned_by": "google"
                     },
                     {
-                      "id": "google/gemini-3.1-flash-lite-preview",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "google"
-                    },
-                    {
                       "id": "google/gemini-3.5-flash",
                       "object": "model",
                       "created": 0,
@@ -948,8 +942,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000,
-                "exclusiveMinimum": 0
+                "maximum": 128000.0,
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
@@ -1004,8 +998,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 2
+                "minimum": 0.0,
+                "maximum": 2.0
               },
               {
                 "type": "null"
@@ -1018,8 +1012,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 1
+                "minimum": 0.0,
+                "maximum": 1.0
               },
               {
                 "type": "null"
