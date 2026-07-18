@@ -942,8 +942,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 128000,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -998,8 +998,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 2.0
+                "minimum": 0,
+                "maximum": 2
               },
               {
                 "type": "null"
@@ -1012,8 +1012,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 1.0
+                "minimum": 0,
+                "maximum": 1
               },
               {
                 "type": "null"
@@ -2872,6 +2872,14 @@
             },
             "type": "array"
           },
+          "skills": {
+            "type": "array",
+            "description": "Built-in and request-scoped inline skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
+            "maxItems": 16,
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
+          },
           "temperature": {
             "description": "OpenAI-compatible sampling temperature forwarded to generation.",
             "format": "double",
@@ -3918,6 +3926,90 @@
           }
         ],
         "title": "Tool"
+      },
+      "Skill": {
+        "title": "Skill",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/BuiltinSkill"
+          },
+          {
+            "$ref": "#/components/schemas/InlineSkill"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "builtin": "#/components/schemas/BuiltinSkill",
+            "inline": "#/components/schemas/InlineSkill"
+          }
+        }
+      },
+      "BuiltinSkill": {
+        "title": "BuiltinSkill",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "name"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "builtin"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "office",
+              "office/docx",
+              "office/pdf",
+              "office/pptx",
+              "office/xlsx"
+            ],
+            "description": "Built-in skill to make available to the model. office is the full Office bundle (enables all four leaves). office/docx, office/pdf, office/pptx, office/xlsx each create polished documents of that type from scratch, with structural validation and visual QA."
+          }
+        }
+      },
+      "InlineSkill": {
+        "title": "InlineSkill",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "name",
+          "description",
+          "instructions"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "inline"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "Request-scoped lowercase ASCII name separated by single hyphens."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Short discovery description, limited to 1,024 UTF-8 bytes."
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536,
+            "description": "Instructions returned by load_skill, limited to 65,536 UTF-8 bytes per skill and 262,144 bytes across the request."
+          }
+        }
       },
       "WebSearchTool": {
         "description": "Web search tool configuration for the Responses API",
