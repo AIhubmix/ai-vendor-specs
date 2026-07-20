@@ -212,8 +212,7 @@
             "description": "从该消息位置开始可供模型调用的工具列表",
             "items": {
               "$ref": "#/components/schemas/ToolDefinition"
-            },
-            "maxItems": 128
+            }
           }
         },
         "required": [
@@ -323,8 +322,7 @@
             "description": "模型可调用的工具列表",
             "items": {
               "$ref": "#/components/schemas/ToolDefinition"
-            },
-            "maxItems": 128
+            }
           },
           "prompt_cache_key": {
             "type": "string",
@@ -474,8 +472,7 @@
             "description": "模型可调用的工具列表",
             "items": {
               "$ref": "#/components/schemas/ToolDefinition"
-            },
-            "maxItems": 128
+            }
           },
           "prompt_cache_key": {
             "type": "string",
@@ -560,10 +557,12 @@
               "reasoning_effort": {
                 "type": "string",
                 "enum": [
+                  "low",
+                  "high",
                   "max"
                 ],
                 "default": "max",
-                "description": "Kimi K3 始终启用思考，并开启 Preserved Thinking。思考强度仅支持 max。"
+                "description": "Kimi K3 始终启用思考，并开启 Preserved Thinking。思考强度支持 low、high 和 max，默认为 max。"
               }
             },
             "required": [
