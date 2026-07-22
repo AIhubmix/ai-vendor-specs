@@ -24239,7 +24239,7 @@
         }
       },
       "BetaManagedAgentsSessionRetriesExhausted": {
-        "description": "The turn ended because the retry budget was exhausted (`max_iterations` hit or an error escalated to `retry_status: 'exhausted'`).",
+        "description": "The turn ended because repeated errors exhausted the retry budget or an error escalated to `retry_status: 'exhausted'`.",
         "type": "object",
         "additionalProperties": false,
         "required": ["type"],
@@ -27360,9 +27360,16 @@
       },
       "BetaRefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "general_harms"],
         "title": "RefusalCategory",
-        "type": "string"
+        "type": "string",
+        "x-enum-descriptions": [
+          "The request could enable cyber harm, such as malware or exploit development. Benign cybersecurity work can also trigger this category.",
+          "The request could enable biological harm, such as dangerous lab methods. Beneficial life sciences work can also trigger this category.",
+          "The request could assist the development of competing AI models, which is restricted under [Anthropic's commercial terms](https://www.anthropic.com/legal/commercial-terms). Benign machine learning work can also trigger this category.",
+          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).",
+          "The request could be related to an area that was determined as harmful. Benign work might sometimes trigger this category."
+        ]
       },
       "BetaRefusalStopDetails": {
         "description": "Structured information about a refusal.",
@@ -31996,7 +32003,7 @@
           "id": {
             "type": "string",
             "description": "Unique event identifier for idempotency.",
-            "examples": ["wevt_011CZkZYZd9rLmz3ujAcsqEw"]
+            "examples": ["whe_0f1e2d3c4b5a69788796a5b4c3d2e1f0"]
           },
           "created_at": {
             "type": "string",
@@ -32018,7 +32025,7 @@
         },
         "example": {
           "type": "event",
-          "id": "wevt_011CZkZYZd9rLmz3ujAcsqEw",
+          "id": "whe_0f1e2d3c4b5a69788796a5b4c3d2e1f0",
           "created_at": "2026-03-15T10:00:00Z",
           "data": {
             "type": "session.status_idled",
@@ -34233,9 +34240,16 @@
       },
       "RefusalCategory": {
         "description": "The policy category that triggered a refusal.",
-        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction"],
+        "enum": ["cyber", "bio", "frontier_llm", "reasoning_extraction", "general_harms"],
         "title": "RefusalCategory",
-        "type": "string"
+        "type": "string",
+        "x-enum-descriptions": [
+          "The request could enable cyber harm, such as malware or exploit development. Benign cybersecurity work can also trigger this category.",
+          "The request could enable biological harm, such as dangerous lab methods. Beneficial life sciences work can also trigger this category.",
+          "The request could assist the development of competing AI models, which is restricted under [Anthropic's commercial terms](https://www.anthropic.com/legal/commercial-terms). Benign machine learning work can also trigger this category.",
+          "The request asks the model to reproduce its internal reasoning in the response text. To get reasoning in a structured form instead, use [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).",
+          "The request could be related to an area that was determined as harmful. Benign work might sometimes trigger this category."
+        ]
       },
       "RefusalStopDetails": {
         "description": "Structured information about a refusal.",

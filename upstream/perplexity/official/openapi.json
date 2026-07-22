@@ -688,6 +688,18 @@
                       "owned_by": "google"
                     },
                     {
+                      "id": "google/gemini-3.5-flash-lite",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "google"
+                    },
+                    {
+                      "id": "google/gemini-3.6-flash",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "google"
+                    },
+                    {
                       "id": "xai/grok-4.5",
                       "object": "model",
                       "created": 0,
@@ -932,6 +944,193 @@
           }
         }
       }
+    },
+    "/v2/analytics/computer/usage": {
+      "get": {
+        "summary": "Computer Usage Analytics per Member",
+        "description": "Returns your organization's Computer credit usage broken down per member, as daily buckets. Each day lists one row per member who used credits that day, keyed by email, with the same Model and Credit Source breakdown as v1. Uses the same organization analytics API key as v1. Only complete UTC days are returned; the in-progress day is never included.",
+        "operationId": "getComputerUsageAnalyticsV2",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dataset",
+            "in": "query",
+            "required": true,
+            "description": "The dataset to query. Per-member grouping is currently supported for credit_usage only.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "credit_usage"
+              ]
+            }
+          },
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": true,
+            "description": "The dimension to group each day's usage by. user_email is currently the only supported value.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user_email"
+              ]
+            }
+          },
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": true,
+            "description": "Window start in unix seconds (UTC), inclusive. Snapped down to the day grid, so the first day can include usage from before this time.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": false,
+            "description": "Window end in unix seconds (UTC), exclusive. Defaults to now; future values are capped at now. The window may span at most 90 days.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Member rows per page. Default 50, max 100. A page can span multiple days.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Opaque pagination cursor from a previous response's next_page. Valid only with the same query parameters it was issued for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Per-member daily credit usage for the requested window. Days with no attributable usage are omitted; the analytics store syncs periodically, so recent days may not yet be present.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComputerUsageV2Response"
+                },
+                "example": {
+                  "categories": [
+                    "Model",
+                    "Credit Source"
+                  ],
+                  "data": [
+                    {
+                      "start_time": 1746057600,
+                      "end_time": 1746144000,
+                      "results": [
+                        {
+                          "user_email": "alice@example.com",
+                          "count": 900,
+                          "by_categories": {
+                            "Model": [
+                              {
+                                "category": "claude-opus-4-8",
+                                "count": 900
+                              }
+                            ],
+                            "Credit Source": [
+                              {
+                                "category": "paid",
+                                "count": 900
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "user_email": "bob@example.com",
+                          "count": 500,
+                          "by_categories": {
+                            "Model": [
+                              {
+                                "category": "claude-sonnet-4-6",
+                                "count": 500
+                              }
+                            ],
+                            "Credit Source": [
+                              {
+                                "category": "promo",
+                                "count": 500
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "has_more": true,
+                  "next_page": "eyJwayI6ICJPUkcjLi4uIn0="
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters (type: bad_request) — e.g. a dataset or group_by outside the accepted values — or a semantically invalid request (type: invalid_request), e.g. start_time after end_time, a window over 90 days, or a misused pagination cursor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "start_time must be before end_time.",
+                    "type": "invalid_request",
+                    "code": 400
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key (type: unauthorized).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The Computer Analytics API is not enabled for this organization (type: feature_disabled).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (type: request_rate_limit_exceeded). Limits apply per organization across all of its keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -942,8 +1141,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000,
-                "exclusiveMinimum": 0
+                "maximum": 128000.0,
+                "exclusiveMinimum": 0.0
               },
               {
                 "type": "null"
@@ -998,8 +1197,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 2
+                "minimum": 0.0,
+                "maximum": 2.0
               },
               {
                 "type": "null"
@@ -1012,8 +1211,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0,
-                "maximum": 1
+                "minimum": 0.0,
+                "maximum": 1.0
               },
               {
                 "type": "null"
@@ -2876,9 +3075,7 @@
             "type": "array",
             "description": "Built-in and request-scoped inline skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
             "maxItems": 16,
-            "items": {
-              "$ref": "#/components/schemas/Skill"
-            }
+            "items": { "$ref": "#/components/schemas/Skill" }
           },
           "temperature": {
             "description": "OpenAI-compatible sampling temperature forwarded to generation.",
@@ -3930,12 +4127,8 @@
       "Skill": {
         "title": "Skill",
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/BuiltinSkill"
-          },
-          {
-            "$ref": "#/components/schemas/InlineSkill"
-          }
+          { "$ref": "#/components/schemas/BuiltinSkill" },
+          { "$ref": "#/components/schemas/InlineSkill" }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -3949,26 +4142,12 @@
         "title": "BuiltinSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "type",
-          "name"
-        ],
+        "required": ["type", "name"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "builtin"
-            ]
-          },
+          "type": { "type": "string", "enum": ["builtin"] },
           "name": {
             "type": "string",
-            "enum": [
-              "office",
-              "office/docx",
-              "office/pdf",
-              "office/pptx",
-              "office/xlsx"
-            ],
+            "enum": ["office", "office/docx", "office/pdf", "office/pptx", "office/xlsx"],
             "description": "Built-in skill to make available to the model. office is the full Office bundle (enables all four leaves). office/docx, office/pdf, office/pptx, office/xlsx each create polished documents of that type from scratch, with structural validation and visual QA."
           }
         }
@@ -3977,19 +4156,9 @@
         "title": "InlineSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "type",
-          "name",
-          "description",
-          "instructions"
-        ],
+        "required": ["type", "name", "description", "instructions"],
         "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "inline"
-            ]
-          },
+          "type": { "type": "string", "enum": ["inline"] },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -5176,6 +5345,95 @@
           "has_more": {
             "type": "boolean",
             "description": "Whether more buckets exist beyond this page. False also when the window's remaining buckets are past the current data frontier."
+          },
+          "next_page": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page; pass as the page parameter with otherwise identical query parameters."
+          }
+        },
+        "required": [
+          "categories",
+          "data",
+          "has_more"
+        ]
+      },
+      "ComputerUsageV2Result": {
+        "type": "object",
+        "description": "One member's credit usage for a single day.",
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "description": "The member's email. Rows whose member can no longer be resolved to an email are omitted."
+          },
+          "count": {
+            "type": "integer",
+            "description": "The member's credit total for the day. May exceed the sum of any single breakdown — usage without a category attribution counts toward the total but not the breakdown."
+          },
+          "by_categories": {
+            "type": "object",
+            "description": "The member's day broken down by each label in the response's top-level `categories` list.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ComputerUsageCategoryCount"
+              }
+            }
+          }
+        },
+        "required": [
+          "user_email",
+          "count",
+          "by_categories"
+        ]
+      },
+      "ComputerUsageV2Bucket": {
+        "type": "object",
+        "properties": {
+          "start_time": {
+            "type": "integer",
+            "description": "Day start in unix seconds (UTC), inclusive."
+          },
+          "end_time": {
+            "type": "integer",
+            "description": "Day end in unix seconds (UTC), exclusive."
+          },
+          "results": {
+            "type": "array",
+            "description": "One row per member with credit usage on this day.",
+            "items": {
+              "$ref": "#/components/schemas/ComputerUsageV2Result"
+            }
+          }
+        },
+        "required": [
+          "start_time",
+          "end_time",
+          "results"
+        ]
+      },
+      "ComputerUsageV2Response": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "description": "Category breakdown labels each member row surfaces, in canonical render order. Each label is a key in every row's `by_categories`.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "type": "array",
+            "description": "Daily buckets in chronological order, each with one row per member who used credits that day. Days with no attributable usage are omitted.",
+            "items": {
+              "$ref": "#/components/schemas/ComputerUsageV2Bucket"
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more member rows exist beyond this page."
           },
           "next_page": {
             "type": [
