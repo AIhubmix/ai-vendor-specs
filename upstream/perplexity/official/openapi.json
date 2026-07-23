@@ -1141,8 +1141,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 128000,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -1197,8 +1197,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 2.0
+                "minimum": 0,
+                "maximum": 2
               },
               {
                 "type": "null"
@@ -1211,8 +1211,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 1.0
+                "minimum": 0,
+                "maximum": 1
               },
               {
                 "type": "null"
@@ -3075,7 +3075,9 @@
             "type": "array",
             "description": "Built-in and request-scoped inline skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
             "maxItems": 16,
-            "items": { "$ref": "#/components/schemas/Skill" }
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
           },
           "temperature": {
             "description": "OpenAI-compatible sampling temperature forwarded to generation.",
@@ -4127,8 +4129,12 @@
       "Skill": {
         "title": "Skill",
         "oneOf": [
-          { "$ref": "#/components/schemas/BuiltinSkill" },
-          { "$ref": "#/components/schemas/InlineSkill" }
+          {
+            "$ref": "#/components/schemas/BuiltinSkill"
+          },
+          {
+            "$ref": "#/components/schemas/InlineSkill"
+          }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -4142,12 +4148,26 @@
         "title": "BuiltinSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name"],
+        "required": [
+          "type",
+          "name"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["builtin"] },
+          "type": {
+            "type": "string",
+            "enum": [
+              "builtin"
+            ]
+          },
           "name": {
             "type": "string",
-            "enum": ["office", "office/docx", "office/pdf", "office/pptx", "office/xlsx"],
+            "enum": [
+              "office",
+              "office/docx",
+              "office/pdf",
+              "office/pptx",
+              "office/xlsx"
+            ],
             "description": "Built-in skill to make available to the model. office is the full Office bundle (enables all four leaves). office/docx, office/pdf, office/pptx, office/xlsx each create polished documents of that type from scratch, with structural validation and visual QA."
           }
         }
@@ -4156,9 +4176,19 @@
         "title": "InlineSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name", "description", "instructions"],
+        "required": [
+          "type",
+          "name",
+          "description",
+          "instructions"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["inline"] },
+          "type": {
+            "type": "string",
+            "enum": [
+              "inline"
+            ]
+          },
           "name": {
             "type": "string",
             "minLength": 1,
