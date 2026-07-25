@@ -17353,7 +17353,11 @@
             "description": "Request-level diagnostics. Supply `previous_message_id` to have the response include `diagnostics.cache_miss_reason` explaining any prompt-cache divergence from that prior request."
           },
           "fallback_credit_token": {
-            "anyOf": [{ "maxLength": 2048, "minLength": 1, "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              { "maxLength": 2048, "minLength": 1, "type": "string" },
+              { "$ref": "#/components/schemas/BetaFallbackCreditTokenParam" },
+              { "type": "null" }
+            ],
             "description": "The `fallback_credit_token` from a prior refusal's `stop_details`.\n\nWhen a preceding request was refused and returned a `fallback_credit_token`,\npass that code here on the retry to have the retry's cache-creation tokens\nfor the prefix that was warm on the refused model billed at the cache-read\nrate. Must be redeemed by the same organization and workspace, with the same\nrequest body (optionally extended by one appended `assistant` message whose\ncontent is the partial text — with any trailing whitespace stripped from\nthe final text block — and paired server-tool blocks streamed before the\nrefusal; the appended-assistant form is not available for requests with\n`output_format` set or forced `tool_choice`), on an eligible fallback\nmodel, on the same platform,\nand within 5 minutes of the refusal; a mismatch is a 400. A token minted\nmid-server-tool-loop whose partial content was continuable may only be\nredeemed with the appended-assistant form — if an exact-body retry is\nrejected with a 400 saying the token must be redeemed by continuing the\npartial response, retry with the appended-assistant form instead.\n\nWhen the appended-assistant form is used on a model that otherwise disallows\nassistant-turn prefill, this token also authorizes that one prefill.",
             "title": "Fallback Credit Token"
           },
@@ -17365,9 +17369,15 @@
                 "minItems": 1,
                 "type": "array"
               },
+              {
+                "const": "default",
+                "type": "string",
+                "title": "FallbacksDefault",
+                "x-stainless-variantName": "Default"
+              },
               { "type": "null" }
             ],
-            "description": "Opt-in server-side retry on one or more substitute models when the requested model declines for policy reasons. Tried in order: if the first entry also declines, the second is tried, and so on.",
+            "description": "Opt-in server-side retry on one or more substitute models when the requested model declines for policy reasons. Tried in order: if the first entry also declines, the second is tried, and so on. The string \"default\" requests the requested model's server-defined default fallback configuration.",
             "title": "Fallbacks"
           },
           "inference_geo": {
@@ -18334,6 +18344,94 @@
         },
         "required": ["model"],
         "title": "FallbackConfigV2",
+        "type": "object"
+      },
+      "BetaFallbackCreditNotApplied": {
+        "description": "No reprice was applied; ``reason`` says why.",
+        "properties": {
+          "reason": {
+            "description": "Why the reprice was not applied.\n\nA closed enum; additions to the redemption-check vocabulary arrive as\ndeliberate schema updates.",
+            "enum": [
+              "body_mismatch",
+              "continuation_excluded",
+              "continuation_only",
+              "expired",
+              "invalid_target_model",
+              "not_enabled",
+              "reprice_unavailable",
+              "temporarily_unavailable",
+              "variant_fields_present",
+              "wrong_organization",
+              "wrong_platform",
+              "wrong_workspace"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "remove_to_redeem": {
+            "anyOf": [{ "items": { "type": "string" }, "type": "array" }, { "type": "null" }],
+            "default": null,
+            "description": "Request fields to remove before retrying, so the retry can redeem this\ntoken.\n\nPresent exactly when `reason` is `variant_fields_present` — never null,\nnever an empty array; absent otherwise. Fields are named only from your own request, and only after\nthe sealed variant hash matched. A served best-effort retry has already\nbeen billed at normal price; nothing redeems retroactively, but a corrected\nre-send inside the token's five-minute window can still redeem.",
+            "title": "Remove To Redeem"
+          },
+          "type": { "const": "not_applied", "default": "not_applied", "title": "Type", "type": "string" }
+        },
+        "required": ["reason", "type"],
+        "title": "FallbackCreditNotApplied",
+        "type": "object"
+      },
+      "BetaFallbackCreditRedeemed": {
+        "description": "The reprice was applied: the retry is billed as if the conversation\nhad been on the retry model all along.",
+        "properties": {
+          "type": { "const": "redeemed", "default": "redeemed", "title": "Type", "type": "string" }
+        },
+        "required": ["type"],
+        "title": "FallbackCreditRedeemed",
+        "type": "object"
+      },
+      "BetaFallbackCreditTokenParam": {
+        "additionalProperties": false,
+        "description": "Object form of ``fallback_credit_token``: the token plus a redemption\nmode.\n\nRequires ``anthropic-beta: fallback-credit-2026-07-01``; without that\nheader the field accepts the bare string only. The bare string and the\nmode-less object are equivalent (both select ``strict``), so wrapping\nan existing token changes nothing by itself.",
+        "properties": {
+          "mode": {
+            "description": "How a failing token affects the retry. `strict` (the default, and the bare-string behavior): a failing redemption is a 400 and the retry is not served. `best_effort`: the retry is served either way — a token-layer failure no longer rejects the request; the retry proceeds at normal price and the outcome is reported on the response's `usage.fallback_credit`. Two failures stay hard in both modes: a malformed token, and combining `fallback_credit_token` with `fallbacks`.",
+            "enum": ["strict", "best_effort"],
+            "title": "Mode",
+            "type": "string"
+          },
+          "token": {
+            "description": "The opaque `fallback_credit_token` from a prior refusal's `stop_details` — the same string the bare-string form carries.",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": ["token"],
+        "title": "FallbackCreditTokenParam",
+        "type": "object"
+      },
+      "BetaFallbackCreditUsage": {
+        "description": "Outcome of the ``fallback_credit_token`` presented on this request.",
+        "properties": {
+          "status": {
+            "description": "Whether the fallback-credit reprice was applied to this response's billing.\n\nA union discriminated on `type`. `redeemed`: the retry is billed as if\nthe conversation had been on the retry model all along — including when the\nresulting shift is zero because there was nothing to move. `not_applied`:\nno reprice was applied; the arm's `reason` says why.",
+            "discriminator": {
+              "mapping": {
+                "not_applied": "#/components/schemas/BetaFallbackCreditNotApplied",
+                "redeemed": "#/components/schemas/BetaFallbackCreditRedeemed"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaFallbackCreditRedeemed" },
+              { "$ref": "#/components/schemas/BetaFallbackCreditNotApplied" }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": ["status"],
+        "title": "FallbackCreditUsage",
         "type": "object"
       },
       "BetaFallbackMessageIterationUsage": {
@@ -26882,6 +26980,11 @@
             "examples": [2051],
             "title": "Cache Read Input Tokens"
           },
+          "fallback_credit": {
+            "anyOf": [{ "$ref": "#/components/schemas/BetaFallbackCreditUsage" }, { "type": "null" }],
+            "default": null,
+            "description": "Outcome of the `fallback_credit_token` presented on this request.\n\nPresent on every response to a non-batch request that carried a\n`fallback_credit_token`, in either redemption mode; absent otherwise (batch\nitems accept and ignore the token and carry no outcome object)."
+          },
           "input_tokens": {
             "anyOf": [{ "minimum": 0, "type": "integer" }, { "type": "null" }],
             "default": null,
@@ -26910,6 +27013,7 @@
         "required": [
           "cache_creation_input_tokens",
           "cache_read_input_tokens",
+          "fallback_credit",
           "input_tokens",
           "iterations",
           "output_tokens",
@@ -28170,10 +28274,18 @@
             "description": "System instruction text blocks.",
             "items": {
               "discriminator": {
-                "mapping": { "text": "#/components/schemas/BetaRequestTextBlock" },
+                "mapping": {
+                  "text": "#/components/schemas/BetaRequestTextBlock",
+                  "tool_addition": "#/components/schemas/BetaRequestToolAdditionBlock",
+                  "tool_removal": "#/components/schemas/BetaRequestToolRemovalBlock"
+                },
                 "propertyName": "type"
               },
-              "oneOf": [{ "$ref": "#/components/schemas/BetaRequestTextBlock" }]
+              "oneOf": [
+                { "$ref": "#/components/schemas/BetaRequestTextBlock" },
+                { "$ref": "#/components/schemas/BetaRequestToolAdditionBlock" },
+                { "$ref": "#/components/schemas/BetaRequestToolRemovalBlock" }
+              ]
             },
             "title": "Content",
             "type": "array"
@@ -28506,6 +28618,46 @@
         "title": "RequestThinkingBlock",
         "type": "object"
       },
+      "BetaRequestToolAdditionBlock": {
+        "additionalProperties": false,
+        "description": "Mid-conversation directive to surface a declared tool.\n\n``tool`` references a tool (or MCP toolset) by name from the request's\n``tools``; it is offered to the model from this point in the\nconversation onward.",
+        "properties": {
+          "cache_control": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": { "ephemeral": "#/components/schemas/BetaCacheControlEphemeral" },
+                  "propertyName": "type"
+                },
+                "oneOf": [{ "$ref": "#/components/schemas/BetaCacheControlEphemeral" }]
+              },
+              { "type": "null" }
+            ],
+            "description": "Create a cache control breakpoint at this content block.",
+            "title": "Cache Control"
+          },
+          "tool": {
+            "discriminator": {
+              "mapping": {
+                "mcp_tool_reference": "#/components/schemas/BetaToolChangeMCPToolReference",
+                "mcp_toolset_reference": "#/components/schemas/BetaToolChangeMCPToolsetReference",
+                "tool_reference": "#/components/schemas/BetaToolChangeToolReference"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaToolChangeToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolsetReference" }
+            ],
+            "title": "Tool"
+          },
+          "type": { "const": "tool_addition", "title": "Type", "type": "string" }
+        },
+        "required": ["tool", "type"],
+        "title": "RequestToolAdditionBlock",
+        "type": "object"
+      },
       "BetaRequestToolReferenceBlock": {
         "additionalProperties": false,
         "description": "Tool reference block that can be included in tool_result content.",
@@ -28535,6 +28687,46 @@
         },
         "required": ["tool_name", "type"],
         "title": "RequestToolReferenceBlock",
+        "type": "object"
+      },
+      "BetaRequestToolRemovalBlock": {
+        "additionalProperties": false,
+        "description": "Mid-conversation directive to withdraw a tool.\n\n``tool`` references a tool (or MCP toolset) by name from the request's\n``tools``; it is no longer offered to the model from this point in the\nconversation onward.",
+        "properties": {
+          "cache_control": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": { "ephemeral": "#/components/schemas/BetaCacheControlEphemeral" },
+                  "propertyName": "type"
+                },
+                "oneOf": [{ "$ref": "#/components/schemas/BetaCacheControlEphemeral" }]
+              },
+              { "type": "null" }
+            ],
+            "description": "Create a cache control breakpoint at this content block.",
+            "title": "Cache Control"
+          },
+          "tool": {
+            "discriminator": {
+              "mapping": {
+                "mcp_tool_reference": "#/components/schemas/BetaToolChangeMCPToolReference",
+                "mcp_toolset_reference": "#/components/schemas/BetaToolChangeMCPToolsetReference",
+                "tool_reference": "#/components/schemas/BetaToolChangeToolReference"
+              },
+              "propertyName": "type"
+            },
+            "oneOf": [
+              { "$ref": "#/components/schemas/BetaToolChangeToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolReference" },
+              { "$ref": "#/components/schemas/BetaToolChangeMCPToolsetReference" }
+            ],
+            "title": "Tool"
+          },
+          "type": { "const": "tool_removal", "title": "Type", "type": "string" }
+        },
+        "required": ["tool", "type"],
+        "title": "RequestToolRemovalBlock",
         "type": "object"
       },
       "BetaRequestToolResultBlock": {
@@ -30917,6 +31109,40 @@
         "title": "Tool",
         "type": "object"
       },
+      "BetaToolChangeMCPToolReference": {
+        "additionalProperties": false,
+        "description": "Reference to a single MCP tool by its server and remote name — the\nsame ``server_name``/``name`` pair ``mcp_tool_use`` carries.",
+        "properties": {
+          "name": { "title": "Name", "type": "string" },
+          "server_name": { "title": "Server Name", "type": "string" },
+          "type": { "const": "mcp_tool_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["name", "server_name", "type"],
+        "title": "ToolChangeMCPToolReference",
+        "type": "object"
+      },
+      "BetaToolChangeMCPToolsetReference": {
+        "additionalProperties": false,
+        "description": "Reference to every tool in the named MCP server's toolset.",
+        "properties": {
+          "server_name": { "title": "Server Name", "type": "string" },
+          "type": { "const": "mcp_toolset_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["server_name", "type"],
+        "title": "ToolChangeMCPToolsetReference",
+        "type": "object"
+      },
+      "BetaToolChangeToolReference": {
+        "additionalProperties": false,
+        "description": "Reference to a single tool the caller declared directly in\n``tools[]``. Does not accept the composed ``{server}_{name}`` form the\nserver assigns to MCP-resolved tools — use ``mcp_tool_reference`` or\n``mcp_toolset_reference`` for those.",
+        "properties": {
+          "name": { "pattern": "^[a-zA-Z0-9_-]{1,128}$", "title": "Name", "type": "string" },
+          "type": { "const": "tool_reference", "title": "Type", "type": "string" }
+        },
+        "required": ["name", "type"],
+        "title": "ToolChangeToolReference",
+        "type": "object"
+      },
       "BetaToolChoiceAny": {
         "additionalProperties": false,
         "description": "The model will use any available tools.",
@@ -31264,6 +31490,11 @@
             "examples": [2051],
             "title": "Cache Read Input Tokens"
           },
+          "fallback_credit": {
+            "anyOf": [{ "$ref": "#/components/schemas/BetaFallbackCreditUsage" }, { "type": "null" }],
+            "default": null,
+            "description": "Outcome of the `fallback_credit_token` presented on this request.\n\nPresent on every response to a non-batch request that carried a\n`fallback_credit_token`, in either redemption mode; absent otherwise (batch\nitems accept and ignore the token and carry no outcome object)."
+          },
           "inference_geo": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
             "default": null,
@@ -31312,6 +31543,7 @@
           "cache_creation",
           "cache_creation_input_tokens",
           "cache_read_input_tokens",
+          "fallback_credit",
           "inference_geo",
           "input_tokens",
           "iterations",
@@ -37919,7 +38151,9 @@
               "dreaming-2026-04-21",
               "thinking-token-count-2026-05-13",
               "server-side-fallback-2026-06-01",
+              "server-side-fallback-2026-07-01",
               "fallback-credit-2026-06-01",
+              "fallback-credit-2026-07-01",
               "agent-memory-2026-07-22"
             ],
             "x-stainless-nominal": false
@@ -38163,6 +38397,8 @@
             "text": "#/components/schemas/BetaRequestTextBlock",
             "text_editor_code_execution_tool_result": "#/components/schemas/BetaRequestTextEditorCodeExecutionToolResultBlock",
             "thinking": "#/components/schemas/BetaRequestThinkingBlock",
+            "tool_addition": "#/components/schemas/BetaRequestToolAdditionBlock",
+            "tool_removal": "#/components/schemas/BetaRequestToolRemovalBlock",
             "tool_result": "#/components/schemas/BetaRequestToolResultBlock",
             "tool_search_tool_result": "#/components/schemas/BetaRequestToolSearchToolResultBlock",
             "tool_use": "#/components/schemas/BetaRequestToolUseBlock",
@@ -38214,6 +38450,8 @@
           { "$ref": "#/components/schemas/BetaRequestContainerUploadBlock" },
           { "$ref": "#/components/schemas/BetaRequestCompactionBlock" },
           { "$ref": "#/components/schemas/BetaRequestMidConvSystemBlock" },
+          { "$ref": "#/components/schemas/BetaRequestToolAdditionBlock" },
+          { "$ref": "#/components/schemas/BetaRequestToolRemovalBlock" },
           { "$ref": "#/components/schemas/BetaRequestFallbackBlock" }
         ],
         "x-stainless-go-variant-constructor": { "naming": "new_beta_{variant}_block" }
@@ -38264,13 +38502,18 @@
             "x-stainless-nominal": false
           },
           {
+            "const": "claude-opus-5",
+            "description": "Powerful intelligence for long-running agents and coding",
+            "x-stainless-nominal": false
+          },
+          {
             "const": "claude-opus-4-8",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-7",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38282,7 +38525,7 @@
           },
           {
             "const": "claude-opus-4-6",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38302,12 +38545,12 @@
           },
           {
             "const": "claude-opus-4-5",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-5-20251101",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38322,14 +38565,14 @@
           },
           {
             "const": "claude-opus-4-1",
-            "description": "Exceptional model for specialized complex tasks",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false,
             "deprecated": true,
             "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
           },
           {
             "const": "claude-opus-4-1-20250805",
-            "description": "Exceptional model for specialized complex tasks",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false,
             "deprecated": true,
             "x-stainless-deprecation-message": "Will reach end-of-life on August 5, 2026. Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information."
@@ -38352,18 +38595,23 @@
             "x-stainless-nominal": false
           },
           {
+            "const": "claude-opus-5",
+            "description": "Powerful intelligence for long-running agents and coding",
+            "x-stainless-nominal": false
+          },
+          {
             "const": "claude-opus-4-8",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-7",
-            "description": "Frontier intelligence for long-running agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-6",
-            "description": "Most intelligent model for building agents and coding",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
@@ -38383,12 +38631,12 @@
           },
           {
             "const": "claude-opus-4-5",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
             "const": "claude-opus-4-5-20251101",
-            "description": "Premium model combining maximum intelligence with practical performance",
+            "description": "Powerful intelligence for long-running agents and coding",
             "x-stainless-nominal": false
           },
           {
