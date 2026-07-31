@@ -173,6 +173,26 @@ paths:
                 aspect_ratio:
                   $ref: '#/components/schemas/AspectRatioV3'
                   description: The output aspect ratio. Defaults to `1x1`.
+                custom_width:
+                  type:
+                    - integer
+                    - 'null'
+                  description: |
+                    Optional. An exact output width in pixels, used together with
+                    `custom_height` for output sizes outside the preset tiers. Must be
+                    a positive multiple of 16 between 16 and 4096, and
+                    `custom_width` × `custom_height` must not exceed 4,194,304 pixels
+                    (2048×2048). Cannot be combined with `resolution` or
+                    `aspect_ratio`; the request is billed at the resolution tier
+                    matching its total pixel count.
+                custom_height:
+                  type:
+                    - integer
+                    - 'null'
+                  description: |
+                    Optional. An exact output height in pixels, used together with
+                    `custom_width`. See `custom_width` for the accepted range and
+                    billing behavior.
                 enable_copyright_detection:
                   type:
                     - boolean
@@ -2661,7 +2681,12 @@ components:
           type: string
           description: The prompt used for the generation. This may be different from the original prompt.
         resolution:
-          $ref: '#/components/schemas/ResolutionV4'
+          type: string
+          description: |
+            The output resolution of the image, in the format
+            WIDTHxHEIGHT (e.g. 1024x1024). Not limited to the request
+            resolution presets, since some endpoints accept custom output
+            sizes.
         is_image_safe:
           type: boolean
           description: Whether this request passes safety checks. If false, the url field will be empty.
