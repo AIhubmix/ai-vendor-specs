@@ -2,10 +2,10 @@
   "protocol": "openai",
   "provider": "official",
   "displayName": "OpenAI Official",
-  "version": "2026-08-02",
+  "version": "2026-08-03",
   "specFormat": "openapi-3.1",
   "source": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",
-  "lastSynced": "2026-08-02T11:47:49Z",
+  "lastSynced": "2026-08-03T12:35:27Z",
   "hash": "sha256:d49acc329cf44bbc6c7294c1196c1d1e667704f123b456dea3ad0dbb5411a26a",
   "autoSync": true
 }
