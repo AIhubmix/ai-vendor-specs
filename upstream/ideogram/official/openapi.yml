@@ -201,6 +201,122 @@ paths:
                     Optional. Opt this request into post-generation copyright detection.
               required:
                 - prompt
+  /v1/async/text-to-image/p-image-ideogram:
+    post:
+      operationId: post-generate-image-p-image-ideogram-async
+      summary: Generate with P-Image Ideogram asynchronously
+      description: |
+        Accepts a P-Image Ideogram generation request for asynchronous processing
+        and returns immediately with a generation_id. Poll
+        `GET /v1/generations/{generation_id}` to retrieve the result. If a
+        `webhook_url` is supplied, the generated images are additionally POSTed
+        to it once ready, in a payload that mirrors the synchronous response with
+        an added generation_id for correlation.
+
+        See [Webhooks](/ideogram-api/webhooks) for the delivery payload and how to verify webhook signatures.
+      tags:
+        - generate
+      parameters:
+        - name: webhook_url
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WebhookUrl'
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request accepted for asynchronous delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate an image with P-Image Ideogram.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+                  description: |
+                    The prompt for image generation. Accepts either natural language or
+                    a structured Ideogram 4.0 JSON prompt; the server detects which was supplied.
+                prompt_upsampling:
+                  $ref: '#/components/schemas/MagicPromptOption'
+                  description: |
+                    Controls magic-prompt (prompt upsampling). Defaults to `AUTO`.
+                seed:
+                  type:
+                    - integer
+                    - 'null'
+                  description: Random seed for reproducibility.
+                quality:
+                  $ref: '#/components/schemas/Quality'
+                  description: The generation quality level. Defaults to `MEDIUM`.
+                resolution:
+                  $ref: '#/components/schemas/PImageResolution'
+                  description: The output-size tier. Defaults to `1K`.
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV3'
+                  description: The output aspect ratio. Defaults to `1x1`.
+                custom_width:
+                  type:
+                    - integer
+                    - 'null'
+                  description: |
+                    Optional. An exact output width in pixels, used together with
+                    `custom_height` for output sizes outside the preset tiers. Must be
+                    a positive multiple of 16 between 16 and 4096, and
+                    `custom_width` × `custom_height` must not exceed 4,194,304 pixels
+                    (2048×2048). Cannot be combined with `resolution` or
+                    `aspect_ratio`; the request is billed at the resolution tier
+                    matching its total pixel count.
+                custom_height:
+                  type:
+                    - integer
+                    - 'null'
+                  description: |
+                    Optional. An exact output height in pixels, used together with
+                    `custom_width`. See `custom_width` for the accepted range and
+                    billing behavior.
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection.
+              required:
+                - prompt
   /v1/ideogram-v4/async/generate:
     post:
       operationId: post-generate-image-v-4-async

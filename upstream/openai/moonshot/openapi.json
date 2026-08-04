@@ -1180,8 +1180,9 @@
           "model": {
             "type": "string",
             "description": "模型 ID",
-            "default": "kimi-k2.5",
+            "default": "kimi-k3",
             "enum": [
+              "kimi-k3",
               "kimi-k2.7-code",
               "kimi-k2.7-code-highspeed",
               "kimi-k2.6",
