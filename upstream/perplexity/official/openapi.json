@@ -652,6 +652,12 @@
                       "owned_by": "anthropic"
                     },
                     {
+                      "id": "anthropic/claude-fable-5",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "anthropic"
+                    },
+                    {
                       "id": "anthropic/claude-sonnet-4-6",
                       "object": "model",
                       "created": 0,
