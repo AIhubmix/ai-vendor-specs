@@ -2,10 +2,10 @@
   "protocol": "anthropic",
   "provider": "official",
   "displayName": "Anthropic Claude",
-  "version": "2026-08-05",
+  "version": "2026-08-06",
   "specFormat": "openapi-3.1",
   "source": "https://storage.googleapis.com/stainless-sdk-openapi-specs/anthropic/anthropic-6d5c96a475b06ff067a4491fc2258181f0426af6c64bcfd4be5d167a8c0d9d16.yml",
-  "lastSynced": "2026-08-05T12:09:25Z",
+  "lastSynced": "2026-08-06T12:10:34Z",
   "hash": "sha256:a97790bd7f185213830f19daf7392c9c1390be8811d507417398a0bf519e20f5",
   "autoSync": true
 }
