@@ -410,6 +410,133 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/async/ad-resizer:
+    post:
+      operationId: post-resize-image-async
+      summary: Advertisement Resizer
+      description: |
+        Resizes an advertisement image to the exact target size. Supply `prompt`
+        to provide specific instructions for how the advertisement should look
+        after resizing.
+
+        The request is processed asynchronously and immediately returns a
+        `generation_id`. Poll `GET /v1/generations/{generation_id}` until `status`
+        is `completed` or `failed`. When completed, `data` contains the final
+        resized image(s). If a `webhook_url` is supplied, the completed result is
+        also POSTed to that URL.
+
+        Supply the advertisement image as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two; supplying both,
+        or neither, is rejected with a 400.
+
+        The required `resolution` (`WIDTHxHEIGHT`) sets the exact output
+        dimensions.
+
+        The model is fixed by the route, so no `model` field is accepted.
+      tags:
+        - generate
+      parameters:
+        - name: webhook_url
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WebhookUrl'
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request accepted for asynchronous processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to edit an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: Source asset not found.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: >-
+          A request to resize a source image. Use `multipart/form-data` to upload `image` bytes directly, or
+          `application/json` (or multipart with `image_asset_identifier`) to reference an existing asset instead.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The source image to reframe (max size 10MB), as raw bytes; only JPEG, PNG, and WEBP formats are
+                    supported. Multipart requests only. Provide exactly one of `image_asset_identifier` or `image`.
+                resolution:
+                  $ref: '#/components/schemas/V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution'
+                  description: |
+                    Target ad resolution, formatted as `WIDTHxHEIGHT`. Must be one of
+                    the supported ad resolutions listed above; any other value is
+                    rejected with a 400. Each returned image has exactly these pixel
+                    dimensions.
+                prompt:
+                  type: string
+                  description: >-
+                    Optional edit instruction to apply while reframing, for example "remove the logo" or "put the price
+                    bottom-right".
+                quality:
+                  $ref: '#/components/schemas/ResizeAdImageQuality'
+                  description: >-
+                    Output quality tier. Higher tiers generally improve detail and may take longer to complete.
+                    Supported values are LOW, MEDIUM, and HIGH.
+                num_images:
+                  type: integer
+                  default: 1
+                  description: The number of reframed variations to generate.
+                store_assets:
+                  type: boolean
+                  default: false
+                  description: >-
+                    Reserved for a future release: accepted for forward compatibility but not yet applied. Resulting
+                    assets are not stored to your account regardless of this value.
+              required:
+                - resolution
   /v1/generations/{generation_id}:
     get:
       operationId: get-generation
@@ -2925,6 +3052,74 @@ components:
         are POSTed to the supplied `webhook_url` once ready; this body carries only
         the generation_id so the caller can correlate the eventual webhook delivery.
       title: AsyncImageGenerationResponseV4
+    AssetType:
+      type: string
+      enum:
+        - ASSET
+        - CANVAS_ASSET
+        - LAYERED_ASSET
+        - RESPONSE
+        - UPLOAD
+      title: AssetType
+    AssetIdentifier:
+      type: object
+      properties:
+        asset_type:
+          $ref: '#/components/schemas/AssetType'
+        asset_id:
+          type: string
+      required:
+        - asset_type
+        - asset_id
+      description: An identifier for an ideogram asset.
+      title: AssetIdentifier
+    V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution:
+      type: string
+      enum:
+        - 300x250
+        - 336x280
+        - 300x600
+        - 1080x1080
+        - 1080x1350
+        - 1080x1920
+        - 1920x1080
+        - 728x90
+        - 160x600
+        - 970x250
+        - 320x50
+        - 300x50
+        - 320x100
+        - 1800x900
+        - 2400x2400
+        - 1200x3500
+        - 2880x2880
+        - 2560x3200
+        - 3200x2560
+        - 2448x3264
+        - 3264x2448
+        - 2336x3504
+        - 3504x2336
+        - 2240x3584
+        - 3584x2240
+        - 2160x3840
+        - 3840x2160
+        - 1920x3840
+        - 3840x1920
+        - 1280x3840
+        - 3840x1280
+      description: |
+        Target ad resolution, formatted as `WIDTHxHEIGHT`. Must be one of
+        the supported ad resolutions listed above; any other value is
+        rejected with a 400. Each returned image has exactly these pixel
+        dimensions.
+      title: V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution
+    ResizeAdImageQuality:
+      type: string
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+      title: ResizeAdImageQuality
     GenerationResponseStatus:
       type: string
       enum:
@@ -2943,6 +3138,116 @@ components:
         - url
       description: Present when `status` is `completed`; always "url" for this shape.
       title: GenerationResponseResponseType
+    ImageObjectWithoutPromptOrSeedObjectType:
+      type: string
+      enum:
+        - image.without-prompt-or-seed
+      description: Discriminator marking this entry as an image result without prompt or seed.
+      title: ImageObjectWithoutPromptOrSeedObjectType
+    ImageObjectWithoutPromptOrSeed:
+      type: object
+      properties:
+        object_type:
+          $ref: '#/components/schemas/ImageObjectWithoutPromptOrSeedObjectType'
+          description: Discriminator marking this entry as an image result without prompt or seed.
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the reframed image.
+        resolution:
+          type: string
+          description: The exact dimensions of the reframed image, formatted as "{width}x{height}".
+        is_image_safe:
+          type: boolean
+          description: Whether this image passes safety checks. If false, the url field is empty.
+      required:
+        - object_type
+        - resolution
+        - is_image_safe
+      description: An image result that does not expose its prompt or seed.
+      title: ImageObjectWithoutPromptOrSeed
+    ImageGenerationObjectObjectType:
+      type: string
+      enum:
+        - image.generation
+      description: Discriminator marking this entry as a generated image in the polling endpoint's mixed data array.
+      title: ImageGenerationObjectObjectType
+    ImageGenerationObject:
+      type: object
+      properties:
+        object_type:
+          $ref: '#/components/schemas/ImageGenerationObjectObjectType'
+          description: Discriminator marking this entry as a generated image in the polling endpoint's mixed data array.
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          type: string
+          description: The resolution of the generated image, formatted as "{width}x{height}".
+        is_image_safe:
+          type: boolean
+          description: Whether this image passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          description: Random seed. Set for reproducible generation.
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      description: A single generated image. Model-agnostic shape returned by the generation polling endpoint.
+      title: ImageGenerationObject
+    VideoObjectObjectType:
+      type: string
+      enum:
+        - video.generation
+      description: Discriminator marking this entry as a generated video in the polling endpoint's mixed data array.
+      title: VideoObjectObjectType
+    VideoObject:
+      type: object
+      properties:
+        object_type:
+          $ref: '#/components/schemas/VideoObjectObjectType'
+          description: Discriminator marking this entry as a generated video in the polling endpoint's mixed data array.
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the generated video.
+        prompt:
+          type: string
+          description: The prompt used for the generation.
+        resolution:
+          type: string
+          description: The resolution tier of the generated video.
+        aspect_ratio:
+          type: string
+          description: The actual aspect ratio of the produced video, formatted as "{width}:{height}".
+        duration:
+          type: integer
+          description: The actual measured length of the produced video in seconds.
+      required:
+        - prompt
+        - resolution
+        - aspect_ratio
+        - duration
+      description: A single generated video returned by the generation polling endpoint.
+      title: VideoObject
+    GenerationResponse_data_inner:
+      oneOf:
+        - $ref: '#/components/schemas/ImageObjectWithoutPromptOrSeed'
+        - $ref: '#/components/schemas/ImageGenerationObject'
+        - $ref: '#/components/schemas/VideoObject'
+      title: GenerationResponse_data_inner
     GenerationResponse:
       type: object
       properties:
@@ -2968,6 +3273,14 @@ components:
           description: |
             A short machine-readable reason the generation failed, for example
             `content_policy_violation`. Present only when `status` is `failed`.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenerationResponse_data_inner'
+          description: |
+            A list of generated images or videos. Present when `status` is
+            `completed`. Video entries carry an `object_type` of
+            `video.generation`; entries without an `object_type` are images.
       required:
         - generation_id
         - status
@@ -3835,27 +4148,6 @@ components:
         - prompt
       description: A request to generate a new image using a provided image and a prompt.
       title: InitialImageRequest
-    AssetType:
-      type: string
-      enum:
-        - ASSET
-        - CANVAS_ASSET
-        - LAYERED_ASSET
-        - RESPONSE
-        - UPLOAD
-      title: AssetType
-    AssetIdentifier:
-      type: object
-      properties:
-        asset_type:
-          $ref: '#/components/schemas/AssetType'
-        asset_id:
-          type: string
-      required:
-        - asset_type
-        - asset_id
-      description: An identifier for an ideogram asset.
-      title: AssetIdentifier
     Dataset:
       type: object
       properties:
