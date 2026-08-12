@@ -3458,7 +3458,8 @@
             "sandbox_results": "#/components/schemas/SandboxResultsOutputItem",
             "search_results": "#/components/schemas/SearchResultsOutputItem",
             "mcp_list_tools": "#/components/schemas/McpListToolsOutputItem",
-            "mcp_call": "#/components/schemas/McpCallOutputItem"
+            "mcp_call": "#/components/schemas/McpCallOutputItem",
+            "tool_search_output": "#/components/schemas/ToolSearchOutputItem"
           },
           "propertyName": "type"
         },
@@ -3489,6 +3490,9 @@
           },
           {
             "$ref": "#/components/schemas/McpCallOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/ToolSearchOutputItem"
           }
         ],
         "title": "OutputItem"
@@ -5553,7 +5557,7 @@
         "title": "McpToolDef"
       },
       "McpListToolsOutputItem": {
-        "description": "Tools discovered on one external MCP server at boot. Matches OpenAI's mcp_list_tools item.",
+        "description": "Tools discovered on one external MCP server when the request starts. Matches OpenAI's mcp_list_tools item.",
         "properties": {
           "type": {
             "enum": [
@@ -5574,11 +5578,8 @@
             "type": "array"
           },
           "error": {
-            "description": "Null when the server's tools were listed successfully.",
-            "type": [
-              "string",
-              "null"
-            ]
+            "description": "Present only when the server's tools could not be listed. Absent on success.",
+            "type": "string"
           }
         },
         "required": [
@@ -5635,7 +5636,7 @@
         "title": "McpCallOutputItem"
       },
       "McpTool": {
-        "description": "Connects a user-supplied remote MCP server. Agent API discovers the server's tools when the request starts and calls them like native tools. Matches OpenAI's mcp tool. `require_approval`, `connector_id`, and `defer_loading` are not supported and are ignored if sent: every call auto-runs, and only bring-your-own `server_url` is honored.",
+        "description": "Connects a user-supplied remote MCP server. Agent API discovers the server's tools when the request starts and calls them like native tools. Matches OpenAI's mcp tool. `defer_loading: true` keeps discovered definitions out of the initial model context and lets the model search, inspect, and call them as needed. `require_approval` and `connector_id` are ignored: every call auto-runs, and only bring-your-own `server_url` is honored.",
         "properties": {
           "type": {
             "enum": [
@@ -5668,6 +5669,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "defer_loading": {
+            "description": "When true, keeps discovered tool definitions out of the initial model context and lets the model load relevant schemas as needed. Defaults to false.",
+            "type": "boolean"
           }
         },
         "required": [
@@ -5677,6 +5682,114 @@
         ],
         "type": "object",
         "title": "McpTool"
+      },
+      "NamespaceToolDef": {
+        "description": "One function definition discovered by hosted external-tool search.",
+        "properties": {
+          "type": {
+            "enum": [
+              "function"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": true,
+            "description": "The server's JSON Schema for the tool, passed through unmodified.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "type": "object",
+        "title": "NamespaceToolDef"
+      },
+      "NamespaceTool": {
+        "description": "A response-only namespace containing complete external tool definitions.",
+        "properties": {
+          "type": {
+            "enum": [
+              "namespace"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/NamespaceToolDef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "description",
+          "tools"
+        ],
+        "type": "object",
+        "title": "NamespaceTool"
+      },
+      "ToolSearchOutputItem": {
+        "description": "Complete public definitions matched by one hosted external-tool search.",
+        "properties": {
+          "type": {
+            "enum": [
+              "tool_search_output"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "call_id": {
+            "description": "Always null for hosted search.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution": {
+            "description": "Execution location. Currently `server`. Clients must tolerate unknown values.",
+            "type": "string"
+          },
+          "arguments": {
+            "description": "Exact argument text authored by the model for hosted search.",
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/NamespaceTool"
+            },
+            "type": "array"
+          },
+          "status": {
+            "description": "Current execution status. Known values are `in_progress`, `completed`, and `incomplete`. Clients must tolerate unknown values.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "call_id",
+          "execution",
+          "tools",
+          "status"
+        ],
+        "type": "object",
+        "title": "ToolSearchOutputItem"
       }
     },
     "securitySchemes": {
