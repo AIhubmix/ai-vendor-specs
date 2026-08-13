@@ -421,9 +421,10 @@ paths:
 
         The request is processed asynchronously and immediately returns a
         `generation_id`. Poll `GET /v1/generations/{generation_id}` until `status`
-        is `completed` or `failed`. When completed, `data` contains the final
-        resized image(s). If a `webhook_url` is supplied, the completed result is
-        also POSTed to that URL.
+        is `completed` or `failed`. The completed polling response contains the
+        final resized image(s) in `data` and the amount charged for variable
+        usage-based pricing in `usage_cost_usd_micros`. If a `webhook_url` is
+        supplied, the completed result is also POSTed to that URL.
 
         Supply the advertisement image as either an `AssetIdentifier` reference
         (`image_asset_identifier`) or the raw image bytes directly (`image`,
@@ -506,7 +507,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The source image to reframe (max size 10MB), as raw bytes; only JPEG, PNG, and WEBP formats are
+                    The source image to reframe (max size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
                     supported. Multipart requests only. Provide exactly one of `image_asset_identifier` or `image`.
                 resolution:
                   $ref: '#/components/schemas/V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution'
@@ -544,8 +545,9 @@ paths:
       description: >-
         Retrieves the current status of an asynchronous generation, and its results once complete. Use the
         `generation_id` returned by the async generation endpoint. While the generation is `pending` or has `failed`,
-        the response contains only `generation_id`, `status`, and `created`; the `response_type` and `data` fields are
-        present only once `status` is `completed`.
+        the response contains only `generation_id`, `status`, and `created`. Once `status` is `completed`, the response
+        includes `response_type` and `data`, and may include `usage_cost_usd_micros` when the request uses variable
+        usage-based pricing.
       tags:
         - generate
       parameters:
@@ -657,7 +659,7 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: The initial image binary (max 10MB); only JPEG, WebP and PNG formats are supported.
+                  description: The initial image binary (max 25MB); only JPEG, WebP and PNG formats are supported.
                 text_prompt:
                   type: string
                   description: The text prompt that guides the remix.
@@ -797,7 +799,7 @@ paths:
                 image_file:
                   type: string
                   format: binary
-                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
                 include_bbox:
                   type: boolean
                   default: true
@@ -914,8 +916,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
                 character_reference_images:
                   type: array
                   items:
@@ -923,8 +925,9 @@ paths:
                     format: binary
                   description: >-
                     Generations with character reference are subject to the character reference pricing. A set of images
-                    to use as character references (maximum total size 10MB across all character references), currently
-                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                    to use as character references (max size 25MB per image; the whole request must stay under 50MB),
+                    currently only supports 1 character reference image. The images should be in JPEG, PNG or WebP
+                    format.
                 character_reference_images_mask:
                   type: array
                   items:
@@ -1120,12 +1123,12 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: The image being edited (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: The image being edited (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
                 mask:
                   type: string
                   format: binary
                   description: >-
-                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    A black and white image of the same size as the image being edited (max size 25MB). Black regions in
                     the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
                     and PNG formats are supported at this time.
                 prompt:
@@ -1153,8 +1156,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
                 character_reference_images:
                   type: array
                   items:
@@ -1162,8 +1165,9 @@ paths:
                     format: binary
                   description: >-
                     Generations with character reference are subject to the character reference pricing. A set of images
-                    to use as character references (maximum total size 10MB across all character references), currently
-                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                    to use as character references (max size 25MB per image; the whole request must stay under 50MB),
+                    currently only supports 1 character reference image. The images should be in JPEG, PNG or WebP
+                    format.
                 character_reference_images_mask:
                   type: array
                   items:
@@ -1244,7 +1248,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image to remix binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    The image to remix binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this
                     time.
                 prompt:
                   type: string
@@ -1285,8 +1289,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
                 character_reference_images:
                   type: array
                   items:
@@ -1294,8 +1298,9 @@ paths:
                     format: binary
                   description: >-
                     Generations with character reference are subject to the character reference pricing. A set of images
-                    to use as character references (maximum total size 10MB across all character references), currently
-                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                    to use as character references (max size 25MB per image; the whole request must stay under 50MB),
+                    currently only supports 1 character reference image. The images should be in JPEG, PNG or WebP
+                    format.
                 character_reference_images_mask:
                   type: array
                   items:
@@ -1370,7 +1375,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image being reframed (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    The image being reframed (max size 25MB); only JPEG, WebP and PNG formats are supported at this
                     time.
                 resolution:
                   $ref: '#/components/schemas/ResolutionV3'
@@ -1392,8 +1397,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
               required:
                 - image
                 - resolution
@@ -1461,7 +1466,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image whose background is being replaced (max size 10MB); only JPEG, WebP and PNG formats are
+                    The image whose background is being replaced (max size 25MB); only JPEG, WebP and PNG formats are
                     supported at this time.
                 prompt:
                   type: string
@@ -1486,8 +1491,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
               required:
                 - image
                 - prompt
@@ -1552,7 +1557,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image whose background is being removed (max size 10MB); only JPEG, WebP and PNG formats are
+                    The image whose background is being removed (max size 25MB); only JPEG, WebP and PNG formats are
                     supported at this time.
               required:
                 - image
@@ -1616,7 +1621,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image to remove an object from (max size 10MB); only JPEG, WebP and PNG formats are supported at
+                    The image to remove an object from (max size 25MB); only JPEG, WebP and PNG formats are supported at
                     this time.
                 mask:
                   type: string
@@ -1662,7 +1667,7 @@ paths:
         text blocks.
 
 
-        Supported image formats include JPEG, PNG, and WebP (max size 10MB).
+        Supported image formats include JPEG, PNG, and WebP (max size 25MB).
 
 
         Image links are available for a limited period of time; if you would like to keep the image, you must download
@@ -1713,7 +1718,7 @@ paths:
                   format: binary
                   description: >-
                     The image to analyze for text detection. The image should be in JPEG, PNG, or WebP format (max size
-                    10MB).
+                    25MB).
                 prompt:
                   type: string
                   description: >-
@@ -1805,7 +1810,7 @@ paths:
                   items:
                     type: string
                     format: binary
-                  description: Images to edit (max 10 images, max size 10MB each); JPEG, WebP and PNG formats are supported.
+                  description: Images to edit (max 10 images, max size 25MB each); JPEG, WebP and PNG formats are supported.
                 image_urls:
                   type: array
                   items:
@@ -1898,7 +1903,7 @@ paths:
                 image_file:
                   type: string
                   format: binary
-                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
               required:
                 - image_request
                 - image_file
@@ -1953,7 +1958,7 @@ paths:
                 image_file:
                   type: string
                   format: binary
-                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
                 describe_model_version:
                   $ref: '#/components/schemas/DescribeModelVersion'
               required:
@@ -2084,12 +2089,12 @@ paths:
                 image:
                   type: string
                   format: binary
-                  description: The image being edited (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: The image being edited (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
                 mask:
                   type: string
                   format: binary
                   description: >-
-                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    A black and white image of the same size as the image being edited (max size 25MB). Black regions in
                     the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
                     and PNG formats are supported at this time.
                 prompt:
@@ -2117,8 +2122,8 @@ paths:
                     type: string
                     format: binary
                   description: >-
-                    A set of images to use as style references (maximum total size 10MB across all style references).
-                    The images should be in JPEG, PNG or WebP format.
+                    A set of images to use as style references (max size 25MB per image; the whole request must stay
+                    under 50MB). The images should be in JPEG, PNG or WebP format.
                 character_reference_images:
                   type: array
                   items:
@@ -2126,8 +2131,9 @@ paths:
                     format: binary
                   description: >-
                     Generations with character reference are subject to the character reference pricing. A set of images
-                    to use as character references (maximum total size 10MB across all character references), currently
-                    only supports 1 character reference image. The images should be in JPEG, PNG or WebP format.
+                    to use as character references (max size 25MB per image; the whole request must stay under 50MB),
+                    currently only supports 1 character reference image. The images should be in JPEG, PNG or WebP
+                    format.
                 character_reference_images_mask:
                   type: array
                   items:
@@ -2206,12 +2212,12 @@ paths:
                 image_file:
                   type: string
                   format: binary
-                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
                 mask:
                   type: string
                   format: binary
                   description: >-
-                    A black and white image of the same size as the image being edited (max size 10MB). Black regions in
+                    A black and white image of the same size as the image being edited (max size 25MB). Black regions in
                     the mask should match up with the regions of the image that you would like to edit; only JPEG, WebP
                     and PNG formats are supported at this time.
                 prompt:
@@ -2302,7 +2308,7 @@ paths:
                 image_file:
                   type: string
                   format: binary
-                  description: An image binary (max size 10MB); only JPEG, WebP and PNG formats are supported at this time.
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
               required:
                 - image_request
                 - image_file
@@ -2367,7 +2373,7 @@ paths:
                   type: string
                   format: binary
                   description: >-
-                    The image being reframed (max size 10MB); only JPEG, WebP and PNG formats are supported at this
+                    The image being reframed (max size 25MB); only JPEG, WebP and PNG formats are supported at this
                     time.
                 resolution:
                   $ref: '#/components/schemas/Resolution'
@@ -3128,9 +3134,9 @@ components:
         - failed
       description: >-
         Current status of the generation. `pending`: still in progress; the response contains only `generation_id`,
-        `status`, and `created`. `completed`: finished successfully; the response also includes `response_type` and
-        `data`. `failed`: generation did not succeed; the response contains only `generation_id`, `status`, and
-        `created`.
+        `status`, and `created`. `completed`: finished successfully; the response includes `response_type` and `data`,
+        and may include `usage_cost_usd_micros` when the request uses variable usage-based pricing. `failed`: generation
+        did not succeed; the response contains only `generation_id`, `status`, and `created`.
       title: GenerationResponseStatus
     GenerationResponseResponseType:
       type: string
@@ -3258,9 +3264,9 @@ components:
           $ref: '#/components/schemas/GenerationResponseStatus'
           description: >-
             Current status of the generation. `pending`: still in progress; the response contains only `generation_id`,
-            `status`, and `created`. `completed`: finished successfully; the response also includes `response_type` and
-            `data`. `failed`: generation did not succeed; the response contains only `generation_id`, `status`, and
-            `created`.
+            `status`, and `created`. `completed`: finished successfully; the response includes `response_type` and
+            `data`, and may include `usage_cost_usd_micros` when the request uses variable usage-based pricing.
+            `failed`: generation did not succeed; the response contains only `generation_id`, `status`, and `created`.
         created:
           type: string
           format: date-time
@@ -3268,6 +3274,12 @@ components:
         response_type:
           $ref: '#/components/schemas/GenerationResponseResponseType'
           description: Present when `status` is `completed`; always "url" for this shape.
+        usage_cost_usd_micros:
+          type: integer
+          format: int64
+          description: >-
+            The total variable usage-based cost charged for the completed request, in millionths of a US dollar. Present
+            only when `status` is `completed` and the request uses variable usage-based pricing; omitted otherwise.
         failure_reason:
           type: string
           description: |
