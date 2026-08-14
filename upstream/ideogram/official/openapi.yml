@@ -410,6 +410,198 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/ideogram-v4/generate-transparent:
+    post:
+      operationId: post-generate-image-v-4-transparent
+      summary: Generate with Ideogram 4.0 (Transparent Background)
+      description: |
+        Generates images with a transparent background synchronously using the
+        Ideogram 4.0 model. The result is delivered as a PNG with an alpha
+        channel.
+
+        All Ideogram 4.0 aspect ratios are supported, including `AUTO`, which
+        lets the model select the most suitable ratio from the prompt.
+
+        `output_resolution` selects the delivered resolution tier. Tiers are
+        total-pixel budgets: wide and tall aspect ratios keep the same pixel
+        budget as the square of the named size, so a single dimension may
+        exceed it. The response reports the final delivered resolution.
+
+        Image links are available for a limited period of time; if you would
+        like to keep the image, you must download it.
+      tags:
+        - generate
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate a transparent-background image with Ideogram 4.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text_prompt:
+                  type: string
+                  description: |
+                    A natural-language prompt for image generation. When supplied,
+                    magic-prompt is enabled automatically. Mutually exclusive with
+                    `json_prompt`.
+                json_prompt:
+                  $ref: '#/components/schemas/V4JsonPrompt'
+                  description: |
+                    A structured prompt that conforms to the Ideogram 4.0 JSON
+                    contract. When supplied, magic-prompt is disabled and the
+                    structured prompt is consumed by the diffusion model directly,
+                    except that `compositional_deconstruction.background` is replaced
+                    with a transparent-background directive. Mutually exclusive with
+                    `text_prompt`.
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV4'
+                output_resolution:
+                  $ref: '#/components/schemas/OutputResolution'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeedV4'
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). The effective gate is the OR of this field and the organization's
+                    `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+  /v1/ideogram-v4/async/generate-transparent:
+    post:
+      operationId: post-generate-image-v-4-transparent-async
+      summary: Generate with Ideogram 4.0 (Transparent Background) asynchronously
+      description: |
+        Accepts an Ideogram 4.0 transparent-background generation request for
+        asynchronous processing and returns immediately with a generation_id.
+        Poll `GET /v1/generations/{generation_id}` to retrieve the result. If a
+        `webhook_url` is supplied, the generated images are additionally POSTed
+        to it once ready, in a payload that mirrors the synchronous response
+        with an added generation_id for correlation.
+
+        See the synchronous `/v1/ideogram-v4/generate-transparent` endpoint for
+        the request semantics, including `output_resolution` tiers.
+
+        See [Webhooks](/ideogram-api/webhooks) for the delivery payload and how to verify webhook signatures.
+      tags:
+        - generate
+      parameters:
+        - name: webhook_url
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WebhookUrl'
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Request accepted for asynchronous delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncImageGenerationResponseV4'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt failed the safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to generate a transparent-background image with Ideogram 4.0.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                text_prompt:
+                  type: string
+                  description: |
+                    A natural-language prompt for image generation. When supplied,
+                    magic-prompt is enabled automatically. Mutually exclusive with
+                    `json_prompt`.
+                json_prompt:
+                  $ref: '#/components/schemas/V4JsonPrompt'
+                  description: |
+                    A structured prompt that conforms to the Ideogram 4.0 JSON
+                    contract. When supplied, magic-prompt is disabled and the
+                    structured prompt is consumed by the diffusion model directly,
+                    except that `compositional_deconstruction.background` is replaced
+                    with a transparent-background directive. Mutually exclusive with
+                    `text_prompt`.
+                aspect_ratio:
+                  $ref: '#/components/schemas/AspectRatioV4'
+                output_resolution:
+                  $ref: '#/components/schemas/OutputResolution'
+                rendering_speed:
+                  $ref: '#/components/schemas/RenderingSpeedV4'
+                enable_copyright_detection:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: |
+                    Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
+                    checks). The effective gate is the OR of this field and the organization's
+                    `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
   /v1/async/ad-resizer:
     post:
       operationId: post-resize-image-async
@@ -3058,6 +3250,58 @@ components:
         are POSTed to the supplied `webhook_url` once ready; this body carries only
         the generation_id so the caller can correlate the eventual webhook delivery.
       title: AsyncImageGenerationResponseV4
+    AspectRatioV4:
+      type: string
+      enum:
+        - AUTO
+        - 1x4
+        - 1x3
+        - 1x2
+        - 9x16
+        - 10x16
+        - 2x3
+        - 3x4
+        - 4x5
+        - 1x1
+        - 5x4
+        - 4x3
+        - 3x2
+        - 16x10
+        - 16x9
+        - 2x1
+        - 3x1
+        - 4x1
+      default: AUTO
+      description: |
+        The aspect ratio for an Ideogram 4.0 magic prompt. `AUTO` lets the
+        model select the most suitable ratio from the prompt; any other value
+        pins the ratio. The non-AUTO values are the buckets the 4.0 model
+        supports.
+      title: AspectRatioV4
+    OutputResolution:
+      type: string
+      enum:
+        - 1K
+        - 2K
+        - 4K
+        - 8K
+      default: 1K
+      description: |
+        The output resolution tier for the generated image. Tiers are
+        total-pixel budgets matching a square of the named size (for example,
+        `8K` delivers at most 8192x8192 total pixels); wide and tall aspect
+        ratios keep the same pixel budget, so a single dimension may exceed
+        the named size. Defaults to 1K.
+      title: OutputResolution
+    RenderingSpeedV4:
+      type: string
+      enum:
+        - TURBO
+        - DEFAULT
+        - QUALITY
+      default: DEFAULT
+      description: The rendering speed to use. Defaults to DEFAULT.
+      title: RenderingSpeedV4
     AssetType:
       type: string
       enum:
@@ -3299,34 +3543,6 @@ components:
         - created
       description: The current status and, when complete, result data for an asynchronous generation.
       title: GenerationResponse
-    AspectRatioV4:
-      type: string
-      enum:
-        - AUTO
-        - 1x4
-        - 1x3
-        - 1x2
-        - 9x16
-        - 10x16
-        - 2x3
-        - 3x4
-        - 4x5
-        - 1x1
-        - 5x4
-        - 4x3
-        - 3x2
-        - 16x10
-        - 16x9
-        - 2x1
-        - 3x1
-        - 4x1
-      default: AUTO
-      description: |
-        The aspect ratio for an Ideogram 4.0 magic prompt. `AUTO` lets the
-        model select the most suitable ratio from the prompt; any other value
-        pins the ratio. The non-AUTO values are the buckets the 4.0 model
-        supports.
-      title: AspectRatioV4
     MagicPromptV4Request:
       type: object
       properties:
