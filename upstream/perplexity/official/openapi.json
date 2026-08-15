@@ -712,6 +712,12 @@
                       "owned_by": "google"
                     },
                     {
+                      "id": "google/gemini-3.7-flash",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "google"
+                    },
+                    {
                       "id": "xai/grok-4.6",
                       "object": "model",
                       "created": 0,
