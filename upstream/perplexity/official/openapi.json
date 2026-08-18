@@ -4020,7 +4020,13 @@
         "title": "FunctionCallInput"
       },
       "FunctionCallOutputInput": {
+        "additionalProperties": false,
         "properties": {
+          "id": {
+            "description": "Replay metadata populated when this item was returned by the API.",
+            "nullable": true,
+            "type": "string"
+          },
           "call_id": {
             "description": "The call_id from function_call output",
             "type": "string"
@@ -4030,7 +4036,43 @@
             "type": "string"
           },
           "output": {
-            "description": "Function result (JSON string)",
+            "description": "Function result as a JSON string or an array of input_text and input_image content parts.",
+            "oneOf": [
+              {
+                "title": "StringOutput",
+                "type": "string"
+              },
+              {
+                "items": {
+                  "discriminator": {
+                    "mapping": {
+                      "input_image": "#/components/schemas/FunctionCallOutputImagePart",
+                      "input_text": "#/components/schemas/FunctionCallOutputTextPart"
+                    },
+                    "propertyName": "type"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FunctionCallOutputTextPart"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FunctionCallOutputImagePart"
+                    }
+                  ]
+                },
+                "title": "OutputPartArray",
+                "type": "array"
+              }
+            ]
+          },
+          "status": {
+            "description": "Replay metadata populated when this item was returned by the API.",
+            "enum": [
+              "in_progress",
+              "completed",
+              "incomplete"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "thought_signature": {
@@ -4051,6 +4093,57 @@
         ],
         "type": "object",
         "title": "FunctionCallOutputInput"
+      },
+      "FunctionCallOutputTextPart": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "input_text"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "text"
+        ],
+        "type": "object",
+        "title": "FunctionCallOutputTextPart"
+      },
+      "FunctionCallOutputImagePart": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "description": "Accepted for OpenAI replay compatibility; native tool-result forwarding ignores this hint.",
+            "enum": [
+              "low",
+              "high",
+              "auto"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "image_url": {
+            "description": "A fully qualified HTTP(S) URL or base64 image data URI.",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "input_image"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "image_url"
+        ],
+        "type": "object",
+        "title": "FunctionCallOutputImagePart"
       },
       "FunctionCallOutputItem": {
         "properties": {
