@@ -720,6 +720,8 @@ paths:
                     Supported values are LOW, MEDIUM, and HIGH.
                 num_images:
                   type: integer
+                  minimum: 1
+                  maximum: 4
                   default: 1
                   description: The number of reframed variations to generate.
                 store_assets:
@@ -857,6 +859,8 @@ paths:
                   description: The text prompt that guides the remix.
                 image_weight:
                   type: integer
+                  minimum: 1
+                  maximum: 100
                   description: |
                     Optional. How strongly the output should resemble the input image. Higher values keep
                     the input image's structure; lower values allow the prompt to drive the output more.
@@ -1064,6 +1068,8 @@ paths:
                   description: The prompt to use to generate the image.
                 seed:
                   type: integer
+                  minimum: 0
+                  maximum: 2147483647
                   description: Random seed. Set for reproducible generation.
                 resolution:
                   $ref: '#/components/schemas/ResolutionV3'
@@ -1080,6 +1086,8 @@ paths:
                     to descriptions in the negative prompt.
                 num_images:
                   type: integer
+                  minimum: 1
+                  maximum: 8
                   default: 1
                   description: Number of images to generate.
                 color_palette:
@@ -1215,6 +1223,8 @@ paths:
                   description: The prompt to use to generate the image.
                 seed:
                   type: integer
+                  minimum: 0
+                  maximum: 2147483647
                   description: Random seed. Set for reproducible generation.
                 upscale_factor:
                   $ref: '#/components/schemas/UpscaleFactor'
@@ -1235,6 +1245,8 @@ paths:
                     to descriptions in the negative prompt.
                 num_images:
                   type: integer
+                  minimum: 1
+                  maximum: 8
                   default: 1
                   description: Number of images to generate.
                 enable_copyright_detection:
@@ -1447,6 +1459,8 @@ paths:
                   description: The prompt to use to generate the image.
                 image_weight:
                   type: integer
+                  minimum: 1
+                  maximum: 100
                   default: 50
                 seed:
                   $ref: '#/components/schemas/Seed'
@@ -1465,6 +1479,8 @@ paths:
                     to descriptions in the negative prompt.
                 num_images:
                   type: integer
+                  minimum: 1
+                  maximum: 8
                   default: 1
                   description: Number of images to generate.
                 color_palette:
@@ -1825,11 +1841,15 @@ paths:
                   type:
                     - integer
                     - 'null'
+                  minimum: 0
+                  maximum: 2147483647
                   description: Optional random seed for reproducible output. When omitted, a random seed is chosen.
                 num_inference_steps:
                   type:
                     - integer
                     - 'null'
+                  minimum: 1
+                  maximum: 128
                   description: >-
                     Optional number of diffusion steps. Higher is slower but can improve quality; values are clamped to
                     [1, 128]. When omitted, the model default is used.
@@ -2598,6 +2618,7 @@ paths:
           required: false
           schema:
             type: string
+            maxLength: 64
         - name: Api-Key
           in: header
           description: API key for access control. Use in the header with the name \"Api-Key\"
@@ -2923,6 +2944,7 @@ components:
           type: array
           items:
             type: string
+            pattern: ^#[0-9a-fA-F]{6}$
           description: |
             Optional list of hex color strings (e.g. "#FFD700") that bias the
             Ideogram 4.0 output toward this palette. Applied as a soft color bias,
@@ -2945,6 +2967,8 @@ components:
           type: array
           items:
             type: integer
+            minimum: 0
+            maximum: 1000
           description: |
             Bounding box for an element, expressed as four integers in `[0, 1000]`
             with `[y_min, x_min, y_max, x_max]` semantics (row-first). Values are
@@ -2957,6 +2981,7 @@ components:
           type: array
           items:
             type: string
+            pattern: ^#[0-9a-fA-F]{6}$
           description: |
             Optional list of hex color strings (e.g. "#FFD700") that bias the
             Ideogram 4.0 output toward this palette. Applied as a soft color bias,
@@ -2982,6 +3007,8 @@ components:
           type: array
           items:
             type: integer
+            minimum: 0
+            maximum: 1000
           description: |
             Bounding box for an element, expressed as four integers in `[0, 1000]`
             with `[y_min, x_min, y_max, x_max]` semantics (row-first). Values are
@@ -2997,6 +3024,7 @@ components:
           type: array
           items:
             type: string
+            pattern: ^#[0-9a-fA-F]{6}$
           description: |
             Optional list of hex color strings (e.g. "#FFD700") that bias the
             Ideogram 4.0 output toward this palette. Applied as a soft color bias,
@@ -3133,6 +3161,8 @@ components:
           description: Whether this request passes safety checks. If false, the url field will be empty.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
       required:
         - prompt
@@ -3447,6 +3477,8 @@ components:
           description: Whether this image passes safety checks. If false, the url field will be empty.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
       required:
         - prompt
@@ -3701,10 +3733,13 @@ components:
       properties:
         color_hex:
           type: string
+          pattern: ^#(?:[0-9a-fA-F]{3}){1,2}$
           description: The hexadecimal representation of the color with an optional chosen weight.
         color_weight:
           type: number
           format: double
+          minimum: 0.05
+          maximum: 1
           description: The weight of the color in the color palette.
       required:
         - color_hex
@@ -3736,6 +3771,7 @@ components:
       title: ColorPaletteWithPresetNameOrMembers
     StyleCode:
       type: string
+      pattern: ^[0-9a-fA-F]{8}$
       description: The 8 character hexadecimal representation of the style code.
       title: StyleCode
     StyleTypeV3:
@@ -3832,12 +3868,15 @@ components:
           $ref: '#/components/schemas/ResolutionV3'
         upscaled_resolution:
           type: string
+          pattern: ^\d{2,5}x\d{2,5}$
           description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
         is_image_safe:
           type: boolean
           description: Whether this request passes safety checks. If false, the url field will be empty.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
         style_type:
           $ref: '#/components/schemas/StyleTypeV3'
@@ -3892,11 +3931,15 @@ components:
       title: V1IdeogramV3GenerateTransparentPostRequestBodyContentMultipartFormDataSchemaRenderingSpeed
     NumImages:
       type: integer
+      minimum: 1
+      maximum: 8
       default: 1
       description: The number of images to generate.
       title: NumImages
     Seed:
       type: integer
+      minimum: 0
+      maximum: 2147483647
       description: Random seed. Set for reproducible generation.
       title: Seed
     StyleCodes:
@@ -3994,6 +4037,8 @@ components:
           description: URL of the original image with text intact.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
       required:
         - base_image_url
@@ -4019,15 +4064,19 @@ components:
           description: The prompt used for the generation. This may be different from the original prompt.
         resolution:
           type: string
+          pattern: ^\d{2,5}x\d{2,5}$
           description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
         upscaled_resolution:
           type: string
+          pattern: ^\d{2,5}x\d{2,5}$
           description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
         is_image_safe:
           type: boolean
           description: Whether this request passes safety checks. If false, the url field will be empty.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
         style_type:
           $ref: '#/components/schemas/StyleTypeV3'
@@ -4066,18 +4115,26 @@ components:
           description: An optional prompt to guide the upscale
         resemblance:
           type: integer
+          minimum: 1
+          maximum: 100
           default: 50
         detail:
           type: integer
+          minimum: 1
+          maximum: 100
           default: 50
         magic_prompt_option:
           $ref: '#/components/schemas/MagicPromptOption'
         num_images:
           type: integer
+          minimum: 1
+          maximum: 8
           default: 1
           description: The number of images to generate.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
       description: A request to upscale a provided image with the help of an optional prompt.
       title: UpscaleInitialImageRequest
@@ -4112,12 +4169,15 @@ components:
           description: The resolution of the final image.
         upscaled_resolution:
           type: string
+          pattern: ^\d{2,5}x\d{2,5}$
           description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
         is_image_safe:
           type: boolean
           description: Whether this request passes safety checks. If false, the url field will be empty.
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
         style_type:
           $ref: '#/components/schemas/StyleType'
@@ -4312,6 +4372,8 @@ components:
           $ref: '#/components/schemas/MagicPromptOption'
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
         style_type:
           $ref: '#/components/schemas/StyleType'
@@ -4322,6 +4384,8 @@ components:
             image. Descriptions in the prompt take precedence to descriptions in the negative prompt.
         num_images:
           type: integer
+          minimum: 1
+          maximum: 8
           default: 1
           description: The number of images to generate.
         resolution:
@@ -4353,6 +4417,8 @@ components:
           $ref: '#/components/schemas/MagicPromptOption'
         seed:
           type: integer
+          minimum: 0
+          maximum: 2147483647
           description: Random seed. Set for reproducible generation.
         style_type:
           $ref: '#/components/schemas/StyleType'
@@ -4363,6 +4429,8 @@ components:
             image. Descriptions in the prompt take precedence to descriptions in the negative prompt.
         num_images:
           type: integer
+          minimum: 1
+          maximum: 8
           default: 1
           description: The number of images to generate.
         resolution:
@@ -4371,6 +4439,8 @@ components:
           $ref: '#/components/schemas/ColorPaletteWithPresetNameOrMembers'
         image_weight:
           type: integer
+          minimum: 1
+          maximum: 100
           default: 50
       required:
         - prompt

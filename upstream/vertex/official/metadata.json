@@ -2,10 +2,10 @@
   "protocol": "vertex",
   "provider": "official",
   "displayName": "Google Vertex AI",
-  "version": "2026-08-21",
+  "version": "2026-08-22",
   "specFormat": "google-discovery",
   "source": "https://raw.githubusercontent.com/googleapis/discovery-artifact-manager/master/discoveries/aiplatform.v1.json",
-  "lastSynced": "2026-08-21T11:37:24Z",
-  "hash": "sha256:ab3e5a45afc586cdb43dbf019edc2ad9467a5384f939bed367f18f219f7d3a97",
+  "lastSynced": "2026-08-22T11:35:07Z",
+  "hash": "sha256:d8d327b33763ec725fa35cac959b01491e643ddf8358c6611fb285d25f969424",
   "autoSync": true
 }
