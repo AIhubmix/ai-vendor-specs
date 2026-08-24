@@ -4228,7 +4228,8 @@
             "people_search": "#/components/schemas/PeopleSearchTool",
             "sandbox": "#/components/schemas/SandboxTool",
             "web_search": "#/components/schemas/WebSearchTool",
-            "mcp": "#/components/schemas/McpTool"
+            "mcp": "#/components/schemas/McpTool",
+            "connector": "#/components/schemas/ConnectorTool"
           },
           "propertyName": "type"
         },
@@ -4253,6 +4254,9 @@
           },
           {
             "$ref": "#/components/schemas/McpTool"
+          },
+          {
+            "$ref": "#/components/schemas/ConnectorTool"
           }
         ],
         "title": "Tool"
@@ -5646,6 +5650,10 @@
           "server_label": {
             "type": "string"
           },
+          "connector_id": {
+            "description": "Present only when the item originated from a managed connector.",
+            "type": "string"
+          },
           "tools": {
             "items": {
               "$ref": "#/components/schemas/McpToolDef"
@@ -5679,6 +5687,10 @@
             "type": "string"
           },
           "server_label": {
+            "type": "string"
+          },
+          "connector_id": {
+            "description": "Present only when the item originated from a managed connector.",
             "type": "string"
           },
           "name": {
@@ -5865,6 +5877,43 @@
         ],
         "type": "object",
         "title": "ToolSearchOutputItem"
+      },
+      "ConnectorTool": {
+        "description": "A Perplexity-managed connector scoped to the authenticated API organization.",
+        "properties": {
+          "type": {
+            "enum": [
+              "connector"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "description": "Opaque connector identifier.",
+            "type": "string"
+          },
+          "server_label": {
+            "description": "Unique per request, ^[a-zA-Z0-9_-]{1,64}$. Namespaces the connector's tools.",
+            "type": "string"
+          },
+          "server_description": {
+            "description": "Optional model-facing namespace description.",
+            "type": "string"
+          },
+          "allowed_tools": {
+            "description": "Optional exact-name allowlist. Omitted or empty admits every live tool.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "server_label"
+        ],
+        "type": "object",
+        "title": "ConnectorTool"
       }
     },
     "securitySchemes": {
