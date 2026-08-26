@@ -3059,7 +3059,7 @@
             "type": "integer"
           },
           "max_steps": {
-            "description": "Maximum number of research loop steps.\nIf provided, overrides the preset's max_steps value.\nMust be >= 1 if specified. Maximum allowed is 100.\n",
+            "description": "Maximum number of research loop steps.\nIf provided, overrides the preset's max_steps value. For requests that specify model or models without a preset, the default is 1.\nSet max_steps to at least 3 when using finance_search with a direct model so the agent has enough steps to initialize and run the tool.\nMust be >= 1 if specified. Maximum allowed is 100.\n",
             "format": "int32",
             "maximum": 100,
             "minimum": 1,

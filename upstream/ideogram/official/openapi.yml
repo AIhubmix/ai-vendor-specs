@@ -732,6 +732,291 @@ paths:
                     assets are not stored to your account regardless of this value.
               required:
                 - resolution
+  /v2/tool/colorways:
+    post:
+      operationId: post-colorways
+      summary: Product Color Change
+      description: |
+        Recolors the masked region of the product photo to the target color
+        while preserving the product's geometry, materials, prints, logos,
+        and shading, and keeping every region outside the mask unchanged.
+
+        The request is processed asynchronously. Poll
+        `GET /v1/generations/{generation_id}` with the returned `generation_id`
+        until the generation is completed or failed.
+
+        Supply the product photo as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two forms;
+        supplying both, or neither, is rejected with a 400.
+
+        Supply the mask marking the region to recolor as either an
+        `AssetIdentifier` reference (`mask_asset_identifier`) or the raw mask
+        bytes directly (`mask`, multipart requests only). Provide exactly one
+        of the two forms. The mask must have the same pixel dimensions as the
+        product photo. White pixels mark the region to recolor; black pixels
+        are preserved. Alpha-only masks are also supported: opaque pixels mark
+        the region to recolor and transparent pixels are preserved.
+      tags:
+        - edit-workflow
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Colorway accepted for asynchronous processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorwaysResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to create a colorway.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: >-
+          The product photo, the mask marking the region to recolor, and the target color. Use `multipart/form-data` to
+          upload `image` bytes directly, or `application/json` (or multipart with `image_asset_identifier`) to reference
+          an existing asset instead.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                image:
+                  type: string
+                  format: binary
+                  description: |
+                    The product photo to recolor (max size 25MB), as raw bytes; only
+                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
+                    Provide exactly one of `image_asset_identifier` or `image`.
+                mask_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                mask:
+                  type: string
+                  format: binary
+                  description: |
+                    The mask marking the region of the product photo to recolor (max
+                    size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
+                    supported. The mask must have the same pixel dimensions as the
+                    product photo. White pixels mark the region to recolor; black
+                    pixels are preserved. Alpha-only masks are also supported: opaque
+                    pixels mark the region to recolor and transparent pixels are
+                    preserved. Multipart requests only. Provide exactly one of
+                    `mask_asset_identifier` or `mask`.
+                color:
+                  type: string
+                  pattern: ^#[0-9a-fA-F]{6}$
+                  description: |
+                    The target color for the masked region, as a six-digit hex code
+                    like `#B3202C`. The product's shape, construction, materials,
+                    prints, and logos are always preserved.
+                aspect_ratio:
+                  type: string
+                  pattern: ^(1:1|3:4|4:3|16:9|9:16)$
+                  description: |
+                    The aspect ratio of the generated image. Defaults to the aspect
+                    ratio of the product photo when omitted, which preserves the
+                    original framing exactly. When a different ratio is requested, the
+                    scene is extended to fill the new shape rather than cropped, so
+                    part of the frame is newly generated. Supported values are `1:1`,
+                    `3:4`, `4:3`, `16:9`, and `9:16`.
+                quality:
+                  $ref: '#/components/schemas/GptImage2Quality'
+                webhook_url:
+                  type: string
+                  format: uri
+                  maxLength: 2048
+                  description: |
+                    HTTPS URL that Ideogram delivers the generated result to. Ideogram sends a
+                    JSON POST to this URL once all images for the request have finished
+                    generating. The body mirrors the synchronous generate response:
+                    `request_id`, `created`, and a `data` array
+                    containing every generated image (`url`, `prompt`, `resolution`, `seed`,
+                    `is_image_safe`). Each delivery is signed with Ed25519 and verifiable
+                    against the public keys at `https://api.ideogram.ai/v1/.well-known/jwks.json`. Must be HTTPS;
+                    private and loopback hosts and the cloud metadata service are rejected.
+              required:
+                - color
+  /v2/tool/material-swap:
+    post:
+      operationId: post-material-swap
+      summary: Product Material Change
+      description: |
+        Re-renders the masked region of the product photo in the material shown
+        by the reference image — matching its color, texture, pattern scale,
+        and orientation — while preserving the product's silhouette,
+        construction, seams, and shading, and keeping every region outside the
+        mask unchanged.
+
+        The request is processed asynchronously. Poll
+        `GET /v1/generations/{generation_id}` with the returned `generation_id`
+        until the generation is completed or failed.
+
+        Supply the product photo as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two forms;
+        supplying both, or neither, is rejected with a 400.
+
+        Supply the mask marking the region to re-material as either an
+        `AssetIdentifier` reference (`mask_asset_identifier`) or the raw mask
+        bytes directly (`mask`, multipart requests only). Provide exactly one
+        of the two forms. The mask must have the same pixel dimensions as the
+        product photo. White pixels mark the region to change; black pixels are
+        preserved. Alpha-only masks are also supported: opaque pixels mark the
+        region to change and transparent pixels are preserved.
+
+        Supply the material reference as either an `AssetIdentifier` reference
+        (`material_asset_identifier`) or the raw image bytes directly
+        (`material`, multipart requests only). Provide exactly one of the two
+        forms.
+      tags:
+        - edit-workflow
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Material swap accepted for asynchronous processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialSwapResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to create a material swap.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: >-
+          The product photo, the mask marking the region to change, and the material reference image. Use
+          `multipart/form-data` to upload raw bytes directly, or `application/json` (or multipart with
+          `*_asset_identifier` fields) to reference existing assets instead.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                image:
+                  type: string
+                  format: binary
+                  description: |
+                    The product photo to edit (max size 25MB), as raw bytes; only
+                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
+                    Provide exactly one of `image_asset_identifier` or `image`.
+                mask_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                mask:
+                  type: string
+                  format: binary
+                  description: |
+                    The mask marking the region of the product photo to change (max
+                    size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
+                    supported. The mask must have the same pixel dimensions as the
+                    product photo. White pixels mark the region to change; black pixels
+                    are preserved. Alpha-only masks are also supported: opaque pixels
+                    mark the region to change and transparent pixels are preserved.
+                    Multipart requests only. Provide exactly one of
+                    `mask_asset_identifier` or `mask`.
+                material_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                material:
+                  type: string
+                  format: binary
+                  description: |
+                    The material reference image (max size 25MB), as raw bytes; only
+                    JPEG, PNG, and WEBP formats are supported. Only its material —
+                    color, texture, pattern scale, and orientation — is applied to the
+                    masked region. Multipart requests only. Provide exactly one of
+                    `material_asset_identifier` or `material`.
+                aspect_ratio:
+                  type: string
+                  pattern: ^(1:1|3:4|4:3|16:9|9:16)$
+                  description: |
+                    The aspect ratio of the generated image. Defaults to the aspect
+                    ratio of the product photo when omitted, which preserves the
+                    original framing exactly. When a different ratio is requested, the
+                    scene is extended to fill the new shape rather than cropped, so
+                    part of the frame is newly generated. Supported values are `1:1`,
+                    `3:4`, `4:3`, `16:9`, and `9:16`.
+                quality:
+                  $ref: '#/components/schemas/GptImage2Quality'
+                webhook_url:
+                  type: string
+                  format: uri
+                  maxLength: 2048
+                  description: |
+                    HTTPS URL that Ideogram delivers the generated result to. Ideogram sends a
+                    JSON POST to this URL once all images for the request have finished
+                    generating. The body mirrors the synchronous generate response:
+                    `request_id`, `created`, and a `data` array
+                    containing every generated image (`url`, `prompt`, `resolution`, `seed`,
+                    `is_image_safe`). Each delivery is signed with Ed25519 and verifiable
+                    against the public keys at `https://api.ideogram.ai/v1/.well-known/jwks.json`. Must be HTTPS;
+                    private and loopback hosts and the cloud metadata service are rejected.
   /v1/generations/{generation_id}:
     get:
       operationId: get-generation
@@ -2917,6 +3202,124 @@ paths:
             application/json:
               schema:
                 description: Any type
+  /v2/images/upscale/topaz-text-refine:
+    post:
+      operationId: post-upscale-image-topaz-text-refine
+      summary: Upscale an image with Topaz Text Refine, by asset id or by uploaded bytes
+      description: |
+        Upscale one image to 2x, 4x, or 8x its original resolution, up to a
+        maximum output of 8192px per side. Supply the source either as an
+        `image_asset_identifier` reference (an image already stored with
+        Ideogram) or as raw `image` bytes (multipart requests only) — callers
+        are never required to upload the asset first. If both are supplied,
+        the reference wins and the bytes are ignored. Uploaded bytes are used
+        for this request only and are not stored as an asset; upscales of a
+        referenced asset keep a visible link to their source image.
+
+        Upscaling takes no prompt: the model enhances the source image as-is.
+
+        By default the request blocks until the upscaled image is ready and
+        returns it in `data`. Set `async` to true to return immediately after
+        the request is accepted, then poll for completion and results with
+        `GET /v1/generations/{generation_id}` using the returned
+        `generation_id`.
+      tags:
+        - images-upscale
+      parameters:
+        - name: Api-Key
+          in: header
+          description: API key for access control. Use in the header with the name \"Api-Key\"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: >-
+            The upscaled image (synchronous requests), or an acknowledgement to poll with `GET
+            /v1/generations/{generation_id}` (`async` requests).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpscaleImageTopazTextRefineResponse'
+        '400':
+          description: Invalid input provided, or the output would exceed the 8K limit.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: The referenced source asset was not found.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '503':
+          description: The endpoint is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: >-
+          A request to upscale one image with Topaz Text Refine. Use `multipart/form-data` to upload `image` bytes
+          directly, or `application/json` (or multipart with `image_asset_identifier`) to reference an existing asset
+          instead.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
+                image:
+                  type: string
+                  format: binary
+                  description: >-
+                    The source image to upscale (max size 50MB), as raw bytes; only common image formats such as JPEG,
+                    PNG, and WEBP are supported. Multipart requests only; ignored if `image_asset_identifier` is also
+                    supplied. The bytes are used for this request only and are not stored as an asset.
+                upscale_factor:
+                  $ref: >-
+                    #/components/schemas/V2ImagesUpscaleTopazTextRefinePostRequestBodyContentMultipartFormDataSchemaUpscaleFactor
+                  description: >-
+                    How much to enlarge the source image: 2x, 4x, or 8x its original width and height. Rejected when the
+                    output would exceed 8192px on either side.
+                seed:
+                  type: integer
+                  minimum: 0
+                  maximum: 2147483647
+                  description: Random seed. Set for reproducible generation.
+                async:
+                  type: boolean
+                  default: false
+                  description: >-
+                    When false (the default), the request blocks until the upscaled image is ready and returns it in
+                    `data`. When true, the request returns as soon as it is accepted; poll for completion and results
+                    with `GET /v1/generations/{generation_id}` using the returned `generation_id`.
 servers:
   - url: https://api.ideogram.ai
     description: https://api.ideogram.ai
@@ -3400,6 +3803,40 @@ components:
         - MEDIUM
         - HIGH
       title: ResizeAdImageQuality
+    GptImage2Quality:
+      type: string
+      enum:
+        - LOW
+        - MEDIUM
+        - HIGH
+      description: |
+        The quality tier for the image edit. Higher tiers may improve detail
+        and take longer to complete.
+      title: GptImage2Quality
+    ColorwaysResponse:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: URL-safe base64 ID accepted by the generation polling endpoint.
+      required:
+        - generation_id
+      description: |
+        Acknowledgement that the colorway was accepted. Poll
+        `GET /v1/generations/{generation_id}` for status and results.
+      title: ColorwaysResponse
+    MaterialSwapResponse:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: URL-safe base64 ID accepted by the generation polling endpoint.
+      required:
+        - generation_id
+      description: |
+        Acknowledgement that the material swap was accepted. Poll
+        `GET /v1/generations/{generation_id}` for status and results.
+      title: MaterialSwapResponse
     GenerationResponseStatus:
       type: string
       enum:
@@ -3436,6 +3873,11 @@ components:
             - 'null'
           format: uri
           description: The direct link to the reframed image.
+        asset_id:
+          type:
+            - string
+            - 'null'
+          description: The base64url-encoded identifier of the generated image asset. Present for safe workflow-owned outputs.
         resolution:
           type: string
           description: The exact dimensions of the reframed image, formatted as "{width}x{height}".
@@ -4733,6 +5175,81 @@ components:
       required:
         - model
       title: GetModelResponse
+    V2ImagesUpscaleTopazTextRefinePostRequestBodyContentMultipartFormDataSchemaUpscaleFactor:
+      type: string
+      enum:
+        - X2
+        - X4
+        - X8
+      default: X2
+      description: >-
+        How much to enlarge the source image: 2x, 4x, or 8x its original width and height. Rejected when the output
+        would exceed 8192px on either side.
+      title: V2ImagesUpscaleTopazTextRefinePostRequestBodyContentMultipartFormDataSchemaUpscaleFactor
+    UpscaleImageObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the upscaled image. Empty when the image did not pass safety checks.
+        resolution:
+          type: string
+          description: The resolution of the upscaled image, formatted as "WIDTHxHEIGHT".
+        is_image_safe:
+          type: boolean
+          description: Whether the image passed safety checks. If false, `url` is empty.
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          description: Random seed. Set for reproducible generation.
+      required:
+        - resolution
+        - is_image_safe
+        - seed
+      description: One upscaled output image.
+      title: UpscaleImageObject
+    UpscaleImageTopazTextRefineResponse:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: |
+            URL-safe base64 ID of the accepted generation. Accepted by the
+            `GET /v1/generations/{generation_id}` polling endpoint.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpscaleImageObject'
+          description: The upscaled image. Present only for synchronous requests (`async` omitted or false).
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          description: Random seed. Set for reproducible generation.
+        width:
+          type: integer
+          description: The output width in pixels.
+        height:
+          type: integer
+          description: The output height in pixels.
+      required:
+        - generation_id
+        - seed
+        - width
+        - height
+      description: |
+        Response returned by `POST /v2/images/upscale/topaz-text-refine`.
+        Synchronous requests (the default) include the upscaled image in
+        `data`. Requests with `async` set to true omit `data`; poll for
+        completion and results with `GET /v1/generations/{generation_id}`
+        using the returned `generation_id`. The seed reports the value the
+        request resolved to when the caller left it unset; width and height
+        report the output dimensions.
+      title: UpscaleImageTopazTextRefineResponse
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
