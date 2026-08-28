@@ -167,8 +167,8 @@
 						"properties": {
 							"name": {
 								"type": "string",
-								"description": "函数名称。必须符合正则表达式：^[a-zA-Z_][a-zA-Z0-9-_]{0,255}$",
-								"pattern": "^[a-zA-Z_][a-zA-Z0-9-_]{0,255}$"
+								"description": "函数名称。必须符合正则表达式：^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$",
+								"pattern": "^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$"
 							},
 							"description": {
 								"type": "string",
@@ -1560,6 +1560,920 @@
 				"required": [
 					"error"
 				]
+			},
+			"MessagesTextBlockParam": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"text"
+						]
+					},
+					"text": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"type",
+					"text"
+				]
+			},
+			"MessagesMessageParam": {
+				"type": "object",
+				"properties": {
+					"role": {
+						"type": "string",
+						"enum": [
+							"user",
+							"assistant"
+						],
+						"example": "user",
+						"description": "消息角色，支持 user、assistant。系统提示请使用顶层 `system` 字段。"
+					},
+					"content": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"oneOf": [
+										{
+											"title": "text",
+											"type": "object",
+											"properties": {
+												"type": {
+													"type": "string",
+													"enum": [
+														"text"
+													]
+												},
+												"text": {
+													"type": "string",
+													"description": "文本内容"
+												}
+											},
+											"required": [
+												"type",
+												"text"
+											]
+										},
+										{
+											"title": "image",
+											"type": "object",
+											"properties": {
+												"type": {
+													"type": "string",
+													"enum": [
+														"image"
+													]
+												},
+												"source": {
+													"type": "object",
+													"description": "图片来源。`type` 为 `base64` 时需同时提供 `media_type` 与 `data`；`type` 为 `url` 时通过 `url` 传入 `ms://<file_id>` 文件引用。",
+													"properties": {
+														"type": {
+															"type": "string",
+															"enum": [
+																"base64",
+																"url"
+															]
+														},
+														"media_type": {
+															"type": "string",
+															"enum": [
+																"image/jpeg",
+																"image/png",
+																"image/gif",
+																"image/webp"
+															],
+															"description": "图片 MIME 类型，仅 `type=base64` 时需要"
+														},
+														"data": {
+															"type": "string",
+															"description": "base64 编码的图片内容，仅 `type=base64` 时需要"
+														},
+														"url": {
+															"type": "string",
+															"description": "通过文件 ID 引用已上传的图片，格式为 `ms://<file_id>`，仅 `type=url` 时需要。上传方式见[上传文件](/api/files-upload)。"
+														}
+													},
+													"required": [
+														"type"
+													]
+												}
+											},
+											"required": [
+												"type",
+												"source"
+											]
+										},
+										{
+											"title": "thinking",
+											"type": "object",
+											"description": "模型的推理过程。多轮对话时请把响应中的 thinking 块（含 `signature`）原样放回 assistant 消息中。",
+											"properties": {
+												"type": {
+													"type": "string",
+													"enum": [
+														"thinking"
+													]
+												},
+												"thinking": {
+													"type": "string",
+													"description": "推理内容"
+												},
+												"signature": {
+													"type": "string",
+													"description": "推理内容的签名，回传时需原样保留"
+												}
+											},
+											"required": [
+												"type",
+												"thinking"
+											]
+										},
+										{
+											"title": "tool_use",
+											"type": "object",
+											"description": "模型发起的工具调用（出现在 assistant 消息中）",
+											"properties": {
+												"type": {
+													"type": "string",
+													"enum": [
+														"tool_use"
+													]
+												},
+												"id": {
+													"type": "string",
+													"description": "工具调用 ID，提交结果时需与 `tool_use_id` 对应"
+												},
+												"name": {
+													"type": "string",
+													"description": "工具名称"
+												},
+												"input": {
+													"type": "object",
+													"description": "工具入参",
+													"additionalProperties": true
+												}
+											},
+											"required": [
+												"type",
+												"id",
+												"name",
+												"input"
+											]
+										},
+										{
+											"title": "tool_result",
+											"type": "object",
+											"description": "工具执行结果（出现在 user 消息中）",
+											"properties": {
+												"type": {
+													"type": "string",
+													"enum": [
+														"tool_result"
+													]
+												},
+												"tool_use_id": {
+													"type": "string",
+													"description": "对应 tool_use 块的 `id`"
+												},
+												"content": {
+													"oneOf": [
+														{
+															"type": "string"
+														},
+														{
+															"type": "array",
+															"items": {
+																"oneOf": [
+																	{
+																		"title": "text",
+																		"type": "object",
+																		"properties": {
+																			"type": {
+																				"type": "string",
+																				"enum": [
+																					"text"
+																				]
+																			},
+																			"text": {
+																				"type": "string",
+																				"description": "文本内容"
+																			}
+																		},
+																		"required": [
+																			"type",
+																			"text"
+																		]
+																	},
+																	{
+																		"title": "image",
+																		"type": "object",
+																		"properties": {
+																			"type": {
+																				"type": "string",
+																				"enum": [
+																					"image"
+																				]
+																			},
+																			"source": {
+																				"type": "object",
+																				"description": "图片来源。`type` 为 `base64` 时需同时提供 `media_type` 与 `data`；`type` 为 `url` 时通过 `url` 传入 `ms://<file_id>` 文件引用。",
+																				"properties": {
+																					"type": {
+																						"type": "string",
+																						"enum": [
+																							"base64",
+																							"url"
+																						]
+																					},
+																					"media_type": {
+																						"type": "string",
+																						"enum": [
+																							"image/jpeg",
+																							"image/png",
+																							"image/gif",
+																							"image/webp"
+																						],
+																						"description": "图片 MIME 类型，仅 `type=base64` 时需要"
+																					},
+																					"data": {
+																						"type": "string",
+																						"description": "base64 编码的图片内容，仅 `type=base64` 时需要"
+																					},
+																					"url": {
+																						"type": "string",
+																						"description": "通过文件 ID 引用已上传的图片，格式为 `ms://<file_id>`，仅 `type=url` 时需要。上传方式见[上传文件](/api/files-upload)。"
+																					}
+																				},
+																				"required": [
+																					"type"
+																				]
+																			}
+																		},
+																		"required": [
+																			"type",
+																			"source"
+																		]
+																	}
+																]
+															}
+														}
+													],
+													"description": "工具返回内容，可为字符串或 text / image 块数组"
+												}
+											},
+											"required": [
+												"type",
+												"tool_use_id",
+												"content"
+											]
+										}
+									]
+								}
+							}
+						],
+						"example": "你好",
+						"description": "消息内容。可以是纯文本字符串，也可以是内容块数组（text / image / thinking / tool_use / tool_result）。"
+					}
+				},
+				"required": [
+					"role",
+					"content"
+				]
+			},
+			"MessagesTool": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"custom"
+						],
+						"description": "工具类型，可省略"
+					},
+					"name": {
+						"type": "string",
+						"description": "工具名称。必须符合正则表达式：^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$",
+						"pattern": "^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$"
+					},
+					"description": {
+						"type": "string",
+						"description": "工具功能描述"
+					},
+					"input_schema": {
+						"type": "object",
+						"description": "工具入参的 JSON Schema，顶层 `type` 必须为 `object`。需符合 [MFJS（Moonshot Flavored JSON Schema）规范](https://github.com/MoonshotAI/walle/blob/main/docs/mfjs-spec.zh.md)。",
+						"additionalProperties": true
+					}
+				},
+				"required": [
+					"name",
+					"input_schema"
+				]
+			},
+			"MessagesToolChoice": {
+				"type": "object",
+				"description": "控制模型是否调用工具。`auto`（默认）：模型自行决定；`any`：强制调用任意工具；`none`：不调用工具。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"auto",
+							"any",
+							"none"
+						],
+						"default": "auto"
+					}
+				},
+				"required": [
+					"type"
+				]
+			},
+			"MessagesRequest": {
+				"title": "kimi-k3",
+				"type": "object",
+				"properties": {
+					"model": {
+						"type": "string",
+						"description": "模型 ID",
+						"enum": [
+							"kimi-k3"
+						],
+						"default": "kimi-k3"
+					},
+					"messages": {
+						"type": "array",
+						"description": "对话消息列表。若最后一条为 assistant 消息，模型会从该消息内容之后继续生成（Partial Mode）。",
+						"items": {
+							"$ref": "#/components/schemas/MessagesMessageParam"
+						}
+					},
+					"max_tokens": {
+						"type": "integer",
+						"minimum": 1,
+						"description": "本次生成的最大 Token 数，必填。达到上限而未结束时 `stop_reason` 为 `max_tokens`。"
+					},
+					"system": {
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/MessagesTextBlockParam"
+								}
+							}
+						],
+						"description": "系统提示，可为字符串或 text 块数组"
+					},
+					"stream": {
+						"type": "boolean",
+						"default": false,
+						"description": "是否以 Server-Sent Events 流式返回，默认 false"
+					},
+					"stop_sequences": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"maxItems": 5,
+						"description": "停用词，完全匹配时停止输出，匹配到的词本身不会被输出。最多 5 个，每个不超过 32 字节。"
+					},
+					"tools": {
+						"type": "array",
+						"description": "模型可调用的工具列表",
+						"items": {
+							"$ref": "#/components/schemas/MessagesTool"
+						}
+					},
+					"tool_choice": {
+						"$ref": "#/components/schemas/MessagesToolChoice"
+					},
+					"metadata": {
+						"type": "object",
+						"properties": {
+							"user_id": {
+								"type": "string",
+								"description": "标识终端用户或会话的稳定 ID，用于提高缓存命中率与滥用检测。建议使用哈希后的值，不要传入可识别个人身份的信息。对 Coding Agent 建议传 session id 并在会话期间保持不变。"
+							}
+						}
+					},
+					"output_config": {
+						"type": "object",
+						"description": "输出配置：推理强度与结构化输出",
+						"properties": {
+							"effort": {
+								"type": "string",
+								"enum": [
+									"low",
+									"high",
+									"max"
+								],
+								"default": "max",
+								"description": "推理强度，支持 low、high、max，默认 max。切换档位会破坏前缀缓存命中，建议在会话开始前确定。"
+							},
+							"format": {
+								"type": "object",
+								"description": "结构化输出。设置后模型输出严格遵循给定 JSON Schema 的 JSON。",
+								"properties": {
+									"type": {
+										"type": "string",
+										"enum": [
+											"json_schema"
+										]
+									},
+									"schema": {
+										"type": "object",
+										"description": "输出需遵循的 JSON Schema",
+										"additionalProperties": true
+									}
+								},
+								"required": [
+									"type",
+									"schema"
+								]
+							}
+						}
+					}
+				},
+				"required": [
+					"model",
+					"messages",
+					"max_tokens"
+				]
+			},
+			"MessagesResponse": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "本次响应的唯一标识符"
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"message"
+						],
+						"example": "message"
+					},
+					"role": {
+						"type": "string",
+						"enum": [
+							"assistant"
+						]
+					},
+					"model": {
+						"type": "string",
+						"description": "请求中指定的模型"
+					},
+					"content": {
+						"type": "array",
+						"description": "内容块列表，顺序为 thinking → text → tool_use",
+						"items": {
+							"oneOf": [
+								{
+									"title": "thinking",
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"thinking"
+											]
+										},
+										"thinking": {
+											"type": "string"
+										},
+										"signature": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"type",
+										"thinking"
+									]
+								},
+								{
+									"title": "text",
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"text"
+											]
+										},
+										"text": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"type",
+										"text"
+									]
+								},
+								{
+									"title": "tool_use",
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"tool_use"
+											]
+										},
+										"id": {
+											"type": "string"
+										},
+										"name": {
+											"type": "string"
+										},
+										"input": {
+											"type": "object",
+											"additionalProperties": true
+										}
+									},
+									"required": [
+										"type",
+										"id",
+										"name",
+										"input"
+									]
+								}
+							]
+						}
+					},
+					"stop_reason": {
+						"type": [
+							"string",
+							"null"
+						],
+						"enum": [
+							"end_turn",
+							"max_tokens",
+							"tool_use",
+							"refusal",
+							null
+						],
+						"description": "停止原因。`end_turn`：自然结束（含命中 `stop_sequences`）；`max_tokens`：达到 max_tokens 上限；`tool_use`：模型发起工具调用；`refusal`：触发内容安全审查。"
+					},
+					"stop_sequence": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "匹配到的停用词"
+					},
+					"usage": {
+						"type": "object",
+						"description": "Token 用量",
+						"properties": {
+							"input_tokens": {
+								"type": "integer",
+								"description": "输入 Token 数（不含命中缓存的部分）"
+							},
+							"output_tokens": {
+								"type": "integer",
+								"description": "输出 Token 数（含推理 Token）"
+							},
+							"cache_read_input_tokens": {
+								"type": "integer",
+								"description": "命中缓存的输入 Token 数"
+							},
+							"cache_creation_input_tokens": {
+								"type": "integer",
+								"description": "写入缓存的输入 Token 数"
+							},
+							"output_tokens_details": {
+								"type": "object",
+								"properties": {
+									"thinking_tokens": {
+										"type": "integer",
+										"description": "输出 Token 中用于推理的部分"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"MessagesStreamEvent": {
+				"oneOf": [
+					{
+						"title": "message_start",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"message_start"
+								]
+							},
+							"message": {
+								"$ref": "#/components/schemas/MessagesResponse"
+							}
+						},
+						"required": [
+							"type",
+							"message"
+						]
+					},
+					{
+						"title": "content_block_start",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"content_block_start"
+								]
+							},
+							"index": {
+								"type": "integer"
+							},
+							"content_block": {
+								"oneOf": [
+									{
+										"title": "thinking",
+										"type": "object",
+										"properties": {
+											"type": {
+												"type": "string",
+												"enum": [
+													"thinking"
+												]
+											},
+											"thinking": {
+												"type": "string"
+											},
+											"signature": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"type",
+											"thinking"
+										]
+									},
+									{
+										"title": "text",
+										"type": "object",
+										"properties": {
+											"type": {
+												"type": "string",
+												"enum": [
+													"text"
+												]
+											},
+											"text": {
+												"type": "string"
+											}
+										},
+										"required": [
+											"type",
+											"text"
+										]
+									},
+									{
+										"title": "tool_use",
+										"type": "object",
+										"properties": {
+											"type": {
+												"type": "string",
+												"enum": [
+													"tool_use"
+												]
+											},
+											"id": {
+												"type": "string"
+											},
+											"name": {
+												"type": "string"
+											},
+											"input": {
+												"type": "object",
+												"additionalProperties": true
+											}
+										},
+										"required": [
+											"type",
+											"id",
+											"name",
+											"input"
+										]
+									}
+								]
+							}
+						},
+						"required": [
+							"type",
+							"index",
+							"content_block"
+						]
+					},
+					{
+						"title": "content_block_delta",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"content_block_delta"
+								]
+							},
+							"index": {
+								"type": "integer"
+							},
+							"delta": {
+								"type": "object",
+								"properties": {
+									"type": {
+										"type": "string",
+										"enum": [
+											"text_delta",
+											"thinking_delta",
+											"signature_delta",
+											"input_json_delta"
+										]
+									},
+									"text": {
+										"type": "string",
+										"description": "`text_delta` 的文本片段"
+									},
+									"thinking": {
+										"type": "string",
+										"description": "`thinking_delta` 的推理片段"
+									},
+									"signature": {
+										"type": "string",
+										"description": "`signature_delta` 的签名"
+									},
+									"partial_json": {
+										"type": "string",
+										"description": "`input_json_delta` 的工具入参 JSON 片段，需拼接后解析"
+									}
+								},
+								"required": [
+									"type"
+								]
+							}
+						},
+						"required": [
+							"type",
+							"index",
+							"delta"
+						]
+					},
+					{
+						"title": "content_block_stop",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"content_block_stop"
+								]
+							},
+							"index": {
+								"type": "integer"
+							}
+						},
+						"required": [
+							"type",
+							"index"
+						]
+					},
+					{
+						"title": "message_delta",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"message_delta"
+								]
+							},
+							"delta": {
+								"type": "object",
+								"properties": {
+									"stop_reason": {
+										"type": [
+											"string",
+											"null"
+										],
+										"enum": [
+											"end_turn",
+											"max_tokens",
+											"tool_use",
+											"refusal",
+											null
+										],
+										"description": "停止原因。`end_turn`：自然结束（含命中 `stop_sequences`）；`max_tokens`：达到 max_tokens 上限；`tool_use`：模型发起工具调用；`refusal`：触发内容安全审查。"
+									},
+									"stop_sequence": {
+										"type": [
+											"string",
+											"null"
+										]
+									}
+								}
+							},
+							"usage": {
+								"type": "object",
+								"properties": {
+									"input_tokens": {
+										"type": "integer",
+										"description": "输入 Token 数（不含命中缓存的部分）"
+									},
+									"output_tokens": {
+										"type": "integer",
+										"description": "输出 Token 数（含推理 Token）"
+									},
+									"cache_read_input_tokens": {
+										"type": "integer",
+										"description": "命中缓存的输入 Token 数"
+									},
+									"cache_creation_input_tokens": {
+										"type": "integer",
+										"description": "写入缓存的输入 Token 数"
+									},
+									"output_tokens_details": {
+										"type": "object",
+										"properties": {
+											"thinking_tokens": {
+												"type": "integer",
+												"description": "输出 Token 中用于推理的部分"
+											}
+										}
+									}
+								}
+							}
+						},
+						"required": [
+							"type",
+							"delta"
+						]
+					},
+					{
+						"title": "message_stop",
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"message_stop"
+								]
+							}
+						},
+						"required": [
+							"type"
+						]
+					}
+				],
+				"description": "流式事件。每个 SSE 帧的 `event` 与 `data.type` 一致，顺序为 message_start → (content_block_start → content_block_delta… → content_block_stop)… → message_delta → message_stop。"
+			},
+			"MessagesErrorResponse": {
+				"type": "object",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"error"
+						]
+					},
+					"error": {
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"description": "错误类型，取值见[错误说明](/api/errors)"
+							},
+							"message": {
+								"type": "string",
+								"description": "描述错误原因的错误消息"
+							}
+						},
+						"required": [
+							"type",
+							"message"
+						]
+					},
+					"request_id": {
+						"type": "string",
+						"description": "请求 ID，反馈问题时请附上"
+					}
+				},
+				"required": [
+					"type",
+					"error"
+				]
 			}
 		}
 	},
@@ -2121,6 +3035,77 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/anthropic/v1/messages": {
+			"post": {
+				"summary": "Messages API",
+				"description": "以 Anthropic Messages API 兼容的格式调用 Kimi 模型，支持流式输出、工具调用、图片输入、思考与结构化输出。",
+				"tags": [
+					"Messages"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MessagesRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "消息响应",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessagesResponse"
+								}
+							},
+							"text/event-stream": {
+								"schema": {
+									"$ref": "#/components/schemas/MessagesStreamEvent"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessagesErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MessagesErrorResponse"
 								}
 							}
 						}

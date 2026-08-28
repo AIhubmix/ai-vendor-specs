@@ -185,15 +185,15 @@
                         "role": "user",
                         "content": [
                           {
-                            "type": "file_url",
-                            "file_url": {
-                              "url": "https://cdn.bigmodel.cn/static/demo/demo2.txt"
+                            "type": "file",
+                            "file": {
+                              "file_url": "https://cdn.bigmodel.cn/static/demo/demo2.txt"
                             }
                           },
                           {
-                            "type": "file_url",
-                            "file_url": {
-                              "url": "https://cdn.bigmodel.cn/static/demo/demo1.pdf"
+                            "type": "file",
+                            "file": {
+                              "file_url": "https://cdn.bigmodel.cn/static/demo/demo1.pdf"
                             }
                           },
                           {
@@ -270,7 +270,7 @@
     },
     "/paas/v4/videos/generations": {
       "post": {
-        "description": "CogVideoX is a video generation large model developed by Z.AI, equipped with powerful video generation capabilities. Simply inputting text or images allows for effortless video creation.\n\nVidu: A high-performance video large model that combines high consistency and high dynamism, with precise semantic understanding and exceptional reasoning speed.",
+        "description": "CogVideoX is a video generation large model developed by Z.AI, equipped with powerful video generation capabilities. Simply inputting text or images allows for effortless video creation.",
         "parameters": [
           {
             "$ref": "#/components/parameters/AcceptLanguage"
@@ -284,22 +284,6 @@
                   {
                     "title": "CogVideoX-3",
                     "$ref": "#/components/schemas/CogVideoX3Request"
-                  },
-                  {
-                    "title": "Vidu: Text to Video",
-                    "$ref": "#/components/schemas/ViduText2VideoRequest"
-                  },
-                  {
-                    "title": "Vidu: Image to Video",
-                    "$ref": "#/components/schemas/ViduImage2VideoRequest"
-                  },
-                  {
-                    "title": "Vidu: First & Last Frame to Video",
-                    "$ref": "#/components/schemas/ViduFrames2VideoRequest"
-                  },
-                  {
-                    "title": "Vidu: Ref to Video",
-                    "$ref": "#/components/schemas/ViduReference2VideoRequest"
                   }
                 ]
               },
@@ -1209,14 +1193,13 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "The model code to be called. GLM-5.3, GLM-5.2, GLM-5.1, GLM-5-Turbo are the latest flagship model series, foundational models specifically designed for agent applications.",
+            "description": "The model code to be called. GLM-5.3, GLM-5.2, GLM-5.1 are the latest flagship model series, foundational models specifically designed for agent applications.",
             "example": "glm-5.3",
             "default": "glm-5.3",
             "enum": [
               "glm-5.3",
               "glm-5.2",
               "glm-5.1",
-              "glm-5-turbo",
               "glm-5",
               "glm-4.7",
               "glm-4.7-flash",
@@ -1426,7 +1409,7 @@
             "type": "boolean",
             "example": false,
             "default": false,
-            "description": "Whether to enable streaming response for Function Calls. Default value is false. Only supported by the GLM-5.3, GLM-5.2, GLM-5.1, GLM-5, GLM-5-Turbo, GLM-4.7, and GLM-4.6 series. Refer to the [Stream Tool Call](/guides/tools/stream-tool)"
+            "description": "Whether to enable streaming response for Function Calls. Default value is false. Only supported by the GLM-5.3, GLM-5.2, GLM-5.1, GLM-5, GLM-4.7, and GLM-4.6 series. Refer to the [Stream Tool Call](/guides/tools/stream-tool)"
           },
           "tools": {
             "type": "array",
@@ -1506,7 +1489,6 @@
             "default": "glm-5.3-flash",
             "enum": [
               "glm-5.3-flash",
-              "glm-5v-turbo",
               "glm-4.6v",
               "autoglm-phone-multilingual",
               "glm-4.6v-flash",
@@ -1626,7 +1608,7 @@
           },
           "temperature": {
             "type": "number",
-            "description": "Sampling temperature, controls the randomness of the output, must be a positive number within the range: `[0.0, 1.0]`. For `GLM-5.3-Flash` the default value is `1.0`; the GLM-5V-Turbo, GLM-4.6V, GLM-4.5V series default value is `0.8`; the autoglm-phone-multilingual default value is `0.0`.",
+            "description": "Sampling temperature, controls the randomness of the output, must be a positive number within the range: `[0.0, 1.0]`. For `GLM-5.3-Flash` the default value is `1.0`; the GLM-4.6V, GLM-4.5V series default value is `0.8`; the autoglm-phone-multilingual default value is `0.0`.",
             "format": "float",
             "example": 1.0,
             "default": 1.0,
@@ -1635,7 +1617,7 @@
           },
           "top_p": {
             "type": "number",
-            "description": "Another method of temperature sampling, value range is: `[0.01, 1.0]`. For `GLM-5.3-Flash` the default value is `0.95`; the GLM-5V-Turbo, GLM-4.6V, GLM-4.5V series default value is `0.6`; the autoglm-phone-multilingual default value is `0.85`.",
+            "description": "Another method of temperature sampling, value range is: `[0.01, 1.0]`. For `GLM-5.3-Flash` the default value is `0.95`; the GLM-4.6V, GLM-4.5V series default value is `0.6`; the autoglm-phone-multilingual default value is `0.85`.",
             "format": "float",
             "example": 0.95,
             "default": 0.95,
@@ -1644,7 +1626,7 @@
           },
           "max_tokens": {
             "type": "integer",
-            "description": "The maximum number of tokens for model output. `GLM-5.3-Flash` and GLM-5V-Turbo support a maximum output length of 128K, the GLM-4.6V series supports 32K, the GLM-4.5V series supports 16K, and autoglm-phone-multilingual supports 4K. It is recommended to set it to no less than 1024.",
+            "description": "The maximum number of tokens for model output. `GLM-5.3-Flash` supports a maximum output length of 128K, the GLM-4.6V series supports 32K, the GLM-4.5V series supports 16K, and autoglm-phone-multilingual supports 4K. It is recommended to set it to no less than 1024.",
             "example": 1024,
             "minimum": 1,
             "maximum": 131072
@@ -1693,138 +1675,6 @@
             "maxLength": 128
           }
         }
-      },
-      "MultimodalContentItem": {
-        "oneOf": [
-          {
-            "title": "Text",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["text"],
-                "description": "Content type is text",
-                "default": "text"
-              },
-              "text": {
-                "type": "string",
-                "description": "Text content"
-              }
-            },
-            "required": ["type", "text"],
-            "additionalProperties": false
-          },
-          {
-            "title": "Image",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["image_url"],
-                "description": "Content type is image URL",
-                "default": "image_url"
-              },
-              "image_url": {
-                "type": "object",
-                "description": "Image information",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "description": "Image URL or Base64 encoding. Image size limit is under 5M per image, with pixels not exceeding 6000*6000. Supports jpg, png, jpeg formats."
-                  }
-                },
-                "required": ["url"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["type", "image_url"],
-            "additionalProperties": false
-          },
-          {
-            "title": "Audio",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["input_audio"],
-                "description": "Content type is audio input",
-                "default": "input_audio"
-              },
-              "input_audio": {
-                "type": "object",
-                "description": "Audio information",
-                "properties": {
-                  "data": {
-                    "type": "string",
-                    "description": "Base64 encoding of audio file. Audio duration should not exceed 10 minutes. 1s audio = 12.5 Tokens, rounded up."
-                  },
-                  "format": {
-                    "type": "string",
-                    "description": "Audio file format, supports wav and mp3",
-                    "enum": ["wav", "mp3"]
-                  }
-                },
-                "required": ["data", "format"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["type", "input_audio"],
-            "additionalProperties": false
-          },
-          {
-            "title": "Video",
-            "type": "object",
-
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["video_url"],
-                "description": "Content type is video URL",
-                "default": "video_url"
-              },
-              "video_url": {
-                "type": "object",
-                "description": "Video information.",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "description": "Video URL address."
-                  }
-                },
-                "required": ["url"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["type", "video_url"],
-            "additionalProperties": false
-          },
-          {
-            "title": "File",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": ["file_url"],
-                "description": "Content type is file URL",
-                "default": "file_url"
-              },
-              "file_url": {
-                "type": "object",
-                "description": "File information.",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "description": "File URL address. Supports formats such as PDF and Word, with a maximum of 50 pages for parsing."
-                  }
-                },
-                "required": ["url"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["type", "file_url"],
-            "additionalProperties": false
-          }
-        ]
       },
       "VisionMultimodalContentItem": {
         "oneOf": [
@@ -1905,45 +1755,31 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["file_url"],
-                "description": "Content type is file URL, not support passing both the `file_url` and `image_url` or `video_url` parameters at the same time.",
-                "default": "file_url"
-              },
-              "file_url": {
-                "type": "object",
-                "description": "File information.",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "description": "File URL address. Only GLM-5V-Turbo, GLM-4.6V, GLM-4.5V supported. Supports formats such as pdf、txt、word、jsonl、xlsx、pptx, with a maximum of 50."
-                  }
-                },
-                "required": ["url"],
-                "additionalProperties": false
-              }
-            },
-            "required": ["type", "file_url"],
-            "additionalProperties": false
-          },
-          {
-            "title": "File ID",
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
                 "enum": ["file"],
-                "description": "Content type is file ID, only GLM-5.3-Flash supported, get the ID via the [File Upload API](/api-reference/agents/file-upload) ",
+                "description": "Content type is file. New unified file type, compatible with the legacy `file_url` type but not recommended for new scenarios. Not support passing both the `file` and `image_url` or `video_url` parameters at the same time.",
                 "default": "file"
               },
               "file": {
                 "type": "object",
+                "description": "File content, supports one of `file_id`, `file_url`, or `file_data`. Single file size limit is `50M`.",
                 "properties": {
                   "file_id": {
                     "type": "string",
-                    "description": "The ID returned by the file upload API."
+                    "description": "The ID returned by the [File Upload API](/api-reference/agents/file-upload), only GLM-5.3-Flash supported."
+                  },
+                  "file_url": {
+                    "type": "string",
+                    "description": "File URL address. Only GLM-5.3-Flash, GLM-4.6V, GLM-4.5V supported. Supports formats such as pdf, txt, word, jsonl, xlsx, pptx, with a maximum of 50."
+                  },
+                  "file_data": {
+                    "type": "string",
+                    "description": "Base64 file content in the format `data:<MIME>;base64,<BASE64_DATA>`."
+                  },
+                  "filename": {
+                    "type": "string",
+                    "description": "File name."
                   }
                 },
-                "required": ["file_id"],
                 "additionalProperties": false
               }
             },
@@ -1958,7 +1794,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "description": "Whether to enable the chain of thought(`GLM-5.3` `GLM-5.3-FLASH` can only be enabled, and the thinking depth is controlled by `reasoning_effort`; for other models, when enabled, GLM-5.2 GLM-5.1 GLM-5 GLM-5-Turbo GLM-5V-Turbo GLM-4.6 GLM-4.5 and others will automatically determine whether to think, while GLM-4.7 and GLM-4.5V will think compulsorily), default: enabled",
+            "description": "Whether to enable the chain of thought(`GLM-5.3` `GLM-5.3-FLASH` can only be enabled, and the thinking depth is controlled by `reasoning_effort`; for other models, when enabled, GLM-5.2 GLM-5.1 GLM-5 GLM-4.6 GLM-4.5 and others will automatically determine whether to think, while GLM-4.7 and GLM-4.5V will think compulsorily), default: enabled",
             "default": "enabled",
             "enum": [
               "enabled",
@@ -2365,359 +2201,6 @@
                   5,
                   10
                 ]
-              }
-            },
-            "required": [
-              "model"
-            ]
-          },
-          {
-            "$ref": "#/components/schemas/VideoCommonRequest"
-          }
-        ]
-      },
-      "ViduText2VideoRequest": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "model": {
-                "type": "string",
-                "description": "The model code to be called.",
-                "enum": [
-                  "viduq1-text"
-                ]
-              },
-              "prompt": {
-                "type": "string",
-                "description": "Text description of the video, maximum input length of 512 characters."
-              },
-              "style": {
-                "type": "string",
-                "description": "Style\nDefault: `general`\nOptional values: `general` , `anime`\n- `general`: General style, can be controlled using prompts to define the style.\n- `anime`: Anime style, optimized for anime-specific visuals. The style can be controlled using different anime-themed prompts.",
-                "enum": [
-                  "general",
-                  "anime"
-                ]
-              },
-              "duration": {
-                "type": "integer",
-                "description": "Video duration parameter.\nDefault: `5` , Optional: `5`.",
-                "example": 5,
-                "enum": [
-                  5
-                ]
-              },
-              "aspect_ratio": {
-                "type": "string",
-                "description": "Aspect ratio\nDefault: `16:9`, Optional values: `16:9`, `9:16`, `1:1`",
-                "example": "16:9",
-                "enum": [
-                  "16:9",
-                  "9:16",
-                  "1:1"
-                ]
-              },
-              "size": {
-                "type": "string",
-                "description": "Resolution parameter\nDefault: `1920x1080`, Optional: `1920x1080`",
-                "example": "1920x1080",
-                "enum": [
-                  "1920x1080"
-                ]
-              },
-              "movement_amplitude": {
-                "type": "string",
-                "description": "Motion amplitude\nDefault: `auto` , Optional values:  `auto` ,`small` ,`medium` ,`large`",
-                "example": "auto",
-                "enum": [
-                  "auto",
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              }
-            },
-            "required": [
-              "model",
-              "prompt"
-            ]
-          },
-          {
-            "$ref": "#/components/schemas/VideoCommonRequest"
-          }
-        ]
-      },
-      "ViduImage2VideoRequest": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "model": {
-                "type": "string",
-                "description": "The model code to be called.",
-                "enum": [
-                  "viduq1-image",
-                  "vidu2-image"
-                ]
-              },
-              "prompt": {
-                "type": "string",
-                "description": "Text description of the video, maximum input length of 512 characters. Either image_url or prompt must be provided, or both."
-              },
-              "image_url": {
-                "type": "string",
-                "description": "The model will use the image provided in this parameter as the first frame to generate the video.\nOnly `1` image is supported.\nSupported formats: `png` , `jpeg` , `jpg` , `webp` .\nImage aspect ratio must be less than `1:4` or `4:1`.\nImage file size must not exceed `50MB`.\nNote: After Base64 decoding, the byte length must be less than 50 MB, and the encoding must include the appropriate content type string (e.g., `data:image/png;base64,{base64_encode}`).",
-                "oneOf": [
-                  {
-                    "title": "Image URL",
-                    "type": "string",
-                    "format": "uri",
-                    "example": "https://example.com/image.png"
-                  },
-                  {
-                    "title": "Base64 Encoded Image",
-                    "type": "string",
-                    "format": "byte",
-                    "example": "data:image/png;base64, XXX"
-                  }
-                ]
-              },
-              "duration": {
-                "oneOf": [
-                  {
-                    "title": "viduq1-image",
-                    "type": "integer",
-                    "description": "Video duration parameter.\nDefault: `5` , Optional: `5`.",
-                    "example": 5,
-                    "enum": [
-                      5
-                    ]
-                  },
-                  {
-                    "title": "viduq2-image",
-                    "type": "integer",
-                    "description": "Video duration parameter.\nDefault: `4` , Optional: `4`.",
-                    "example": 4,
-                    "enum": [
-                      4
-                    ]
-                  }
-                ]
-              },
-              "size": {
-                "oneOf": [
-                  {
-                    "title": "viduq1-image",
-                    "type": "string",
-                    "description": "Resolution parameter\nDefault: `1920x1080`, Optional: `1920x1080`",
-                    "example": "1920x1080",
-                    "enum": [
-                      "1920x1080"
-                    ]
-                  },
-                  {
-                    "title": "viduq2-image",
-                    "type": "string",
-                    "description": "Resolution parameter\nDefault: `1280x720`, Optional: `1280x720`",
-                    "example": "1280x720",
-                    "default": "1280x720",
-                    "enum": [
-                      "1280x720"
-                    ]
-                  }
-                ]
-              },
-              "movement_amplitude": {
-                "type": "string",
-                "description": "Motion amplitude\nDefault: `auto` , Optional values:  `auto` ,`small` ,`medium` ,`large`",
-                "example": "auto",
-                "enum": [
-                  "auto",
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "with_audio": {
-                "type": "boolean",
-                "description": "Add background music to the generated video."
-              }
-            },
-            "required": [
-              "model"
-            ]
-          },
-          {
-            "$ref": "#/components/schemas/VideoCommonRequest"
-          }
-        ]
-      },
-      "ViduFrames2VideoRequest": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "model": {
-                "type": "string",
-                "description": "The model code to be called.",
-                "enum": [
-                  "viduq1-start-end",
-                  "vidu2-start-end"
-                ]
-              },
-              "prompt": {
-                "type": "string",
-                "description": "Text description of the video, maximum input length of 512 characters. Either image_url or prompt must be provided, or both."
-              },
-              "image_url": {
-                "type": "array",
-                "description": "Images\nSupports input of two images: the first uploaded image will be treated as the first frame, and the second image as the last frame. The model will use the images provided in this parameter to generate a video.\nThe resolutions of the two input images (first and last frame) must be similar, with the ratio between the resolution of the first frame and the resolution of the last frame falling within `0.8–1.25`. Additionally, the image aspect ratio must be less than `1:4` or `4:1`.\nSupports image URLs or images encoded in Base64 (ensure accessibility; using image URLs is recommended).\nSupported formats: `png`, `jpeg`, `.jpg`, `webp`.\nImage file size must not exceed `50 MB`.\nNote: After Base64 decoding, the byte length must be less than 50 MB, and the encoding must include the appropriate content type string, such as `data:image/png;base64,{base64_encode}`.",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "minItems": 1,
-                "maxItems": 2
-              },
-              "duration": {
-                "oneOf": [
-                  {
-                    "title": "viduq1-start-end",
-                    "type": "integer",
-                    "description": "Video duration parameter.\nDefault: `5` , Optional: `5`.",
-                    "example": 5,
-                    "enum": [
-                      5
-                    ]
-                  },
-                  {
-                    "title": "vidu2-start-end",
-                    "type": "integer",
-                    "description": "Video duration parameter.\nDefault: `4` , Optional: `4`.",
-                    "example": 4,
-                    "enum": [
-                      4
-                    ]
-                  }
-                ]
-              },
-              "size": {
-                "oneOf": [
-                  {
-                    "title": "viduq1-start-end",
-                    "type": "string",
-                    "description": "Resolution parameter\nDefault: `1920x1080`, Optional: `1920x1080`",
-                    "example": "1920x1080",
-                    "enum": [
-                      "1920x1080"
-                    ]
-                  },
-                  {
-                    "title": "vidu2-start-end",
-                    "type": "string",
-                    "description": "Resolution parameter\nDefault: `1280x720`, Optional: `1280x720`",
-                    "example": "1280x720",
-                    "default": "1280x720",
-                    "enum": [
-                      "1280x720"
-                    ]
-                  }
-                ]
-              },
-              "movement_amplitude": {
-                "type": "string",
-                "description": "Motion amplitude\nDefault: `auto` , Optional values:  `auto` ,`small` ,`medium` ,`large`",
-                "example": "auto",
-                "enum": [
-                  "auto",
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "with_audio": {
-                "type": "boolean",
-                "description": "Add background music to the generated video."
-              }
-            },
-            "required": [
-              "model"
-            ]
-          },
-          {
-            "$ref": "#/components/schemas/VideoCommonRequest"
-          }
-        ]
-      },
-      "ViduReference2VideoRequest": {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "model": {
-                "type": "string",
-                "description": "The model code to be called.",
-                "enum": [
-                  "vidu2-reference"
-                ]
-              },
-              "prompt": {
-                "type": "string",
-                "description": "Text description of the video, maximum input length of 512 characters. Either image_url or prompt must be provided, or both."
-              },
-              "image_url": {
-                "type": "array",
-                "description": "Image reference\nSupports input of 1 to 3 images. The model will use the themes from the images provided in this parameter as references to generate a video with consistent subjects.\n1. Supports image URLs or images encoded in Base64 (ensure accessibility; it is recommended to prioritize using image URLs).\n2. Supported formats: `png`, `jpeg`, `.jpg`, `webp`.\n3. Image resolution must not be smaller than `128x128`, and the aspect ratio must be less than `1:4` or `4:1`.\n4. Image file size must not exceed `50 MB`.\n5. Note: After Base64 decoding, the byte length must be less than 50 MB, and the encoding must include the proper content-type string, such as `data:image/png;base64,{base64_encode}`.",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "minItems": 1,
-                "maxItems": 3
-              },
-              "duration": {
-                "title": "vidu2-reference",
-                "type": "integer",
-                "description": "Video duration parameter.\nDefault: `4` , Optional: `4`.",
-                "example": 4,
-                "enum": [
-                  4
-                ]
-              },
-              "aspect_ratio": {
-                "type": "string",
-                "description": "Aspect ratio\nDefault: `16:9`, Optional values: `16:9`, `9:16`, `1:1`",
-                "example": "16:9",
-                "enum": [
-                  "16:9",
-                  "9:16",
-                  "1:1"
-                ]
-              },
-              "size": {
-                "title": "vidu2-reference ",
-                "type": "string",
-                "description": "Resolution parameter\nDefault: `1280x720`, Optional: `1280x720`",
-                "example": "1280x720",
-                "enum": [
-                  "1280x720"
-                ]
-              },
-              "movement_amplitude": {
-                "type": "string",
-                "description": "Motion amplitude\nDefault: `auto` , Optional values:  `auto` ,`small` ,`medium` ,`large`",
-                "example": "auto",
-                "enum": [
-                  "auto",
-                  "small",
-                  "medium",
-                  "large"
-                ]
-              },
-              "with_audio": {
-                "type": "boolean",
-                "description": "Add background music to the generated video."
               }
             },
             "required": [
