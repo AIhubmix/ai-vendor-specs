@@ -1701,10 +1701,19 @@
               },
               "max_results": {
                 "default": 10,
-                "description": "Maximum number of results to return",
-                "maximum": 20,
+                "description": "Maximum number of results. Values above 20 require search_type=people. Supports up to 20 for web search and up to 50 for people search.",
+                "maximum": 50,
                 "minimum": 1,
                 "type": "integer"
+              },
+              "search_type": {
+                "default": "web",
+                "description": "Search type - \"web\" for general web search, \"people\" for people search. max_results above 20 is only supported for people search.",
+                "enum": [
+                  "web",
+                  "people"
+                ],
+                "type": "string"
               },
               "search_context_size": {
                 "description": "Controls how much content is extracted from result pages.\n\n- `low` — short passages most relevant to the query.\n- `medium` — a balanced amount of content per document.\n- `high` (default) — detailed content relevant to the query.\n\nOmit when using `max_tokens` or `max_tokens_per_page`.",

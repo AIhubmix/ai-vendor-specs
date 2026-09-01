@@ -648,117 +648,6 @@
 					}
 				]
 			},
-			"MoonshotV1ChatRequest": {
-				"title": "moonshot-v1",
-				"allOf": [
-					{
-						"$ref": "#/components/schemas/ChatRequestBase"
-					},
-					{
-						"type": "object",
-						"properties": {
-							"model": {
-								"type": "string",
-								"description": "模型 ID",
-								"enum": [
-									"moonshot-v1-8k",
-									"moonshot-v1-32k",
-									"moonshot-v1-128k",
-									"moonshot-v1-auto",
-									"moonshot-v1-8k-vision-preview",
-									"moonshot-v1-32k-vision-preview",
-									"moonshot-v1-128k-vision-preview"
-								],
-								"default": "moonshot-v1-128k"
-							},
-							"temperature": {
-								"type": "number",
-								"format": "float",
-								"description": "采样温度，范围 0 到 1。较高的值（如 0.7）使输出更随机，较低的值（如 0.2）使输出更集中和确定。默认值为 0.0。",
-								"default": 0.0,
-								"minimum": 0,
-								"maximum": 1
-							},
-							"top_p": {
-								"type": "number",
-								"format": "float",
-								"description": "另一种采样方法，模型考虑累积概率质量为 top_p 的 Token 结果。例如 0.1 表示仅考虑概率质量前 10% 的 Token。通常建议只修改此参数或 temperature 其中之一。默认值为 1.0。",
-								"default": 1.0,
-								"minimum": 0,
-								"maximum": 1
-							},
-							"n": {
-								"type": "integer",
-								"description": "每条输入消息生成的结果数量。默认为 1，不超过 5。当温度非常接近 0 时，只能返回 1 个结果。",
-								"default": 1,
-								"minimum": 1,
-								"maximum": 5
-							},
-							"presence_penalty": {
-								"type": "number",
-								"format": "float",
-								"description": "存在惩罚，范围 -2.0 到 2.0。正值会根据 Token 是否出现在文本中进行惩罚，增加模型讨论新话题的可能性",
-								"default": 0,
-								"minimum": -2,
-								"maximum": 2
-							},
-							"frequency_penalty": {
-								"type": "number",
-								"format": "float",
-								"description": "频率惩罚，范围 -2.0 到 2.0。正值会根据 Token 在文本中的现有频率进行惩罚，降低模型逐字重复相同短语的可能性",
-								"default": 0,
-								"minimum": -2,
-								"maximum": 2
-							}
-						},
-						"required": [
-							"model"
-						]
-					}
-				]
-			},
-			"KimiK25ChatRequest": {
-				"title": "kimi-k2.5",
-				"allOf": [
-					{
-						"$ref": "#/components/schemas/ChatRequestBase"
-					},
-					{
-						"type": "object",
-						"properties": {
-							"model": {
-								"type": "string",
-								"description": "模型 ID",
-								"enum": [
-									"kimi-k2.5"
-								],
-								"default": "kimi-k2.5"
-							},
-							"thinking": {
-								"type": "object",
-								"description": "控制模型是否启用思考能力。可选参数，默认值为 {\"type\": \"enabled\"}。",
-								"properties": {
-									"type": {
-										"type": "string",
-										"enum": [
-											"enabled",
-											"disabled"
-										],
-										"description": "启用或禁用思考能力"
-									}
-								},
-								"required": [
-									"type"
-								],
-								"additionalProperties": false
-							}
-						},
-						"required": [
-							"model"
-						]
-					}
-				]
-			},
 			"KimiK26ChatRequest": {
 				"title": "kimi-k2.6",
 				"allOf": [
@@ -1121,6 +1010,950 @@
 					}
 				}
 			},
+			"ResponsesRequest": {
+				"type": "object",
+				"required": [
+					"model",
+					"input"
+				],
+				"properties": {
+					"model": {
+						"type": "string",
+						"description": "使用的模型 ID。本接口当前支持 `kimi-k3`。",
+						"example": "kimi-k3"
+					},
+					"input": {
+						"description": "本次请求的输入。传字符串等价于一条 user 消息；传数组时按顺序给出带类型的 item，可包含历史对话、工具调用与工具结果。",
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/ResponsesInputItem"
+								}
+							}
+						]
+					},
+					"instructions": {
+						"type": "string",
+						"description": "顶层系统指令，作为最靠前的指令生效。"
+					},
+					"stream": {
+						"type": "boolean",
+						"default": false,
+						"description": "为 true 时以 SSE 事件流返回响应。"
+					},
+					"max_output_tokens": {
+						"type": "integer",
+						"description": "本次响应最多生成的 Token 数量。`kimi-k3` 默认为 131072，最大可设置为 1048576。此值为期望返回的 Token 长度，而非输入加输出的总长度。达到上限时 `status` 为 `incomplete`，`incomplete_details.reason` 为 `max_output_tokens`。"
+					},
+					"reasoning": {
+						"type": "object",
+						"description": "推理相关配置。",
+						"properties": {
+							"effort": {
+								"type": "string",
+								"enum": [
+									"low",
+									"high",
+									"max"
+								],
+								"default": "max",
+								"description": "推理强度。档位越高，模型推理越充分，通常也会带来更高的延迟与推理 Token 消耗。"
+							}
+						}
+					},
+					"text": {
+						"type": "object",
+						"description": "输出文本配置。",
+						"properties": {
+							"format": {
+								"type": "object",
+								"required": [
+									"type",
+									"schema"
+								],
+								"description": "用 JSON Schema 约束输出结构。",
+								"properties": {
+									"type": {
+										"type": "string",
+										"enum": [
+											"json_schema"
+										]
+									},
+									"name": {
+										"type": "string",
+										"description": "Schema 名称，缺省为 `output`。"
+									},
+									"schema": {
+										"type": "object",
+										"description": "描述输出结构的 JSON Schema。"
+									},
+									"strict": {
+										"type": "boolean",
+										"description": "是否严格按 Schema 约束输出。"
+									}
+								}
+							}
+						}
+					},
+					"tools": {
+						"type": "array",
+						"description": "模型可调用的工具列表。",
+						"items": {
+							"$ref": "#/components/schemas/ResponsesTool"
+						}
+					},
+					"tool_choice": {
+						"$ref": "#/components/schemas/ResponsesToolChoice"
+					},
+					"prompt_cache_key": {
+						"type": "string",
+						"description": "上下文缓存标识，同一会话使用相同取值可提升缓存命中率。"
+					},
+					"safety_identifier": {
+						"type": "string",
+						"description": "用于检测可能违反使用政策的用户的稳定标识符。应为唯一标识每个用户的字符串。建议对用户名或邮箱进行哈希处理以避免发送可识别信息"
+					}
+				}
+			},
+			"ResponsesInputItem": {
+				"description": "input 数组的元素，按 `type` 区分。省略 `type` 时按 `message` 处理。",
+				"oneOf": [
+					{
+						"$ref": "#/components/schemas/ResponsesMessageItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesReasoningItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesFunctionCallItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesFunctionCallOutputItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesAdditionalToolsItem"
+					}
+				]
+			},
+			"ResponsesMessageItem": {
+				"type": "object",
+				"title": "消息",
+				"description": "一条对话消息。`type` 可省略。",
+				"required": [
+					"role",
+					"content"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"message"
+						]
+					},
+					"role": {
+						"type": "string",
+						"enum": [
+							"user",
+							"assistant",
+							"developer"
+						],
+						"description": "消息角色。`developer` 按系统指令处理。"
+					},
+					"content": {
+						"description": "消息内容，字符串或 content part 数组。",
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/ResponsesInputContentPart"
+								}
+							}
+						]
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesReasoningItem": {
+				"type": "object",
+				"title": "推理",
+				"description": "回放上一轮的推理内容。`content` 优先于 `summary`。",
+				"required": [
+					"type"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"reasoning"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"summary": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"type",
+								"text"
+							],
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"summary_text"
+									]
+								},
+								"text": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"content": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"type",
+								"text"
+							],
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"reasoning_text"
+									]
+								},
+								"text": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesFunctionCallItem": {
+				"type": "object",
+				"title": "函数调用",
+				"description": "回放一次函数调用。",
+				"required": [
+					"type",
+					"call_id",
+					"name",
+					"arguments"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"function_call"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"call_id": {
+						"type": "string",
+						"description": "与对应 `function_call_output` 配对的调用 ID。"
+					},
+					"name": {
+						"type": "string"
+					},
+					"namespace": {
+						"type": "string",
+						"description": "工具所属的命名空间，调用命名空间工具时返回。"
+					},
+					"arguments": {
+						"type": "string",
+						"description": "函数参数的 JSON 字符串。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesFunctionCallOutputItem": {
+				"type": "object",
+				"title": "函数调用结果",
+				"description": "函数调用的执行结果。",
+				"required": [
+					"type",
+					"call_id",
+					"output"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"function_call_output"
+						]
+					},
+					"call_id": {
+						"type": "string",
+						"description": "与对应 `function_call` 相同的调用 ID。"
+					},
+					"output": {
+						"description": "工具返回的内容。",
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/ResponsesInputContentPart"
+								}
+							}
+						]
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesAdditionalToolsItem": {
+				"type": "object",
+				"title": "动态工具",
+				"description": "在对话中途追加可调用的工具，作用范围从该 item 所在位置开始。",
+				"required": [
+					"type",
+					"role",
+					"tools"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"additional_tools"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"role": {
+						"type": "string",
+						"enum": [
+							"developer"
+						]
+					},
+					"tools": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ResponsesTool"
+						}
+					}
+				}
+			},
+			"ResponsesInputContentPart": {
+				"description": "content 数组的元素，按 `type` 区分。",
+				"oneOf": [
+					{
+						"type": "object",
+						"title": "输入文本",
+						"required": [
+							"type",
+							"text"
+						],
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"input_text"
+								]
+							},
+							"text": {
+								"type": "string"
+							}
+						}
+					},
+					{
+						"type": "object",
+						"title": "输入图片",
+						"required": [
+							"type",
+							"image_url"
+						],
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"input_image"
+								]
+							},
+							"image_url": {
+								"type": "string",
+								"description": "图片的 data URL，例如 `data:image/png;base64,<base64>`。不支持公网 http(s) URL。"
+							},
+							"detail": {
+								"type": "string",
+								"enum": [
+									"auto",
+									"low",
+									"high",
+									"original"
+								]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"title": "输出文本",
+						"description": "回放 assistant 历史文本时使用。",
+						"required": [
+							"type",
+							"text"
+						],
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"output_text"
+								]
+							},
+							"text": {
+								"type": "string"
+							}
+						}
+					}
+				]
+			},
+			"ResponsesTool": {
+				"description": "工具定义，按 `type` 区分。",
+				"oneOf": [
+					{
+						"$ref": "#/components/schemas/ResponsesFunctionTool"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesNamespaceTool"
+					}
+				],
+				"discriminator": {
+					"propertyName": "type",
+					"mapping": {
+						"function": "#/components/schemas/ResponsesFunctionTool",
+						"namespace": "#/components/schemas/ResponsesNamespaceTool"
+					}
+				}
+			},
+			"ResponsesFunctionTool": {
+				"type": "object",
+				"title": "函数工具",
+				"description": "用 JSON Schema 描述参数的函数工具。",
+				"required": [
+					"type",
+					"name"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"function"
+						]
+					},
+					"name": {
+						"type": "string",
+						"description": "函数名称。必须符合正则表达式：^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$",
+						"pattern": "^[a-zA-Z_][a-zA-Z0-9-_]{0,127}$"
+					},
+					"description": {
+						"type": "string"
+					},
+					"parameters": {
+						"type": "object",
+						"description": "描述函数参数的 JSON Schema。"
+					},
+					"strict": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ResponsesNamespaceTool": {
+				"type": "object",
+				"title": "命名空间工具",
+				"description": "把一组函数工具收纳到同一个命名空间下。",
+				"required": [
+					"type",
+					"name",
+					"description",
+					"tools"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"namespace"
+						]
+					},
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"tools": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ResponsesFunctionTool"
+						}
+					}
+				}
+			},
+			"ResponsesToolChoice": {
+				"type": "string",
+				"enum": [
+					"auto"
+				],
+				"description": "控制工具调用行为。取 `auto` 时由模型自行决定是否调用工具。"
+			},
+			"ResponsesResponse": {
+				"type": "object",
+				"description": "一次模型响应。",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "响应的唯一标识符。",
+						"example": "resp_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"object": {
+						"type": "string",
+						"enum": [
+							"response"
+						]
+					},
+					"created_at": {
+						"type": "integer",
+						"description": "响应创建时的 Unix 时间戳。"
+					},
+					"completed_at": {
+						"type": [
+							"integer",
+							"null"
+						],
+						"description": "响应结束时的 Unix 时间戳。`status` 为 `completed` 或 `incomplete` 时给出，为 `in_progress` 或 `failed` 时是 `null`。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed",
+							"incomplete",
+							"failed"
+						],
+						"description": "响应状态。流式的起手快照为 `in_progress`。"
+					},
+					"model": {
+						"type": "string",
+						"description": "产生本次响应的模型。"
+					},
+					"output": {
+						"type": "array",
+						"description": "输出 item 数组，顺序为 reasoning、message、工具调用。",
+						"items": {
+							"$ref": "#/components/schemas/ResponsesOutputItem"
+						}
+					},
+					"usage": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/ResponsesUsage"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"incomplete_details": {
+						"type": [
+							"object",
+							"null"
+						],
+						"description": "`status` 为 `incomplete` 时给出原因。",
+						"properties": {
+							"reason": {
+								"type": "string",
+								"enum": [
+									"max_output_tokens",
+									"content_filter"
+								]
+							}
+						}
+					},
+					"error": {
+						"type": [
+							"object",
+							"null"
+						],
+						"description": "`status` 为 `failed` 时给出错误信息。",
+						"properties": {
+							"code": {
+								"type": "string"
+							},
+							"message": {
+								"type": "string"
+							}
+						}
+					},
+					"instructions": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"reasoning": {
+						"type": [
+							"object",
+							"null"
+						]
+					},
+					"text": {
+						"type": [
+							"object",
+							"null"
+						]
+					},
+					"tools": {
+						"type": [
+							"array",
+							"null"
+						],
+						"items": {
+							"$ref": "#/components/schemas/ResponsesTool"
+						}
+					},
+					"tool_choice": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/ResponsesToolChoice"
+							},
+							{
+								"type": "null"
+							}
+						]
+					},
+					"max_output_tokens": {
+						"type": [
+							"integer",
+							"null"
+						]
+					},
+					"temperature": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"top_p": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"metadata": {
+						"type": [
+							"object",
+							"null"
+						]
+					},
+					"parallel_tool_calls": {
+						"type": "boolean"
+					},
+					"service_tier": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"store": {
+						"type": "boolean",
+						"description": "固定为 `false`。"
+					},
+					"background": {
+						"type": [
+							"boolean",
+							"null"
+						],
+						"description": "固定为 `false`。"
+					},
+					"previous_response_id": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "固定为 `null`。"
+					},
+					"conversation": {
+						"type": [
+							"object",
+							"null"
+						],
+						"description": "固定为 `null`。"
+					}
+				}
+			},
+			"ResponsesOutputItem": {
+				"description": "output 数组的元素，按 `type` 区分。",
+				"oneOf": [
+					{
+						"$ref": "#/components/schemas/ResponsesOutputReasoningItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesOutputMessageItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesOutputFunctionCallItem"
+					}
+				],
+				"discriminator": {
+					"propertyName": "type",
+					"mapping": {
+						"reasoning": "#/components/schemas/ResponsesOutputReasoningItem",
+						"message": "#/components/schemas/ResponsesOutputMessageItem",
+						"function_call": "#/components/schemas/ResponsesOutputFunctionCallItem"
+					}
+				}
+			},
+			"ResponsesOutputReasoningItem": {
+				"type": "object",
+				"title": "推理",
+				"description": "模型的推理内容。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"reasoning"
+						]
+					},
+					"id": {
+						"type": "string",
+						"example": "rs_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"summary": {
+						"type": "array",
+						"description": "推理内容。",
+						"items": {
+							"type": "object",
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"summary_text"
+									]
+								},
+								"text": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					"encrypted_content": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "固定为 `null`。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesOutputMessageItem": {
+				"type": "object",
+				"title": "消息",
+				"description": "模型的文本回复。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"message"
+						]
+					},
+					"id": {
+						"type": "string",
+						"example": "msg_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"role": {
+						"type": "string",
+						"enum": [
+							"assistant"
+						]
+					},
+					"content": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"output_text"
+									]
+								},
+								"text": {
+									"type": "string"
+								},
+								"annotations": {
+									"type": "array",
+									"items": {}
+								}
+							}
+						}
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesOutputFunctionCallItem": {
+				"type": "object",
+				"title": "函数调用",
+				"description": "模型发起的函数调用。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"function_call"
+						]
+					},
+					"id": {
+						"type": "string",
+						"example": "fc_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"call_id": {
+						"type": "string",
+						"description": "回传结果时在 `function_call_output` 中使用该值。"
+					},
+					"name": {
+						"type": "string"
+					},
+					"namespace": {
+						"type": "string",
+						"description": "调用命名空间工具时返回。"
+					},
+					"arguments": {
+						"type": "string",
+						"description": "函数参数的 JSON 字符串。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesUsage": {
+				"type": "object",
+				"description": "本次响应的 Token 用量。",
+				"properties": {
+					"input_tokens": {
+						"type": "integer",
+						"description": "输入 Token 数量，含命中缓存的部分。"
+					},
+					"input_tokens_details": {
+						"type": "object",
+						"properties": {
+							"cached_tokens": {
+								"type": "integer",
+								"description": "命中上下文缓存的 Token 数量。"
+							},
+							"cache_write_tokens": {
+								"type": "integer",
+								"description": "写入上下文缓存的 Token 数量。"
+							}
+						}
+					},
+					"output_tokens": {
+						"type": "integer",
+						"description": "输出 Token 数量，含推理 Token。"
+					},
+					"output_tokens_details": {
+						"type": "object",
+						"properties": {
+							"reasoning_tokens": {
+								"type": "integer",
+								"description": "推理消耗的 Token 数量。"
+							}
+						}
+					},
+					"total_tokens": {
+						"type": "integer",
+						"description": "总 Token 数量。"
+					}
+				}
+			},
+			"ResponsesStreamEvent": {
+				"type": "object",
+				"description": "`stream: true` 时返回的单个 SSE 事件。SSE 帧形如 `event: <type>` 加 `data: <json>`，事件体的其余字段随 `type` 变化。",
+				"required": [
+					"type",
+					"sequence_number"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"response.created",
+							"response.in_progress",
+							"response.output_item.added",
+							"response.output_item.done",
+							"response.content_part.added",
+							"response.content_part.done",
+							"response.output_text.delta",
+							"response.output_text.done",
+							"response.reasoning_summary_part.added",
+							"response.reasoning_summary_part.done",
+							"response.reasoning_summary_text.delta",
+							"response.reasoning_summary_text.done",
+							"response.function_call_arguments.delta",
+							"response.function_call_arguments.done",
+							"response.completed",
+							"response.incomplete",
+							"response.failed",
+							"error"
+						]
+					},
+					"sequence_number": {
+						"type": "integer",
+						"description": "事件序号，从 0 开始单调递增。"
+					}
+				}
+			},
 			"BalanceResponse": {
 				"type": "object",
 				"properties": {
@@ -1185,15 +2018,7 @@
 							"kimi-k3",
 							"kimi-k2.7-code",
 							"kimi-k2.7-code-highspeed",
-							"kimi-k2.6",
-							"kimi-k2.5",
-							"moonshot-v1-8k",
-							"moonshot-v1-32k",
-							"moonshot-v1-128k",
-							"moonshot-v1-auto",
-							"moonshot-v1-8k-vision-preview",
-							"moonshot-v1-32k-vision-preview",
-							"moonshot-v1-128k-vision-preview"
+							"kimi-k2.6"
 						]
 					},
 					"messages": {
@@ -1256,7 +2081,7 @@
 					},
 					"purpose": {
 						"type": "string",
-						"description": "上传文件时指定的用途。file-extract：抽取文件内容；image：上传图片，用于视觉理解；video：上传视频，用于视频理解；batch：上传 JSONL 文件，用于批处理任务",
+						"description": "上传文件时指定的用途。file-extract：抽取文本类文件（如 pdf、doc、txt 等）的内容，不支持图片；image：上传图片，用于视觉理解；video：上传视频，用于视频理解；batch：上传 JSONL 文件，用于批处理任务",
 						"enum": [
 							"file-extract",
 							"image",
@@ -2510,7 +3335,7 @@
 													"id": {
 														"type": "string",
 														"description": "模型 ID",
-														"example": "kimi-k2.5"
+														"example": "kimi-k3"
 													},
 													"object": {
 														"type": "string",
@@ -2610,7 +3435,7 @@
 		"/v1/files": {
 			"post": {
 				"summary": "上传文件",
-				"description": "上传文件用于内容提取、图片理解或视频理解。",
+				"description": "上传文件用于文本类文件的内容提取、图片理解或视频理解。file-extract 仅支持文本类文件（如 pdf、doc、txt 等）的内容抽取；图片理解请使用 purpose=image。",
 				"tags": [
 					"Files"
 				],
@@ -2639,7 +3464,7 @@
 											"video",
 											"batch"
 										],
-										"description": "指定上传文件的处理方式。file-extract：抽取文件内容；image：上传图片，用于视觉理解；video：上传视频，用于视频理解；batch：上传 JSONL 文件，用于批处理任务"
+										"description": "指定上传文件的处理方式。file-extract：抽取文本类文件（如 pdf、doc、txt 等）的内容，不支持图片；image：上传图片，用于视觉理解；video：上传视频，用于视频理解；batch：上传 JSONL 文件，用于批处理任务"
 									}
 								},
 								"required": [
@@ -2964,12 +3789,6 @@
 									},
 									{
 										"$ref": "#/components/schemas/KimiK26ChatRequest"
-									},
-									{
-										"$ref": "#/components/schemas/KimiK25ChatRequest"
-									},
-									{
-										"$ref": "#/components/schemas/MoonshotV1ChatRequest"
 									}
 								],
 								"discriminator": {
@@ -2978,15 +3797,7 @@
 										"kimi-k3": "#/components/schemas/KimiK3ChatRequest",
 										"kimi-k2.7-code": "#/components/schemas/KimiK27CodeChatRequest",
 										"kimi-k2.7-code-highspeed": "#/components/schemas/KimiK27CodeChatRequest",
-										"kimi-k2.6": "#/components/schemas/KimiK26ChatRequest",
-										"kimi-k2.5": "#/components/schemas/KimiK25ChatRequest",
-										"moonshot-v1-8k": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-32k": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-128k": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-auto": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-8k-vision-preview": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-32k-vision-preview": "#/components/schemas/MoonshotV1ChatRequest",
-										"moonshot-v1-128k-vision-preview": "#/components/schemas/MoonshotV1ChatRequest"
+										"kimi-k2.6": "#/components/schemas/KimiK26ChatRequest"
 									}
 								}
 							}
@@ -3021,6 +3832,97 @@
 					},
 					"401": {
 						"description": "未授权 - API 密钥无效或缺失",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/responses": {
+			"post": {
+				"summary": "创建一次模型响应",
+				"description": "创建一次模型响应。传入文本或图片，生成文本或 JSON 输出；也可以让模型调用你定义的函数工具。`stream` 为 `true` 时以 SSE 事件流返回。",
+				"tags": [
+					"Responses"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ResponsesRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "响应创建成功",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ResponsesResponse"
+								}
+							},
+							"text/event-stream": {
+								"schema": {
+									"$ref": "#/components/schemas/ResponsesStreamEvent"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "无权访问该资源",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "请求过于频繁或额度不足",
 						"content": {
 							"application/json": {
 								"schema": {

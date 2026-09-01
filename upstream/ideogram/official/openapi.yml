@@ -1952,8 +1952,10 @@ paths:
         usage-based pricing in `usage_cost_usd_micros`. If a `webhook_url` is
         supplied, the completed result is also POSTed to that URL.
 
-        Supply the advertisement image as raw `image` bytes via
-        `multipart/form-data`.
+        Supply the advertisement image as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two; supplying both,
+        or neither, is rejected with a 400.
 
         The required `resolution` (`WIDTHxHEIGHT`) sets the exact output
         dimensions.
@@ -2017,18 +2019,22 @@ paths:
               schema:
                 description: Any type
       requestBody:
-        description: A request to resize a source image.
+        description: >-
+          A request to resize a source image. Use `multipart/form-data` to upload `image` bytes directly, or
+          `application/json` (or multipart with `image_asset_identifier`) to reference an existing asset instead.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: >-
                     The source image to reframe (max size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
-                    supported.
+                    supported. Multipart requests only. Provide exactly one of `image_asset_identifier` or `image`.
                 resolution:
                   $ref: '#/components/schemas/V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution'
                   description: |
@@ -2075,16 +2081,20 @@ paths:
         `GET /v1/generations/{generation_id}` with the returned `generation_id`
         until the generation is completed or failed.
 
-        Supply the product photo as raw `image` bytes via
-        `multipart/form-data`.
+        Supply the product photo as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two forms;
+        supplying both, or neither, is rejected with a 400.
 
-        Supply the masks marking the regions to recolor as raw `masks` bytes,
-        paired by position with `colors` — up to 4 regions; a single-region
-        edit is a one-item list. Every mask must have the same pixel
-        dimensions as the product photo. White pixels mark the region to
-        recolor; black pixels are preserved. Alpha-only masks are also
-        supported: opaque pixels mark the region to recolor and transparent
-        pixels are preserved.
+        Supply the masks marking the regions to recolor as either
+        `AssetIdentifier` references (`mask_asset_identifiers`) or the raw
+        mask bytes directly (`masks`, multipart requests only), paired by
+        position with `colors` — up to 4 regions; a single-region edit is a
+        one-item list. Provide exactly one of the two forms. Every mask must
+        have the same pixel dimensions as the product photo. White pixels
+        mark the region to recolor; black pixels are preserved. Alpha-only
+        masks are also supported: opaque pixels mark the region to recolor
+        and transparent pixels are preserved.
       tags:
         - edit-workflow
       parameters:
@@ -2132,18 +2142,36 @@ paths:
               schema:
                 description: Any type
       requestBody:
-        description: The product photo, one mask or several masks marking the regions to recolor, and one target color per mask.
+        description: >-
+          The product photo, one mask or several masks marking the regions to recolor, and one target color per mask.
+          Use `multipart/form-data` to upload `image` bytes directly, or `application/json` (or multipart with
+          `image_asset_identifier`) to reference an existing asset instead.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: |
                     The product photo to recolor (max size 25MB), as raw bytes; only
-                    JPEG, PNG, and WEBP formats are supported.
+                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
+                    Provide exactly one of `image_asset_identifier` or `image`.
+                mask_asset_identifiers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AssetIdentifier'
+                  description: |
+                    The masks marking the regions of the product photo to recolor, by
+                    reference, paired by position with `colors` (max 4). Every mask
+                    must have the same pixel dimensions as the product photo. White
+                    pixels mark the region to recolor; black pixels are preserved.
+                    Alpha-only masks are also supported: opaque pixels mark the
+                    region to recolor and transparent pixels are preserved. Provide
+                    exactly one of `mask_asset_identifiers` or `masks`.
                 masks:
                   type: array
                   items:
@@ -2153,19 +2181,20 @@ paths:
                     The masks marking the regions of the product photo to recolor
                     (max 4, max size 25MB each), as raw bytes, paired by position with
                     `colors`; only JPEG, PNG, and WEBP formats are supported. Every
-                    mask must have the same pixel dimensions as the product photo.
-                    White pixels mark the region to recolor; black pixels are
-                    preserved. Alpha-only masks are also supported: opaque pixels
-                    mark the region to recolor and transparent pixels are preserved.
+                    mask must have the same pixel dimensions as the product photo,
+                    and follows the same pixel rules as `mask_asset_identifiers`.
+                    Multipart requests only. Provide exactly one of
+                    `mask_asset_identifiers` or `masks`.
                 colors:
                   type: array
                   items:
                     type: string
                     pattern: ^#[0-9a-fA-F]{6}$
                   description: |
-                    One target color per mask in `masks`, as six-digit hex codes like
-                    `#B3202C`, paired by position. The product's shape, construction,
-                    materials, prints, and logos are always preserved.
+                    One target color per mask in `masks` or
+                    `mask_asset_identifiers`, as six-digit hex codes like `#B3202C`,
+                    paired by position. The product's shape, construction, materials,
+                    prints, and logos are always preserved.
                 aspect_ratio:
                   type: string
                   pattern: ^(1:1|3:4|4:3|16:9|9:16)$
@@ -2198,23 +2227,35 @@ paths:
       operationId: post_material_swap
       summary: Product Material Change
       description: |
-        Re-renders the masked region of the product photo in the material shown
-        by the reference image — matching its color, texture, pattern scale,
-        and orientation — while preserving the product's silhouette,
-        construction, seams, and shading, and keeping every region outside the
-        mask unchanged.
+        Re-renders the masked regions of the product photo in the materials
+        shown by the reference images — matching each one's color, texture,
+        pattern scale, and orientation — while preserving the product's
+        silhouette, construction, seams, and shading, and keeping every region
+        outside the masks unchanged.
 
         The request is processed asynchronously. Poll
         `GET /v1/generations/{generation_id}` with the returned `generation_id`
         until the generation is completed or failed.
 
-        Supply the product photo, the mask marking the region to re-material,
-        and the material reference image as raw bytes (`image`, `mask`, and
-        `material`) via `multipart/form-data`. The mask must have the same
-        pixel dimensions as the product photo. White pixels mark the region to
-        change; black pixels are preserved. Alpha-only masks are also
-        supported: opaque pixels mark the region to change and transparent
-        pixels are preserved.
+        Supply the product photo as either an `AssetIdentifier` reference
+        (`image_asset_identifier`) or the raw image bytes directly (`image`,
+        multipart requests only). Provide exactly one of the two forms;
+        supplying both, or neither, is rejected with a 400.
+
+        Supply the masks marking the regions to re-material as either
+        `AssetIdentifier` references (`mask_asset_identifiers`) or the raw mask
+        bytes directly (`masks`, multipart requests only) — up to 4 regions; a
+        single-region edit is a one-item list. Provide exactly one of the two
+        forms. Every mask must have the same pixel dimensions as the product
+        photo. White pixels mark the region to change; black pixels are
+        preserved. Alpha-only masks are also supported: opaque pixels mark the
+        region to change and transparent pixels are preserved.
+
+        Supply the material references as either `AssetIdentifier` references
+        (`material_asset_identifiers`) or the raw image bytes directly
+        (`materials`, multipart requests only). Provide exactly one of the two
+        forms. Send either one material, which every mask takes, or exactly one
+        material per mask, paired by position.
       tags:
         - edit-workflow
       parameters:
@@ -2262,36 +2303,70 @@ paths:
               schema:
                 description: Any type
       requestBody:
-        description: The product photo, the mask marking the region to change, and the material reference image.
+        description: >-
+          The product photo, one mask or several masks marking the regions to change, and either one shared material
+          reference or one per mask. Use `multipart/form-data` to upload raw bytes directly, or `application/json` (or
+          multipart with `*_asset_identifiers` fields) to reference existing assets instead.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
+                image_asset_identifier:
+                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: |
                     The product photo to edit (max size 25MB), as raw bytes; only
-                    JPEG, PNG, and WEBP formats are supported.
-                mask:
-                  type: string
-                  format: binary
+                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
+                    Provide exactly one of `image_asset_identifier` or `image`.
+                mask_asset_identifiers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AssetIdentifier'
                   description: |
-                    The mask marking the region of the product photo to change (max
-                    size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
-                    supported. The mask must have the same pixel dimensions as the
-                    product photo. White pixels mark the region to change; black pixels
-                    are preserved. Alpha-only masks are also supported: opaque pixels
-                    mark the region to change and transparent pixels are preserved.
-                material:
-                  type: string
-                  format: binary
+                    The masks marking the regions of the product photo to change, by
+                    reference (max 4). Every mask must have the same pixel dimensions
+                    as the product photo. White pixels mark the region to change; black
+                    pixels are preserved. Alpha-only masks are also supported: opaque
+                    pixels mark the region to change and transparent pixels are
+                    preserved. Provide exactly one of `mask_asset_identifiers` or
+                    `masks`.
+                masks:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
                   description: |
-                    The material reference image (max size 25MB), as raw bytes; only
-                    JPEG, PNG, and WEBP formats are supported. Only its material —
+                    The masks marking the regions of the product photo to change (max
+                    4, max size 25MB each), as raw bytes; only JPEG, PNG, and WEBP
+                    formats are supported. Every mask must have the same pixel
+                    dimensions as the product photo, and follows the same pixel rules
+                    as `mask_asset_identifiers`. Multipart requests only. Provide
+                    exactly one of `mask_asset_identifiers` or `masks`.
+                material_asset_identifiers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AssetIdentifier'
+                  description: |
+                    The material reference images, by reference. Only their material —
                     color, texture, pattern scale, and orientation — is applied to the
-                    masked region.
+                    masked regions. Send one material, which every mask takes, or
+                    exactly one per mask paired by position. Provide exactly one of
+                    `material_asset_identifiers` or `materials`.
+                materials:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: |
+                    The material reference images (max size 25MB each), as raw bytes;
+                    only JPEG, PNG, and WEBP formats are supported. Only their material
+                    — color, texture, pattern scale, and orientation — is applied to
+                    the masked regions. Send one material, which every mask takes, or
+                    exactly one per mask paired by position. Multipart requests only.
+                    Provide exactly one of `material_asset_identifiers` or `materials`.
                 aspect_ratio:
                   type: string
                   pattern: ^(1:1|3:4|4:3|16:9|9:16)$
@@ -4397,6 +4472,27 @@ components:
         Image links are available for a limited period of time; if you would like to keep
         the image, you must download it.
       title: LayerizeLogosResponse
+    AssetType:
+      type: string
+      enum:
+        - ASSET
+        - CANVAS_ASSET
+        - LAYERED_ASSET
+        - RESPONSE
+        - UPLOAD
+      title: AssetType
+    AssetIdentifier:
+      type: object
+      properties:
+        asset_type:
+          $ref: '#/components/schemas/AssetType'
+        asset_id:
+          type: string
+      required:
+        - asset_type
+        - asset_id
+      description: An identifier for an ideogram asset.
+      title: AssetIdentifier
     V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution:
       type: string
       enum:
@@ -4629,6 +4725,8 @@ components:
           type: string
           format: date-time
           description: When the dataset was created.
+        cover_asset_identifier:
+          $ref: '#/components/schemas/AssetIdentifier'
       required:
         - dataset_id
         - name
@@ -4710,13 +4808,18 @@ components:
     DatasetUploadSucceededAsset:
       type: object
       properties:
+        asset_identifier:
+          $ref: '#/components/schemas/AssetIdentifier'
         file_name:
           type:
             - string
             - 'null'
           description: >
             Original filename of the uploaded file. For a caption sidecar (.txt or .json) this is the sidecar's
-            filename. A single image therefore yields one entry for the image plus one per caption file.
+            filename, and asset_identifier points to the image the caption was applied to. A single image therefore
+            yields one entry for the image plus one per caption file.
+      required:
+        - asset_identifier
       title: DatasetUploadSucceededAsset
     DatasetAssetFailureReason:
       type: string
