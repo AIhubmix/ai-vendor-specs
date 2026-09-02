@@ -2055,6 +2055,55 @@
 					"data"
 				]
 			},
+			"SignatureVerifyRequest": {
+				"type": "object",
+				"properties": {
+					"nonce": {
+						"type": "string",
+						"description": "调用模型接口时通过 `X-Msh-Request-Nonce` 请求头发送的 nonce，需与原值完全一致。",
+						"minLength": 1,
+						"example": "7d929748-0ae6-41c2-ab5d-a186498ad721"
+					},
+					"timestamp": {
+						"type": "integer",
+						"format": "int64",
+						"description": "模型接口响应头 `Msh-Request-Timestamp` 返回的 Unix 毫秒时间戳。",
+						"minimum": 1,
+						"example": 1786338000123
+					},
+					"model": {
+						"type": "string",
+						"description": "调用模型接口时请求体中的 `model` 值，需与原值完全一致。",
+						"minLength": 1,
+						"example": "kimi-k2.7-code"
+					},
+					"signature": {
+						"type": "string",
+						"description": "模型接口响应头 `Msh-Request-Signature` 返回的签名 token。",
+						"minLength": 1,
+						"example": "reqsigv1_<opaque-token>"
+					}
+				},
+				"required": [
+					"nonce",
+					"timestamp",
+					"model",
+					"signature"
+				]
+			},
+			"SignatureVerifyResponse": {
+				"type": "object",
+				"properties": {
+					"valid": {
+						"type": "boolean",
+						"description": "签名是否有效。`true` 表示该签名由 Kimi API 签发，且与提交的 nonce、timestamp、model 完全匹配；否则为 `false`。",
+						"example": true
+					}
+				},
+				"required": [
+					"valid"
+				]
+			},
 			"FileObject": {
 				"type": "object",
 				"properties": {
@@ -3775,6 +3824,19 @@
 						"bearerAuth": []
 					}
 				],
+				"parameters": [
+					{
+						"name": "X-Msh-Request-Nonce",
+						"in": "header",
+						"required": false,
+						"description": "客户端生成的随机 nonce（推荐使用 UUID v4），携带后即开启请求签名：Kimi API 会在响应头中返回 `Msh-Request-Timestamp` 与 `Msh-Request-Signature`，用于事后证明该请求确实由 Kimi API 处理。只允许一个非空的 Header 值；值不合法时请求照常执行，但不返回上述响应头。详见[校验请求签名](/api/signatures-verify)。",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"example": "7d929748-0ae6-41c2-ab5d-a186498ad721"
+						}
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
@@ -3807,6 +3869,23 @@
 				"responses": {
 					"200": {
 						"description": "聊天补全响应",
+						"headers": {
+							"Msh-Request-Timestamp": {
+								"description": "Kimi API 接受本次请求时的 Unix 毫秒时间戳。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "integer",
+									"format": "int64",
+									"example": 1786338000123
+								}
+							},
+							"Msh-Request-Signature": {
+								"description": "以 `reqsigv1_` 为前缀的签名 token，由 Kimi API 基于 nonce、timestamp 和请求中的 `model` 签发，可通过 `POST /v1/signatures/verify` 校验。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "string",
+									"example": "reqsigv1_<opaque-token>"
+								}
+							}
+						},
 						"content": {
 							"application/json": {
 								"schema": {
@@ -3865,6 +3944,19 @@
 						"bearerAuth": []
 					}
 				],
+				"parameters": [
+					{
+						"name": "X-Msh-Request-Nonce",
+						"in": "header",
+						"required": false,
+						"description": "客户端生成的随机 nonce（推荐使用 UUID v4），携带后即开启请求签名：Kimi API 会在响应头中返回 `Msh-Request-Timestamp` 与 `Msh-Request-Signature`，用于事后证明该请求确实由 Kimi API 处理。只允许一个非空的 Header 值；值不合法时请求照常执行，但不返回上述响应头。详见[校验请求签名](/api/signatures-verify)。",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"example": "7d929748-0ae6-41c2-ab5d-a186498ad721"
+						}
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
@@ -3878,6 +3970,23 @@
 				"responses": {
 					"200": {
 						"description": "响应创建成功",
+						"headers": {
+							"Msh-Request-Timestamp": {
+								"description": "Kimi API 接受本次请求时的 Unix 毫秒时间戳。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "integer",
+									"format": "int64",
+									"example": 1786338000123
+								}
+							},
+							"Msh-Request-Signature": {
+								"description": "以 `reqsigv1_` 为前缀的签名 token，由 Kimi API 基于 nonce、timestamp 和请求中的 `model` 签发，可通过 `POST /v1/signatures/verify` 校验。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "string",
+									"example": "reqsigv1_<opaque-token>"
+								}
+							}
+						},
 						"content": {
 							"application/json": {
 								"schema": {
@@ -3956,6 +4065,19 @@
 						"bearerAuth": []
 					}
 				],
+				"parameters": [
+					{
+						"name": "X-Msh-Request-Nonce",
+						"in": "header",
+						"required": false,
+						"description": "客户端生成的随机 nonce（推荐使用 UUID v4），携带后即开启请求签名：Kimi API 会在响应头中返回 `Msh-Request-Timestamp` 与 `Msh-Request-Signature`，用于事后证明该请求确实由 Kimi API 处理。只允许一个非空的 Header 值；值不合法时请求照常执行，但不返回上述响应头。详见[校验请求签名](/api/signatures-verify)。",
+						"schema": {
+							"type": "string",
+							"minLength": 1,
+							"example": "7d929748-0ae6-41c2-ab5d-a186498ad721"
+						}
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
@@ -3969,6 +4091,23 @@
 				"responses": {
 					"200": {
 						"description": "消息响应",
+						"headers": {
+							"Msh-Request-Timestamp": {
+								"description": "Kimi API 接受本次请求时的 Unix 毫秒时间戳。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "integer",
+									"format": "int64",
+									"example": 1786338000123
+								}
+							},
+							"Msh-Request-Signature": {
+								"description": "以 `reqsigv1_` 为前缀的签名 token，由 Kimi API 基于 nonce、timestamp 和请求中的 `model` 签发，可通过 `POST /v1/signatures/verify` 校验。仅当请求携带合法的 `X-Msh-Request-Nonce` 时返回。",
+								"schema": {
+									"type": "string",
+									"example": "reqsigv1_<opaque-token>"
+								}
+							}
+						},
 						"content": {
 							"application/json": {
 								"schema": {
@@ -4060,6 +4199,91 @@
 					},
 					"401": {
 						"description": "未授权 - API 密钥无效或缺失",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/signatures/verify": {
+			"post": {
+				"summary": "校验请求签名",
+				"description": "校验 Chat Completions、Responses 或 Messages API 响应头中返回的请求签名，用于证明该请求确实由 Kimi API 处理且请求的是指定模型，而非被转发到其他服务。提交调用时使用的 nonce、响应头中的 timestamp、请求的 model 以及 signature，签名与这三个属性完全一致时返回 `valid: true`，否则返回 `valid: false`。",
+				"tags": [
+					"Utilities"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignatureVerifyRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "校验结果",
+						"headers": {
+							"Cache-Control": {
+								"description": "固定为 `no-store`，校验结果不应被缓存。",
+								"schema": {
+									"type": "string",
+									"example": "no-store"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SignatureVerifyResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效或缺少必填字段",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "请求过于频繁",
 						"content": {
 							"application/json": {
 								"schema": {

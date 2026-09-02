@@ -3100,6 +3100,14 @@
             "description": "Preset configuration name (e.g., \"fast\", \"low\", \"medium\", \"high\", \"xhigh\").\nPre-configured model with system prompt and search parameters.\nRequired if model is not provided.\n",
             "type": "string"
           },
+          "profile": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProfileReference"
+              }
+            ],
+            "description": "Saved, versioned configuration to run with. The version is resolved when the request is admitted. Cannot be combined with preset."
+          },
           "previous_response_id": {
             "description": "OpenAI-compatible previous response id for multi-turn response chains. When set, the new response continues from the completed prior response's saved state. The prior response must belong to the same account and have completed.",
             "type": "string"
@@ -3127,7 +3135,7 @@
           },
           "skills": {
             "type": "array",
-            "description": "Built-in and request-scoped inline skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
+            "description": "Built-in, request-scoped inline, and organization-owned custom skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
             "maxItems": 16,
             "items": { "$ref": "#/components/schemas/Skill" }
           },
@@ -3935,6 +3943,32 @@
         "type": "object",
         "title": "ErrorInfo"
       },
+      "ProfileReference": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "custom"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "description": "Version to bind to, or \"latest\". Omitted means \"latest\".",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "type": "object",
+        "title": "ProfileReference"
+      },
       "ReasoningConfig": {
         "properties": {
           "effort": {
@@ -4283,13 +4317,15 @@
         "title": "Skill",
         "oneOf": [
           { "$ref": "#/components/schemas/BuiltinSkill" },
-          { "$ref": "#/components/schemas/InlineSkill" }
+          { "$ref": "#/components/schemas/InlineSkill" },
+          { "$ref": "#/components/schemas/CustomSkill" }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
             "builtin": "#/components/schemas/BuiltinSkill",
-            "inline": "#/components/schemas/InlineSkill"
+            "inline": "#/components/schemas/InlineSkill",
+            "custom": "#/components/schemas/CustomSkill"
           }
         }
       },
@@ -4332,6 +4368,25 @@
             "minLength": 1,
             "maxLength": 65536,
             "description": "Instructions returned by load_skill, limited to 65,536 UTF-8 bytes per skill and 262,144 bytes across the request."
+          }
+        }
+      },
+      "CustomSkill": {
+        "title": "CustomSkill",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "id"],
+        "properties": {
+          "type": { "type": "string", "enum": ["custom"] },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Identifier of an organization-owned skill stored in Perplexity, in the form skill_<id>."
+          },
+          "version": {
+            "type": "string",
+            "description": "Revision to load, or \"latest\". Omitted means \"latest\"."
           }
         }
       },
