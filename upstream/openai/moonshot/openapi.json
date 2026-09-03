@@ -1109,6 +1109,17 @@
 					"tool_choice": {
 						"$ref": "#/components/schemas/ResponsesToolChoice"
 					},
+					"include": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"web_search_call.results",
+								"web_search_call.action.sources"
+							]
+						},
+						"description": "要额外返回的字段，仅在使用 `web_search` 工具时有效。`web_search_call.action.sources` 返回搜索命中的网页来源；`web_search_call.results` 返回图片搜索结果。"
+					},
 					"prompt_cache_key": {
 						"type": "string",
 						"description": "上下文缓存标识，同一会话使用相同取值可提升缓存命中率。"
@@ -1133,6 +1144,15 @@
 					},
 					{
 						"$ref": "#/components/schemas/ResponsesFunctionCallOutputItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesCustomToolCallItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesCustomToolCallOutputItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesWebSearchCallItem"
 					},
 					{
 						"$ref": "#/components/schemas/ResponsesAdditionalToolsItem"
@@ -1337,6 +1357,130 @@
 					}
 				}
 			},
+			"ResponsesCustomToolCallItem": {
+				"type": "object",
+				"title": "自定义工具调用",
+				"description": "回放一次自定义工具调用。",
+				"required": [
+					"type",
+					"call_id",
+					"name",
+					"input"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"custom_tool_call"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"call_id": {
+						"type": "string",
+						"description": "与对应 `custom_tool_call_output` 配对的调用 ID。"
+					},
+					"name": {
+						"type": "string"
+					},
+					"namespace": {
+						"type": "string",
+						"description": "工具所属的命名空间，调用命名空间工具时返回。"
+					},
+					"input": {
+						"type": "string",
+						"description": "模型生成的自由文本输入。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesCustomToolCallOutputItem": {
+				"type": "object",
+				"title": "自定义工具调用结果",
+				"description": "自定义工具调用的执行结果。",
+				"required": [
+					"type",
+					"call_id",
+					"output"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"custom_tool_call_output"
+						]
+					},
+					"call_id": {
+						"type": "string",
+						"description": "与对应 `custom_tool_call` 相同的调用 ID。"
+					},
+					"output": {
+						"description": "工具返回的内容。",
+						"oneOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/ResponsesInputContentPart"
+								}
+							}
+						]
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesWebSearchCallItem": {
+				"type": "object",
+				"title": "联网搜索调用",
+				"description": "回放上一轮的联网搜索调用。仅用于保留历史，转换时会被忽略；搜索结果已包含在其后的 assistant 消息中。",
+				"required": [
+					"type"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"web_search_call"
+						]
+					},
+					"id": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"completed"
+						]
+					},
+					"action": {
+						"type": "object",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"search"
+								]
+							},
+							"query": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			},
 			"ResponsesAdditionalToolsItem": {
 				"type": "object",
 				"title": "动态工具",
@@ -1444,20 +1588,28 @@
 				]
 			},
 			"ResponsesTool": {
-				"description": "工具定义，按 `type` 区分。",
+				"description": "工具定义，按 `type` 区分。支持 `function`、`custom`（仅 `apply_patch`）、`namespace` 与 `web_search`，其他工具类型不支持。",
 				"oneOf": [
 					{
 						"$ref": "#/components/schemas/ResponsesFunctionTool"
 					},
 					{
+						"$ref": "#/components/schemas/ResponsesCustomTool"
+					},
+					{
 						"$ref": "#/components/schemas/ResponsesNamespaceTool"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesWebSearchTool"
 					}
 				],
 				"discriminator": {
 					"propertyName": "type",
 					"mapping": {
 						"function": "#/components/schemas/ResponsesFunctionTool",
-						"namespace": "#/components/schemas/ResponsesNamespaceTool"
+						"custom": "#/components/schemas/ResponsesCustomTool",
+						"namespace": "#/components/schemas/ResponsesNamespaceTool",
+						"web_search": "#/components/schemas/ResponsesWebSearchTool"
 					}
 				}
 			},
@@ -1493,10 +1645,65 @@
 					}
 				}
 			},
+			"ResponsesCustomTool": {
+				"type": "object",
+				"title": "自定义工具",
+				"description": "接收自由文本输入的自定义工具。当前仅支持名为 `apply_patch` 的自定义工具，且必须提供 `grammar` + `lark` 格式定义；模型调用时在 output 中返回 `custom_tool_call` item。",
+				"required": [
+					"type",
+					"name",
+					"format"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"custom"
+						]
+					},
+					"name": {
+						"type": "string",
+						"enum": [
+							"apply_patch"
+						],
+						"description": "工具名称，当前仅支持 `apply_patch`。"
+					},
+					"description": {
+						"type": "string"
+					},
+					"format": {
+						"type": "object",
+						"description": "输入格式约束。当前仅支持 `grammar` 类型与 `lark` 语法。",
+						"required": [
+							"type",
+							"syntax",
+							"definition"
+						],
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"grammar"
+								]
+							},
+							"syntax": {
+								"type": "string",
+								"enum": [
+									"lark"
+								]
+							},
+							"definition": {
+								"type": "string",
+								"description": "Lark 语法定义。"
+							}
+						}
+					}
+				}
+			},
 			"ResponsesNamespaceTool": {
 				"type": "object",
 				"title": "命名空间工具",
-				"description": "把一组函数工具收纳到同一个命名空间下。",
+				"description": "把一组函数工具或自定义工具收纳到同一个命名空间下。",
 				"required": [
 					"type",
 					"name",
@@ -1519,7 +1726,76 @@
 					"tools": {
 						"type": "array",
 						"items": {
-							"$ref": "#/components/schemas/ResponsesFunctionTool"
+							"oneOf": [
+								{
+									"$ref": "#/components/schemas/ResponsesFunctionTool"
+								},
+								{
+									"$ref": "#/components/schemas/ResponsesCustomTool"
+								}
+							]
+						}
+					}
+				}
+			},
+			"ResponsesWebSearchTool": {
+				"type": "object",
+				"title": "联网搜索工具",
+				"description": "由服务端执行的联网搜索工具。加入后服务端会先根据输入判断是否需要搜索；需要时执行搜索并把结果注入模型上下文，同时在 output 中返回一个 `web_search_call` item。每个请求最多包含一个 `web_search` 工具。`search_context_size`、`blocked_domains`、`filters.blocked_domains` 不支持，传入会返回 `invalid_request_error`；`user_location`、`external_web_access`、`indexed_web_access` 会被忽略。",
+				"required": [
+					"type"
+				],
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"web_search"
+						]
+					},
+					"filters": {
+						"type": "object",
+						"description": "搜索范围过滤。",
+						"properties": {
+							"allowed_domains": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								},
+								"maxItems": 100,
+								"description": "仅在这些域名内搜索，最多 100 个。"
+							}
+						}
+					},
+					"search_content_types": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"text",
+								"image"
+							]
+						},
+						"default": [
+							"text"
+						],
+						"description": "搜索结果类型，默认仅 `text`。包含 `image` 时会额外执行图片搜索。"
+					},
+					"image_settings": {
+						"type": "object",
+						"description": "图片搜索设置，仅在 `search_content_types` 包含 `image` 时生效。",
+						"properties": {
+							"max_results": {
+								"type": "integer",
+								"minimum": 1,
+								"maximum": 10,
+								"default": 3,
+								"description": "最多返回的图片数量。"
+							},
+							"caption": {
+								"type": "boolean",
+								"default": false,
+								"description": "是否为图片生成说明文字。"
+							}
 						}
 					}
 				}
@@ -1573,7 +1849,7 @@
 					},
 					"output": {
 						"type": "array",
-						"description": "输出 item 数组，顺序为 reasoning、message、工具调用。",
+						"description": "输出 item 数组，顺序为 web_search_call（如有）、reasoning、message、工具调用。",
 						"items": {
 							"$ref": "#/components/schemas/ResponsesOutputItem"
 						}
@@ -1727,6 +2003,12 @@
 					},
 					{
 						"$ref": "#/components/schemas/ResponsesOutputFunctionCallItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesOutputCustomToolCallItem"
+					},
+					{
+						"$ref": "#/components/schemas/ResponsesOutputWebSearchCallItem"
 					}
 				],
 				"discriminator": {
@@ -1734,7 +2016,9 @@
 					"mapping": {
 						"reasoning": "#/components/schemas/ResponsesOutputReasoningItem",
 						"message": "#/components/schemas/ResponsesOutputMessageItem",
-						"function_call": "#/components/schemas/ResponsesOutputFunctionCallItem"
+						"function_call": "#/components/schemas/ResponsesOutputFunctionCallItem",
+						"custom_tool_call": "#/components/schemas/ResponsesOutputCustomToolCallItem",
+						"web_search_call": "#/components/schemas/ResponsesOutputWebSearchCallItem"
 					}
 				}
 			},
@@ -1877,6 +2161,134 @@
 					}
 				}
 			},
+			"ResponsesOutputCustomToolCallItem": {
+				"type": "object",
+				"title": "自定义工具调用",
+				"description": "模型发起的自定义工具调用。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"custom_tool_call"
+						]
+					},
+					"id": {
+						"type": "string",
+						"example": "ctc_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"call_id": {
+						"type": "string",
+						"description": "回传结果时在 `custom_tool_call_output` 中使用该值。"
+					},
+					"name": {
+						"type": "string"
+					},
+					"namespace": {
+						"type": "string",
+						"description": "调用命名空间工具时返回。"
+					},
+					"input": {
+						"type": "string",
+						"description": "模型生成的自由文本输入。"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed"
+						]
+					}
+				}
+			},
+			"ResponsesOutputWebSearchCallItem": {
+				"type": "object",
+				"title": "联网搜索调用",
+				"description": "服务端执行的联网搜索调用。仅在请求包含 `web_search` 工具且服务端判断需要搜索时返回，位于 output 数组最前面。",
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"web_search_call"
+						]
+					},
+					"id": {
+						"type": "string",
+						"example": "ws_68f0c1c2d3e4f5a6b7c8d9e0"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"in_progress",
+							"completed"
+						]
+					},
+					"action": {
+						"type": "object",
+						"description": "本次搜索的动作。",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"search"
+								]
+							},
+							"query": {
+								"type": "string",
+								"description": "实际使用的搜索关键词。"
+							},
+							"sources": {
+								"type": "array",
+								"description": "搜索命中的网页来源。仅在 `include` 包含 `web_search_call.action.sources` 时返回。",
+								"items": {
+									"type": "object",
+									"properties": {
+										"type": {
+											"type": "string",
+											"enum": [
+												"url"
+											]
+										},
+										"url": {
+											"type": "string"
+										},
+										"title": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					},
+					"results": {
+						"type": "array",
+						"description": "图片搜索结果。仅在 `include` 包含 `web_search_call.results` 且 `search_content_types` 包含 `image` 时返回。",
+						"items": {
+							"type": "object",
+							"properties": {
+								"type": {
+									"type": "string",
+									"enum": [
+										"image_result"
+									]
+								},
+								"image_url": {
+									"type": "string"
+								},
+								"thumbnail_url": {
+									"type": "string"
+								},
+								"source_website_url": {
+									"type": "string"
+								},
+								"caption": {
+									"type": "string",
+									"description": "图片说明文字，仅在开启 `image_settings.caption` 时返回。"
+								}
+							}
+						}
+					}
+				}
+			},
 			"ResponsesUsage": {
 				"type": "object",
 				"description": "本次响应的 Token 用量。",
@@ -1942,6 +2354,11 @@
 							"response.reasoning_summary_text.done",
 							"response.function_call_arguments.delta",
 							"response.function_call_arguments.done",
+							"response.custom_tool_call_input.delta",
+							"response.custom_tool_call_input.done",
+							"response.web_search_call.in_progress",
+							"response.web_search_call.searching",
+							"response.web_search_call.completed",
 							"response.completed",
 							"response.incomplete",
 							"response.failed",
