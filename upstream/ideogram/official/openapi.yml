@@ -5,7 +5,7 @@ info:
 paths:
   /v1/ideogram-v4/generate:
     post:
-      operationId: post_generate_image_v4
+      operationId: generate_post_generate_image_v4
       summary: Generate with Ideogram 4.0
       description: >
         Generates images synchronously using the Ideogram 4.0 model.
@@ -91,7 +91,7 @@ paths:
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
   /v1/ideogram-v4/async/generate:
     post:
-      operationId: post_generate_image_v4_async
+      operationId: generate_post_generate_image_v4_async
       summary: Generate with Ideogram 4.0 asynchronously
       description: |
         Accepts an Ideogram 4.0 generation request for asynchronous processing and
@@ -184,7 +184,7 @@ paths:
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
   /v1/ideogram-v4/generate-transparent:
     post:
-      operationId: post_generate_image_v4_transparent
+      operationId: generate_post_generate_image_v4_transparent
       summary: Generate with Ideogram 4.0 (Transparent Background)
       description: |
         Generates images with a transparent background synchronously using the
@@ -282,7 +282,7 @@ paths:
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
   /v1/ideogram-v4/async/generate-transparent:
     post:
-      operationId: post_generate_image_v4_transparent_async
+      operationId: generate_post_generate_image_v4_transparent_async
       summary: Generate with Ideogram 4.0 (Transparent Background) asynchronously
       description: |
         Accepts an Ideogram 4.0 transparent-background generation request for
@@ -382,7 +382,7 @@ paths:
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
   /v1/text-to-image/p-image-ideogram:
     post:
-      operationId: post_generate_image_p_image_ideogram
+      operationId: generate_post_generate_image_p_image_ideogram
       summary: Generate with P-Image Ideogram
       description: >
         Generates images synchronously using P-Image Ideogram. `quality` selects
@@ -498,7 +498,7 @@ paths:
                 - prompt
   /v1/async/text-to-image/p-image-ideogram:
     post:
-      operationId: post_generate_image_p_image_ideogram_async
+      operationId: generate_post_generate_image_p_image_ideogram_async
       summary: Generate with P-Image Ideogram asynchronously
       description: |
         Accepts a P-Image Ideogram generation request for asynchronous processing
@@ -618,7 +618,7 @@ paths:
                 - prompt
   /v1/ideogram-v3/generate:
     post:
-      operationId: post_generate_image_v3
+      operationId: generate_post_generate_image_v3
       summary: Generate with Ideogram 3.0
       description: >
         Generates images synchronously based on a given prompt and optional parameters using the Ideogram 3.0 model.
@@ -763,7 +763,7 @@ paths:
                 - prompt
   /v1/ideogram-v3/generate-transparent:
     post:
-      operationId: post_generate_image_v3_transparent
+      operationId: generate_post_generate_image_v3_transparent
       summary: Generate with Ideogram 3.0 (Transparent Background)
       description: >
         Generates images with transparent background synchronously based on a given prompt and optional parameters using
@@ -877,7 +877,7 @@ paths:
                 - prompt
   /v1/generations/{generation_id}:
     get:
-      operationId: get_generation
+      operationId: generate_get_generation
       summary: Poll a generation
       description: >-
         Retrieves the current status of an asynchronous generation, and its results once complete. Use the
@@ -933,7 +933,7 @@ paths:
                 description: Any type
   /v1/edit:
     post:
-      operationId: post_v1_edit_image
+      operationId: generate_post_v1_edit_image
       summary: Edit images with a prompt
       description: >
         Edit one or more images using a text prompt. Provide images via file upload
@@ -1044,7 +1044,7 @@ paths:
                 - prompt
   /v1/ideogram-v4/remix:
     post:
-      operationId: post_remix_image_v4
+      operationId: generate_post_remix_image_v4
       summary: Remix with Ideogram 4.0
       description: >
         Remix an image synchronously using the Ideogram 4.0 model with an initial image and a prompt.
@@ -1137,7 +1137,7 @@ paths:
                 - text_prompt
   /v1/ideogram-v3/inpaint:
     post:
-      operationId: post_inpaint_image_v3
+      operationId: generate_post_inpaint_image_v3
       summary: Inpaint with Ideogram 3.0
       description: >
         Inpaint a given image synchronously using the provided mask with Ideogram 3.0. The mask indicates which part of
@@ -1264,7 +1264,7 @@ paths:
                 - prompt
   /v1/ideogram-v3/remix:
     post:
-      operationId: post_remix_image_v3
+      operationId: generate_post_remix_image_v3
       summary: Remix with Ideogram 3.0
       description: >
         Remix provided images synchronously based on a given prompt and optional parameters with the Ideogram 3.0 model.
@@ -1402,7 +1402,7 @@ paths:
                 - prompt
   /v1/ideogram-v4/describe:
     post:
-      operationId: post_describe_v4
+      operationId: vision_post_describe_v4
       summary: Describe with Ideogram 4.0
       description: |
         Describe an image with Ideogram 4.0 and return a structured
@@ -1473,7 +1473,7 @@ paths:
                 - image_file
   /v1/ideogram-v4/magic-prompt:
     post:
-      operationId: post_magic_prompt_v4
+      operationId: prompt_post_magic_prompt_v4
       summary: Generate a Magic Prompt with Ideogram 4.0
       description: |
         Transforms a basic prompt into an enhanced Ideogram 4.0 magic prompt.
@@ -1528,7 +1528,7 @@ paths:
               $ref: '#/components/schemas/MagicPromptV4Request'
   /v1/remove-background:
     post:
-      operationId: post_remove_background
+      operationId: generate_post_remove_background
       summary: Remove Background
       description: |
         Remove the background of a given image synchronously. The foreground subject
@@ -1593,7 +1593,7 @@ paths:
                 - image
   /v1/ideogram-v3/replace-background:
     post:
-      operationId: post_replace_background_v3
+      operationId: generate_post_replace_background_v3
       summary: Replace Background with Ideogram 3.0
       description: >
         Replace the background of a given image synchronously using a prompt with Ideogram 3.0. The foreground subject
@@ -1689,7 +1689,7 @@ paths:
                 - prompt
   /v1/remove-object:
     post:
-      operationId: post_remove_object
+      operationId: generate_post_remove_object
       summary: Remove Object
       description: >-
         Remove a masked object from a given image synchronously. Supply the image and a binary mask marking the region
@@ -1787,7 +1787,7 @@ paths:
                 - mask
   /v1/layerize-logos:
     post:
-      operationId: post_layerize_logos
+      operationId: generate_post_layerize_logos
       summary: Detect and remove reference logos from an image
       description: |
         Detects caller-supplied reference logos in a flat design image, inpaints
@@ -1847,7 +1847,7 @@ paths:
                 - reference_images
   /v1/ideogram-v3/reframe:
     post:
-      operationId: post_reframe_image_v3
+      operationId: generate_post_reframe_image_v3
       summary: Reframe with Ideogram 3.0
       description: >
         Reframe a square image to a chosen resolution with Ideogram 3.0. The supported image formats include JPEG, PNG,
@@ -1938,7 +1938,7 @@ paths:
                 - resolution
   /v1/async/ad-resizer:
     post:
-      operationId: post_resize_image_async
+      operationId: generate_post_resize_image_async
       summary: Advertisement Resizer
       description: |
         Resizes an advertisement image to the exact target size. Supply `prompt`
@@ -2069,7 +2069,7 @@ paths:
                 - resolution
   /v2/tool/colorways:
     post:
-      operationId: post_colorways
+      operationId: editWorkflow_post_colorways
       summary: Product Color Change
       description: |
         Recolors the masked regions of the product photo, each to its own
@@ -2224,7 +2224,7 @@ paths:
                 - colors
   /v2/tool/material-swap:
     post:
-      operationId: post_material_swap
+      operationId: editWorkflow_post_material_swap
       summary: Product Material Change
       description: |
         Re-renders the masked regions of the product photo in the materials
@@ -2394,7 +2394,7 @@ paths:
                     private and loopback hosts and the cloud metadata service are rejected.
   /upscale:
     post:
-      operationId: post_upscale_image
+      operationId: generate_post_upscale_image
       summary: Upscale
       description: >
         Upscale provided images synchronously with an optional prompt.
@@ -2463,7 +2463,7 @@ paths:
                 - image_file
   /v1/ideogram-v3/layerize-text:
     post:
-      operationId: post_layerize_text_v3
+      operationId: generate_post_layerize_text_v3
       summary: Layerize Text
       description: >
         Analyzes an image to detect text regions, then returns each detected text block with its position, content, font
@@ -2537,7 +2537,7 @@ paths:
                 - image
   /datasets:
     get:
-      operationId: list_datasets
+      operationId: datasets_list_datasets
       summary: List datasets
       description: >
         Lists datasets for the authenticated user, most recently updated first. Supports an optional case-insensitive
@@ -2573,7 +2573,7 @@ paths:
               schema:
                 description: Any type
     post:
-      operationId: create_dataset
+      operationId: datasets_create_dataset
       summary: Create a new dataset
       description: Creates a new dataset
       tags:
@@ -2612,7 +2612,7 @@ paths:
               $ref: '#/components/schemas/CreateDatasetRequest'
   /datasets/{dataset_id}:
     get:
-      operationId: get_dataset
+      operationId: datasets_get_dataset
       summary: Get a dataset
       description: |
         Returns a dataset by ID, including the total number of files and a list of each file's name and size in bytes.
@@ -2651,7 +2651,7 @@ paths:
                 description: Any type
   /datasets/{dataset_id}/upload_assets:
     post:
-      operationId: upload_dataset_assets
+      operationId: datasets_upload_dataset_assets
       summary: Upload assets to a dataset
       description: >
         Upload image assets to a dataset for model training. Accepts individual images (JPEG, PNG, WebP), optional .txt
@@ -2715,7 +2715,7 @@ paths:
                 - files
   /v1/ideogram-v3/train-model:
     post:
-      operationId: train_model_v3
+      operationId: models_train_model_v3
       summary: Train a custom Ideogram v3 model
       description: >
         Start training a custom Ideogram v3 model from a dataset using default hyperparameters. The dataset must contain
@@ -2762,7 +2762,7 @@ paths:
               $ref: '#/components/schemas/TrainModelV3Request'
   /models:
     get:
-      operationId: list_custom_models
+      operationId: models_list_custom_models
       summary: List models
       description: >
         Lists custom models for the authenticated user. Use the `scope` parameter to control which models are returned.
@@ -2812,7 +2812,7 @@ paths:
                 description: Any type
   /models/{model_id}:
     get:
-      operationId: get_custom_model
+      operationId: models_get_custom_model
       summary: Get model details
       description: >
         Get detailed information about a specific custom model. The user must either own the model or the model must be
@@ -2853,7 +2853,7 @@ paths:
                 description: Any type
   /generate:
     post:
-      operationId: post_generate_image
+      operationId: generate_post_generate_image
       summary: Generate (legacy)
       description: >
         Generates images synchronously based on a given prompt and optional parameters.
@@ -2909,7 +2909,7 @@ paths:
               $ref: '#/components/schemas/GenerateImageRequest'
   /edit:
     post:
-      operationId: post_edit_image
+      operationId: generate_post_edit_image
       summary: Edit (legacy)
       description: >
         Edit a given image synchronously using the provided mask. The mask indicates which part of the image
@@ -3001,7 +3001,7 @@ paths:
                 - model
   /remix:
     post:
-      operationId: post_remix_image
+      operationId: generate_post_remix_image
       summary: Remix (legacy)
       description: >
         Remix provided images synchronously based on a given prompt and optional parameters.
@@ -3075,7 +3075,7 @@ paths:
                 - image_file
   /reframe:
     post:
-      operationId: post_reframe_image
+      operationId: generate_post_reframe_image
       summary: Reframe (legacy)
       description: >
         Reframe a square image to a chosen resolution. The supported image formats include JPEG, PNG, and WebP.
@@ -3153,7 +3153,7 @@ paths:
                 - model
   /describe:
     post:
-      operationId: post_describe
+      operationId: vision_post_describe
       summary: Describe
       description: |
         Describe an image.
@@ -3210,7 +3210,7 @@ paths:
                 - image_file
   /v1/ideogram-v3/edit:
     post:
-      operationId: post_edit_image_v3
+      operationId: generate_post_edit_image_v3
       summary: Edit with Ideogram 3.0 (legacy)
       description: >
         Legacy: use [`POST /v1/ideogram-v3/inpaint`](/api-reference/api-reference/inpaint-v3) instead. This endpoint
