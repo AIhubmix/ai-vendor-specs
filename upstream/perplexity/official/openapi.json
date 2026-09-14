@@ -1188,6 +1188,549 @@
           }
         }
       }
+    },
+    "/v1/skills": {
+      "get": {
+        "operationId": "listSkills",
+        "summary": "List skills",
+        "description": "Lists the skills in your Project, newest first.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/PageToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      },
+      "post": {
+        "operationId": "createSkill",
+        "summary": "Create a skill",
+        "description": "Creates a skill from a zip bundle. The bundle must contain a `SKILL.md`\nthat provides the skill name and description; those fields are read from\nthe bundle, not from the request.\n",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SkillBundle"
+        },
+        "responses": {
+          "201": {
+            "description": "The created skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedSkill"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Skill limit reached for this Project; delete a skill to create another",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bundle exceeds the size limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or upload concurrency limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/skills/{skill_id}": {
+      "get": {
+        "operationId": "getSkill",
+        "summary": "Get a skill",
+        "description": "Returns a skill. Without `revision`, returns the active revision.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SkillId"
+          },
+          {
+            "$ref": "#/components/parameters/Revision"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedSkill"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Skill or revision not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      },
+      "put": {
+        "operationId": "updateSkill",
+        "summary": "Add a skill revision",
+        "description": "Uploads a new zip bundle as a new revision of an existing skill. Pass the\nrevision you expect to replace as the required `expected_revision`; the\nrequest fails with `409` if the skill has already moved past it, so the\nupdate cannot race a concurrent write. Name and description are re-read\nfrom the new bundle.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SkillId"
+          },
+          {
+            "$ref": "#/components/parameters/ExpectedRevisionRequired"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SkillBundle"
+        },
+        "responses": {
+          "200": {
+            "description": "The updated skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedSkill"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Skill not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision conflict; the skill moved past expected_revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Bundle exceeds the size limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or upload concurrency limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteSkill",
+        "summary": "Delete a skill",
+        "description": "Deletes a skill. Pass the current revision as `expected_revision`; the\ndelete fails with `409` if the skill has a newer revision, so a delete\nnever races a concurrent update.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SkillId"
+          },
+          {
+            "$ref": "#/components/parameters/ExpectedRevisionRequired"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Skill deleted"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Skill not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision conflict; the skill moved past expected_revision",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/skills/{skill_id}/revisions": {
+      "get": {
+        "operationId": "listSkillRevisions",
+        "summary": "List skill revisions",
+        "description": "Lists the revisions of a skill, newest first.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SkillId"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/PageToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The skill revisions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillRevisionList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Skill not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/v1/skills/{skill_id}/download": {
+      "get": {
+        "operationId": "downloadSkill",
+        "summary": "Get a skill download URL",
+        "description": "Returns a short-lived URL to download the skill bundle as a zip. Without\n`revision`, returns the active revision.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SkillId"
+          },
+          {
+            "$ref": "#/components/parameters/Revision"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The skill bundle download",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillDownload"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Skill or revision not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Skill service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Skills"
+        ]
+      }
     }
   },
   "components": {
@@ -3149,7 +3692,9 @@
             "type": "array",
             "description": "Built-in, request-scoped inline, and organization-owned custom skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
             "maxItems": 16,
-            "items": { "$ref": "#/components/schemas/Skill" }
+            "items": {
+              "$ref": "#/components/schemas/Skill"
+            }
           },
           "temperature": {
             "description": "OpenAI-compatible sampling temperature forwarded to generation.",
@@ -4328,9 +4873,15 @@
       "Skill": {
         "title": "Skill",
         "oneOf": [
-          { "$ref": "#/components/schemas/BuiltinSkill" },
-          { "$ref": "#/components/schemas/InlineSkill" },
-          { "$ref": "#/components/schemas/CustomSkill" }
+          {
+            "$ref": "#/components/schemas/BuiltinSkill"
+          },
+          {
+            "$ref": "#/components/schemas/InlineSkill"
+          },
+          {
+            "$ref": "#/components/schemas/CustomSkill"
+          }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -4345,12 +4896,26 @@
         "title": "BuiltinSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name"],
+        "required": [
+          "type",
+          "name"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["builtin"] },
+          "type": {
+            "type": "string",
+            "enum": [
+              "builtin"
+            ]
+          },
           "name": {
             "type": "string",
-            "enum": ["office", "office/docx", "office/pdf", "office/pptx", "office/xlsx"],
+            "enum": [
+              "office",
+              "office/docx",
+              "office/pdf",
+              "office/pptx",
+              "office/xlsx"
+            ],
             "description": "Built-in skill to make available to the model. office is the full Office bundle (enables all four leaves). office/docx, office/pdf, office/pptx, office/xlsx each create polished documents of that type from scratch, with structural validation and visual QA."
           }
         }
@@ -4359,9 +4924,19 @@
         "title": "InlineSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name", "description", "instructions"],
+        "required": [
+          "type",
+          "name",
+          "description",
+          "instructions"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["inline"] },
+          "type": {
+            "type": "string",
+            "enum": [
+              "inline"
+            ]
+          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -4387,9 +4962,17 @@
         "title": "CustomSkill",
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "id"],
+        "required": [
+          "type",
+          "id"
+        ],
         "properties": {
-          "type": { "type": "string", "enum": ["custom"] },
+          "type": {
+            "type": "string",
+            "enum": [
+              "custom"
+            ]
+          },
           "id": {
             "type": "string",
             "minLength": 1,
@@ -5999,12 +6582,256 @@
         ],
         "type": "object",
         "title": "ConnectorTool"
+      },
+      "SkillSummary": {
+        "type": "object",
+        "required": [
+          "skill_id"
+        ],
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "description": "Skill identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Skill name, read from the bundle's `SKILL.md`"
+          },
+          "revision": {
+            "type": "string",
+            "description": "Opaque revision token of the skill; pass as expected_revision to update or delete"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SkillList": {
+        "type": "object",
+        "required": [
+          "skills"
+        ],
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillSummary"
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "description": "Opaque token for the next page; omitted on the last page"
+          }
+        }
+      },
+      "SkillRevision": {
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "properties": {
+          "revision": {
+            "type": "string",
+            "description": "Opaque revision token"
+          },
+          "name": {
+            "type": "string",
+            "description": "Skill name at this revision"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SkillRevisionList": {
+        "type": "object",
+        "required": [
+          "revisions"
+        ],
+        "properties": {
+          "revisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillRevision"
+            }
+          },
+          "next_page_token": {
+            "type": "string",
+            "description": "Opaque token for the next page; omitted on the last page"
+          }
+        }
+      },
+      "SkillDownload": {
+        "type": "object",
+        "required": [
+          "download_url"
+        ],
+        "properties": {
+          "revision": {
+            "type": "string",
+            "description": "Opaque token of the downloaded revision"
+          },
+          "name": {
+            "type": "string",
+            "description": "Skill name at this revision"
+          },
+          "download_url": {
+            "type": "string",
+            "description": "Short-lived URL to download the zip bundle"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "type",
+              "code"
+            ],
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message"
+              },
+              "type": {
+                "type": "string",
+                "description": "Error type identifier"
+              },
+              "code": {
+                "type": "integer",
+                "description": "HTTP status code"
+              },
+              "param": {
+                "type": "string",
+                "description": "Parameter that caused the error",
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "ManagedSkill": {
+        "type": "object",
+        "required": [
+          "skill_id"
+        ],
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "description": "Skill identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Skill name, read from the bundle's `SKILL.md`"
+          },
+          "description": {
+            "type": "string",
+            "description": "Skill description, read from the bundle's `SKILL.md`"
+          },
+          "revision": {
+            "type": "string",
+            "description": "Opaque token of the revision returned in this response; the latest revision, or the specific one requested via `revision`"
+          },
+          "latest_revision": {
+            "type": "string",
+            "description": "Opaque token of the skill's current latest revision; pass as expected_revision to update or delete"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       }
     },
     "securitySchemes": {
       "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "SkillId": {
+        "name": "skill_id",
+        "in": "path",
+        "required": true,
+        "description": "Skill identifier returned by create or `GET /v1/skills`",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Revision": {
+        "name": "revision",
+        "in": "query",
+        "required": false,
+        "description": "Opaque revision token; when omitted, the active revision is used",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ExpectedRevisionRequired": {
+        "name": "expected_revision",
+        "in": "query",
+        "required": true,
+        "description": "Opaque revision token the skill must currently be at. The write applies\nonly if it matches, so it cannot race a concurrent update.\n",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Maximum items to return, 1 to 200; defaults to 50",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      "PageToken": {
+        "name": "page_token",
+        "in": "query",
+        "required": false,
+        "description": "Opaque token from a previous response's `next_page_token`",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "requestBodies": {
+      "SkillBundle": {
+        "required": true,
+        "description": "The skill bundle as a zip archive",
+        "content": {
+          "multipart/form-data": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "file"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "The skill bundle, a zip archive containing `SKILL.md`"
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
