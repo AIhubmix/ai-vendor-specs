@@ -2824,6 +2824,276 @@
 					"data"
 				]
 			},
+			"ToolsSearchRequest": {
+				"type": "object",
+				"properties": {
+					"text_query": {
+						"type": "string",
+						"description": "搜索查询文本，不能为空。"
+					},
+					"timeout_seconds": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 60,
+						"description": "搜索超时时间，单位秒，取值范围 1-60。不传则不设置单独超时。"
+					},
+					"limit": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 20,
+						"default": 5,
+						"description": "最多返回结果数，默认 5，取值范围 1-20。"
+					},
+					"include_content": {
+						"type": "boolean",
+						"default": false,
+						"description": "是否在结果项 text 中返回网页正文，默认 false。"
+					}
+				},
+				"required": [
+					"text_query"
+				]
+			},
+			"ToolsSearchResponse": {
+				"type": "object",
+				"properties": {
+					"search_results": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ToolsSearchResult"
+						},
+						"description": "搜索结果列表；无结果时为空数组。"
+					}
+				},
+				"required": [
+					"search_results"
+				]
+			},
+			"ToolsSearchResult": {
+				"type": "object",
+				"properties": {
+					"authority": {
+						"type": "string",
+						"description": "来源权威性等级。"
+					},
+					"date": {
+						"type": "string",
+						"description": "搜索结果日期。"
+					},
+					"icon": {
+						"type": "string",
+						"description": "站点图标 URL。"
+					},
+					"mime": {
+						"type": "string",
+						"description": "内容 MIME 类型。"
+					},
+					"site_name": {
+						"type": "string",
+						"description": "站点名称。"
+					},
+					"snippet": {
+						"type": "string",
+						"description": "搜索结果摘要。"
+					},
+					"text": {
+						"type": "string",
+						"description": "网页正文内容；include_content=true 时返回，为 false 时为空字符串。"
+					},
+					"title": {
+						"type": "string",
+						"description": "搜索结果标题。"
+					},
+					"url": {
+						"type": "string",
+						"description": "搜索结果链接。"
+					}
+				},
+				"required": [
+					"authority",
+					"date",
+					"icon",
+					"mime",
+					"site_name",
+					"snippet",
+					"text",
+					"title",
+					"url"
+				]
+			},
+			"ToolsSearchProRequest": {
+				"type": "object",
+				"properties": {
+					"text_query": {
+						"type": "string",
+						"description": "搜索查询文本，不能为空。"
+					},
+					"timeout_seconds": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 60,
+						"description": "搜索超时时间，单位秒，取值范围 1-60。不传则不设置单独超时。"
+					},
+					"limit": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 20,
+						"default": 5,
+						"description": "最多返回结果数，默认 5，取值范围 1-20。"
+					},
+					"sites": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"maxItems": 5,
+						"description": "站点约束，多个站点按 OR 处理，最多 5 个；单条不能为空，且不能包含空白字符或括号。"
+					},
+					"time_window": {
+						"$ref": "#/components/schemas/ToolsSearchTimeWindow"
+					}
+				},
+				"required": [
+					"text_query"
+				]
+			},
+			"ToolsSearchTimeWindow": {
+				"type": "object",
+				"description": "历史时间窗约束。start 与 end 均按周期第一天归一化后比较，start 不得晚于 end。",
+				"properties": {
+					"start": {
+						"type": "string",
+						"description": "起始时间下限，格式 YYYY / YYYY-MM / YYYY-MM-DD。"
+					},
+					"end": {
+						"type": "string",
+						"description": "结束时间上限，格式 YYYY / YYYY-MM / YYYY-MM-DD。"
+					}
+				}
+			},
+			"ToolsSearchProResponse": {
+				"type": "object",
+				"properties": {
+					"search_results": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ToolsSearchProResult"
+						},
+						"description": "搜索结果列表；无结果时为空数组。"
+					}
+				},
+				"required": [
+					"search_results"
+				]
+			},
+			"ToolsSearchProResult": {
+				"type": "object",
+				"properties": {
+					"authority": {
+						"type": "string",
+						"description": "来源权威性等级。"
+					},
+					"date": {
+						"type": "string",
+						"description": "搜索结果日期。"
+					},
+					"icon": {
+						"type": "string",
+						"description": "站点图标 URL。"
+					},
+					"mime": {
+						"type": "string",
+						"description": "内容 MIME 类型。"
+					},
+					"site_name": {
+						"type": "string",
+						"description": "站点名称。"
+					},
+					"snippet": {
+						"type": "string",
+						"description": "搜索结果摘要。"
+					},
+					"title": {
+						"type": "string",
+						"description": "搜索结果标题。"
+					},
+					"url": {
+						"type": "string",
+						"description": "搜索结果链接。"
+					},
+					"chunks": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ToolsSearchProChunk"
+						},
+						"description": "结构化正文片段，按页面聚合；无正文时为空数组。"
+					}
+				},
+				"required": [
+					"authority",
+					"date",
+					"icon",
+					"mime",
+					"site_name",
+					"snippet",
+					"title",
+					"url",
+					"chunks"
+				]
+			},
+			"ToolsSearchProChunk": {
+				"type": "object",
+				"properties": {
+					"text": {
+						"type": "string",
+						"description": "正文片段内容。"
+					},
+					"score": {
+						"type": "number",
+						"format": "float",
+						"description": "正文片段与查询词的相关性得分。"
+					}
+				},
+				"required": [
+					"text",
+					"score"
+				]
+			},
+			"ToolsFetchRequest": {
+				"type": "object",
+				"properties": {
+					"url": {
+						"type": "string",
+						"format": "uri",
+						"description": "要抓取的网页 URL，仅支持 http 和 https 协议。"
+					}
+				},
+				"required": [
+					"url"
+				]
+			},
+			"ToolsFetchResponse": {
+				"type": "object",
+				"properties": {
+					"url": {
+						"type": "string",
+						"description": "抓取 URL。"
+					},
+					"markdown": {
+						"type": "string",
+						"description": "抓取结果的 Markdown 内容；文本与图片按在页面中出现的顺序拼接，图片以 `![imageN](url)` 形式占位。"
+					},
+					"title": {
+						"type": "string",
+						"description": "页面标题。"
+					}
+				},
+				"required": [
+					"url",
+					"markdown",
+					"title"
+				]
+			},
 			"ErrorResponse": {
 				"type": "object",
 				"properties": {
@@ -4711,6 +4981,431 @@
 					},
 					"500": {
 						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/tools/search": {
+			"post": {
+				"summary": "联网搜索 Basic",
+				"description": "发起一次网页搜索，返回标题、摘要、站点、链接等结构化搜索结果。请求成功且返回结果数大于 0 时计费一次，失败或无结果不计费，详见[联网搜索定价](/pricing/tools)。",
+				"tags": [
+					"Tools"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ToolsSearchRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "搜索结果",
+						"headers": {
+							"X-Msh-Track-Id": {
+								"description": "请求 ID；请求携带同名头时沿用，否则由服务端生成。排查问题时请提供该 ID。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-Msh-Chat-Id": {
+								"description": "会话 ID，固定为 `toolgw-{X-Msh-Track-Id}`；排查问题时请一并提供。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ToolsSearchResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效或缺少必填字段",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失（直接返回状态码，无错误响应体）"
+					},
+					"403": {
+						"description": "禁止访问 - 账号未激活或已停用（直接返回状态码，无错误响应体）"
+					},
+					"408": {
+						"description": "客户端取消请求",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "请求过于频繁 - 触发频率或并发限制，或限速服务暂不可用",
+						"headers": {
+							"X-RateLimit-Limit": {
+								"description": "当前触发的限速额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Remaining": {
+								"description": "当前窗口内剩余可用额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Reset": {
+								"description": "限速窗口重置时间（Unix 秒级时间戳；触发每秒请求数限制时返回）。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "服务暂时不可用，请稍后重试",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"504": {
+						"description": "请求超时",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/tools/search_pro": {
+			"post": {
+				"summary": "联网搜索 Pro",
+				"description": "在联网搜索 Basic 之上支持站点与时间范围约束，并为每个结果返回结构化正文片段（chunks）。请求成功且返回结果数大于 0 时计费一次，失败或无结果不计费，详见[联网搜索定价](/pricing/tools)。",
+				"tags": [
+					"Tools"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ToolsSearchProRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "搜索结果（含正文片段）",
+						"headers": {
+							"X-Msh-Track-Id": {
+								"description": "请求 ID；请求携带同名头时沿用，否则由服务端生成。排查问题时请提供该 ID。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-Msh-Chat-Id": {
+								"description": "会话 ID，固定为 `toolgw-{X-Msh-Track-Id}`；排查问题时请一并提供。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ToolsSearchProResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效或缺少必填字段",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失（直接返回状态码，无错误响应体）"
+					},
+					"403": {
+						"description": "禁止访问 - 账号未激活或已停用（直接返回状态码，无错误响应体）"
+					},
+					"408": {
+						"description": "客户端取消请求",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "请求过于频繁 - 触发频率或并发限制，或限速服务暂不可用",
+						"headers": {
+							"X-RateLimit-Limit": {
+								"description": "当前触发的限速额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Remaining": {
+								"description": "当前窗口内剩余可用额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Reset": {
+								"description": "限速窗口重置时间（Unix 秒级时间戳；触发每秒请求数限制时返回）。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "服务暂时不可用，请稍后重试",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"504": {
+						"description": "请求超时",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/tools/fetch": {
+			"post": {
+				"summary": "网页抓取",
+				"description": "抓取指定 URL 的网页内容，返回页面标题与 Markdown 格式正文（文本与图片按序拼接）。仅支持 http 和 https 协议。请求成功且抓取到正文内容时计费一次，失败或无内容不计费，详见[联网搜索定价](/pricing/tools)。",
+				"tags": [
+					"Tools"
+				],
+				"security": [
+					{
+						"bearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ToolsFetchRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "抓取结果",
+						"headers": {
+							"X-Msh-Track-Id": {
+								"description": "请求 ID；请求携带同名头时沿用，否则由服务端生成。排查问题时请提供该 ID。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-Msh-Chat-Id": {
+								"description": "会话 ID，固定为 `toolgw-{X-Msh-Track-Id}`；排查问题时请一并提供。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ToolsFetchResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "请求错误 - 参数无效或 URL 不合法",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "未授权 - API 密钥无效或缺失（直接返回状态码，无错误响应体）"
+					},
+					"403": {
+						"description": "禁止访问 - 账号未激活或已停用（无错误响应体），或 URL 触发安全风控（返回 security_risk 错误）",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "未找到可提取的正文内容（markdown_not_found）",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"408": {
+						"description": "客户端取消请求",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "请求过于频繁 - 触发频率或并发限制，或限速服务暂不可用",
+						"headers": {
+							"X-RateLimit-Limit": {
+								"description": "当前触发的限速额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Remaining": {
+								"description": "当前窗口内剩余可用额度。",
+								"schema": {
+									"type": "string"
+								}
+							},
+							"X-RateLimit-Reset": {
+								"description": "限速窗口重置时间（Unix 秒级时间戳；触发每秒请求数限制时返回）。",
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "服务器错误",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"502": {
+						"description": "服务暂时不可用，请稍后重试",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"504": {
+						"description": "请求超时",
 						"content": {
 							"application/json": {
 								"schema": {
