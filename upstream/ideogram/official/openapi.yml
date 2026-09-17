@@ -15,13 +15,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -89,6 +82,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/async/generate:
     post:
       operationId: generate_post_generate_image_v4_async
@@ -109,12 +104,6 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/WebhookUrl'
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Request accepted for asynchronous delivery.
@@ -182,6 +171,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/generate-transparent:
     post:
       operationId: generate_post_generate_image_v4_transparent
@@ -203,13 +194,6 @@ paths:
         like to keep the image, you must download it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image generated successfully.
@@ -280,6 +264,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/async/generate-transparent:
     post:
       operationId: generate_post_generate_image_v4_transparent_async
@@ -304,12 +290,6 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/WebhookUrl'
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Request accepted for asynchronous delivery.
@@ -380,6 +360,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection (Hive likeness + logo
                     checks). The effective gate is the OR of this field and the organization's
                     `copyright_detection_enabled` setting on `/api`. See GenerateImageRequestV3 for details.
+      security:
+        - ApiKeyAuth: []
   /v1/text-to-image/p-image-ideogram:
     post:
       operationId: generate_post_generate_image_p_image_ideogram
@@ -396,13 +378,6 @@ paths:
         them.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -496,6 +471,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection.
               required:
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/async/text-to-image/p-image-ideogram:
     post:
       operationId: generate_post_generate_image_p_image_ideogram_async
@@ -517,12 +494,6 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/WebhookUrl'
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Request accepted for asynchronous delivery.
@@ -616,6 +587,8 @@ paths:
                     Optional. Opt this request into post-generation copyright detection.
               required:
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/generate:
     post:
       operationId: generate_post_generate_image_v3
@@ -628,13 +601,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -761,6 +727,8 @@ paths:
                     Adds detection latency. Flagged images come back with `is_image_safe: false`.
               required:
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/generate-transparent:
     post:
       operationId: generate_post_generate_image_v3_transparent
@@ -785,13 +753,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -875,6 +836,8 @@ paths:
                     Adds detection latency. Flagged images come back with `is_image_safe: false`.
               required:
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/generations/{generation_id}:
     get:
       operationId: generate_get_generation
@@ -891,12 +854,6 @@ paths:
         - name: generation_id
           in: path
           description: URL-safe base64 ID of the generation returned by the async generation endpoint.
-          required: true
-          schema:
-            type: string
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
           required: true
           schema:
             type: string
@@ -931,6 +888,8 @@ paths:
             application/json:
               schema:
                 description: Any type
+      security:
+        - ApiKeyAuth: []
   /v1/edit:
     post:
       operationId: generate_post_v1_edit_image
@@ -948,13 +907,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image edits generated successfully.
@@ -1042,6 +994,8 @@ paths:
                     the image being edited and drives the transparency decision.
               required:
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/remix:
     post:
       operationId: generate_post_remix_image_v4
@@ -1059,13 +1013,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -1135,6 +1082,8 @@ paths:
               required:
                 - image
                 - text_prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/inpaint:
     post:
       operationId: generate_post_inpaint_image_v3
@@ -1153,13 +1102,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image edits generated successfully.
@@ -1262,6 +1204,8 @@ paths:
                 - image
                 - mask
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/remix:
     post:
       operationId: generate_post_remix_image_v3
@@ -1280,13 +1224,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -1400,6 +1337,8 @@ paths:
               required:
                 - image
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/describe:
     post:
       operationId: vision_post_describe_v4
@@ -1413,13 +1352,6 @@ paths:
         Supported image formats include JPEG, PNG, and WebP.
       tags:
         - vision
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Structured V4 prompt generated successfully.
@@ -1471,6 +1403,8 @@ paths:
                     drop bounding boxes and let the sampler place elements freely.
               required:
                 - image_file
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v4/magic-prompt:
     post:
       operationId: prompt_post_magic_prompt_v4
@@ -1482,13 +1416,6 @@ paths:
         suitable aspect ratio for the prompt and returns it in the response.
       tags:
         - prompt
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Magic prompt generated successfully.
@@ -1526,6 +1453,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MagicPromptV4Request'
+      security:
+        - ApiKeyAuth: []
   /v1/remove-background:
     post:
       operationId: generate_post_remove_background
@@ -1538,13 +1467,6 @@ paths:
         you must download it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Background removed successfully.
@@ -1591,6 +1513,8 @@ paths:
                     supported at this time.
               required:
                 - image
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/replace-background:
     post:
       operationId: generate_post_replace_background_v3
@@ -1606,13 +1530,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Background replacement generated successfully.
@@ -1687,6 +1604,8 @@ paths:
               required:
                 - image
                 - prompt
+      security:
+        - ApiKeyAuth: []
   /v1/remove-object:
     post:
       operationId: generate_post_remove_object
@@ -1698,13 +1617,6 @@ paths:
         like to keep the image, you must download it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Object removed successfully.
@@ -1785,6 +1697,8 @@ paths:
               required:
                 - image
                 - mask
+      security:
+        - ApiKeyAuth: []
   /v1/layerize-logos:
     post:
       operationId: generate_post_layerize_logos
@@ -1795,13 +1709,6 @@ paths:
         bounding boxes (each tagged with the matching reference's `REF_<n>`).
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Detection completed (may contain zero matches).
@@ -1845,6 +1752,8 @@ paths:
               required:
                 - design_image
                 - reference_images
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/reframe:
     post:
       operationId: generate_post_reframe_image_v3
@@ -1858,13 +1767,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image re-frames generated successfully.
@@ -1936,6 +1838,8 @@ paths:
               required:
                 - image
                 - resolution
+      security:
+        - ApiKeyAuth: []
   /v1/async/ad-resizer:
     post:
       operationId: generate_post_resize_image_async
@@ -1969,12 +1873,6 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/WebhookUrl'
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Request accepted for asynchronous processing.
@@ -2067,6 +1965,8 @@ paths:
                     assets are not stored to your account regardless of this value.
               required:
                 - resolution
+      security:
+        - ApiKeyAuth: []
   /v2/tool/colorways:
     post:
       operationId: editWorkflow_post_colorways
@@ -2097,13 +1997,6 @@ paths:
         and transparent pixels are preserved.
       tags:
         - edit-workflow
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Colorway accepted for asynchronous processing.
@@ -2222,6 +2115,8 @@ paths:
                     private and loopback hosts and the cloud metadata service are rejected.
               required:
                 - colors
+      security:
+        - ApiKeyAuth: []
   /v2/tool/material-swap:
     post:
       operationId: editWorkflow_post_material_swap
@@ -2258,13 +2153,6 @@ paths:
         material per mask, paired by position.
       tags:
         - edit-workflow
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Material swap accepted for asynchronous processing.
@@ -2392,6 +2280,8 @@ paths:
                     `is_image_safe`). Each delivery is signed with Ed25519 and verifiable
                     against the public keys at `https://api.ideogram.ai/v1/.well-known/jwks.json`. Must be HTTPS;
                     private and loopback hosts and the cloud metadata service are rejected.
+      security:
+        - ApiKeyAuth: []
   /upscale:
     post:
       operationId: generate_post_upscale_image
@@ -2407,13 +2297,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -2461,6 +2344,8 @@ paths:
               required:
                 - image_request
                 - image_file
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/layerize-text:
     post:
       operationId: generate_post_layerize_text_v3
@@ -2481,13 +2366,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Text layers detected and extracted successfully.
@@ -2535,6 +2413,8 @@ paths:
                   $ref: '#/components/schemas/Seed'
               required:
                 - image
+      security:
+        - ApiKeyAuth: []
   /datasets:
     get:
       operationId: datasets_list_datasets
@@ -2553,12 +2433,6 @@ paths:
           schema:
             type: string
             maxLength: 64
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Datasets retrieved successfully
@@ -2572,19 +2446,14 @@ paths:
             application/json:
               schema:
                 description: Any type
+      security:
+        - ApiKeyAuth: []
     post:
       operationId: datasets_create_dataset
       summary: Create a new dataset
       description: Creates a new dataset
       tags:
         - datasets
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Dataset created successfully
@@ -2610,6 +2479,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateDatasetRequest'
+      security:
+        - ApiKeyAuth: []
   /datasets/{dataset_id}:
     get:
       operationId: datasets_get_dataset
@@ -2621,12 +2492,6 @@ paths:
       parameters:
         - name: dataset_id
           in: path
-          required: true
-          schema:
-            type: string
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
           required: true
           schema:
             type: string
@@ -2649,6 +2514,8 @@ paths:
             application/json:
               schema:
                 description: Any type
+      security:
+        - ApiKeyAuth: []
   /datasets/{dataset_id}/upload_assets:
     post:
       operationId: datasets_upload_dataset_assets
@@ -2662,12 +2529,6 @@ paths:
       parameters:
         - name: dataset_id
           in: path
-          required: true
-          schema:
-            type: string
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
           required: true
           schema:
             type: string
@@ -2713,6 +2574,8 @@ paths:
                     caption for sunset.jpg). Captions are optional!
               required:
                 - files
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/train-model:
     post:
       operationId: models_train_model_v3
@@ -2722,13 +2585,6 @@ paths:
         at least 15 images and a maximum of 100 images.
       tags:
         - models
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Training started successfully
@@ -2760,6 +2616,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TrainModelV3Request'
+      security:
+        - ApiKeyAuth: []
   /models:
     get:
       operationId: models_list_custom_models
@@ -2791,12 +2649,6 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/ModelStatus'
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Models retrieved successfully
@@ -2810,6 +2662,8 @@ paths:
             application/json:
               schema:
                 description: Any type
+      security:
+        - ApiKeyAuth: []
   /models/{model_id}:
     get:
       operationId: models_get_custom_model
@@ -2823,12 +2677,6 @@ paths:
       parameters:
         - name: model_id
           in: path
-          required: true
-          schema:
-            type: string
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
           required: true
           schema:
             type: string
@@ -2851,6 +2699,8 @@ paths:
             application/json:
               schema:
                 description: Any type
+      security:
+        - ApiKeyAuth: []
   /generate:
     post:
       operationId: generate_post_generate_image
@@ -2863,13 +2713,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -2907,6 +2750,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GenerateImageRequest'
+      security:
+        - ApiKeyAuth: []
   /edit:
     post:
       operationId: generate_post_edit_image
@@ -2924,13 +2769,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image edits generated successfully.
@@ -2999,6 +2837,8 @@ paths:
                 - mask
                 - prompt
                 - model
+      security:
+        - ApiKeyAuth: []
   /remix:
     post:
       operationId: generate_post_remix_image
@@ -3017,13 +2857,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image(s) generated successfully.
@@ -3073,6 +2906,8 @@ paths:
               required:
                 - image_request
                 - image_file
+      security:
+        - ApiKeyAuth: []
   /reframe:
     post:
       operationId: generate_post_reframe_image
@@ -3085,13 +2920,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image re-frames generated successfully.
@@ -3151,6 +2979,8 @@ paths:
                 - image_file
                 - resolution
                 - model
+      security:
+        - ApiKeyAuth: []
   /describe:
     post:
       operationId: vision_post_describe
@@ -3161,13 +2991,6 @@ paths:
         Supported image formats include JPEG, PNG, and WebP.
       tags:
         - vision
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Description(s) created successfully.
@@ -3208,6 +3031,8 @@ paths:
                   default: V_3
               required:
                 - image_file
+      security:
+        - ApiKeyAuth: []
   /v1/ideogram-v3/edit:
     post:
       operationId: generate_post_edit_image_v3
@@ -3230,13 +3055,6 @@ paths:
         it.
       tags:
         - generate
-      parameters:
-        - name: Api-Key
-          in: header
-          description: API key for access control. Use in the header with the name \"Api-Key\"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Image edits generated successfully.
@@ -3339,6 +3157,15 @@ paths:
                 - image
                 - mask
                 - prompt
+      security:
+        - ApiKeyAuth: []
+tags:
+  - name: generate
+  - name: vision
+  - name: prompt
+  - name: edit-workflow
+  - name: datasets
+  - name: models
 servers:
   - url: https://api.ideogram.ai
     description: https://api.ideogram.ai
