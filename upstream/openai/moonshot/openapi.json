@@ -367,6 +367,29 @@
 						"default": null,
 						"description": "用于缓存相似请求的响应以优化缓存命中率。对于 Coding Agent，通常是代表单个会话的 session id 或 task id；退出并恢复会话时应保持不变。对于 Kimi Code Plan，此字段为必填以提高缓存命中率。对于其他多轮对话 Agent，也建议使用此字段"
 					},
+					"prompt_cache_options": {
+						"type": "object",
+						"description": "上下文缓存写入选项。不传时默认开启缓存写入（5m 档）：系统自动将请求前缀写入 5m 档缓存",
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": [
+									"implicit"
+								],
+								"default": "implicit",
+								"description": "缓存写入模式，仅支持 implicit：自动将请求前缀写入缓存"
+							},
+							"ttl": {
+								"type": "string",
+								"enum": [
+									"5m",
+									"1h"
+								],
+								"default": "5m",
+								"description": "缓存写入的有效期，5m 与 1h 两档缓存相互独立。相同前缀的请求在有效期内命中后，缓存有效期按原 TTL 刷新"
+							}
+						}
+					},
 					"safety_identifier": {
 						"type": "string",
 						"description": "用于检测可能违反使用政策的用户的稳定标识符。应为唯一标识每个用户的字符串。建议对用户名或邮箱进行哈希处理以避免发送可识别信息"
@@ -554,6 +577,29 @@
 						"type": "string",
 						"default": null,
 						"description": "用于缓存相似请求的响应以优化缓存命中率。对于 Coding Agent，通常是代表单个会话的 session id 或 task id；退出并恢复会话时应保持不变。对于 Kimi Code Plan，此字段为必填以提高缓存命中率。对于其他多轮对话 Agent，也建议使用此字段"
+					},
+					"prompt_cache_options": {
+						"type": "object",
+						"description": "上下文缓存写入选项。不传时默认开启缓存写入（5m 档）：系统自动将请求前缀写入 5m 档缓存",
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": [
+									"implicit"
+								],
+								"default": "implicit",
+								"description": "缓存写入模式，仅支持 implicit：自动将请求前缀写入缓存"
+							},
+							"ttl": {
+								"type": "string",
+								"enum": [
+									"5m",
+									"1h"
+								],
+								"default": "5m",
+								"description": "缓存写入的有效期，5m 与 1h 两档缓存相互独立。相同前缀的请求在有效期内命中后，缓存有效期按原 TTL 刷新"
+							}
+						}
 					},
 					"safety_identifier": {
 						"type": "string",
@@ -867,6 +913,24 @@
 							"cached_tokens": {
 								"type": "integer",
 								"description": "命中缓存的 Token 数量"
+							},
+							"prompt_tokens_details": {
+								"type": "object",
+								"description": "输入 Token 的分类明细。cached_tokens、cache_write_tokens 与未缓存部分互斥，三者之和等于 prompt_tokens",
+								"properties": {
+									"cached_tokens": {
+										"type": "integer",
+										"description": "命中缓存的 Token 数量"
+									},
+									"cache_write_tokens": {
+										"type": "integer",
+										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 档位计费，详见 prompt_cache_options"
+									}
+								},
+								"required": [
+									"cached_tokens",
+									"cache_write_tokens"
+								]
 							}
 						}
 					}
@@ -921,6 +985,24 @@
 							"cached_tokens": {
 								"type": "integer",
 								"description": "命中缓存的 Token 数量"
+							},
+							"prompt_tokens_details": {
+								"type": "object",
+								"description": "输入 Token 的分类明细。cached_tokens、cache_write_tokens 与未缓存部分互斥，三者之和等于 prompt_tokens",
+								"properties": {
+									"cached_tokens": {
+										"type": "integer",
+										"description": "命中缓存的 Token 数量"
+									},
+									"cache_write_tokens": {
+										"type": "integer",
+										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 档位计费，详见 prompt_cache_options"
+									}
+								},
+								"required": [
+									"cached_tokens",
+									"cache_write_tokens"
+								]
 							}
 						}
 					}
@@ -1123,6 +1205,29 @@
 					"prompt_cache_key": {
 						"type": "string",
 						"description": "上下文缓存标识，同一会话使用相同取值可提升缓存命中率。"
+					},
+					"prompt_cache_options": {
+						"type": "object",
+						"description": "上下文缓存写入选项。不传时默认开启缓存写入（5m 档）：系统自动将请求前缀写入 5m 档缓存",
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": [
+									"implicit"
+								],
+								"default": "implicit",
+								"description": "缓存写入模式，仅支持 implicit：自动将请求前缀写入缓存"
+							},
+							"ttl": {
+								"type": "string",
+								"enum": [
+									"5m",
+									"1h"
+								],
+								"default": "5m",
+								"description": "缓存写入的有效期，5m 与 1h 两档缓存相互独立。相同前缀的请求在有效期内命中后，缓存有效期按原 TTL 刷新"
+							}
+						}
 					},
 					"safety_identifier": {
 						"type": "string",
@@ -1989,6 +2094,27 @@
 							"null"
 						],
 						"description": "固定为 `null`。"
+					},
+					"prompt_cache_options": {
+						"type": "object",
+						"description": "服务端实际应用的上下文缓存写入选项。当请求省略 prompt_cache_options 时，以此处返回的 mode 和 ttl 为准",
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": [
+									"implicit"
+								],
+								"description": "实际应用的写入模式"
+							},
+							"ttl": {
+								"type": "string",
+								"enum": [
+									"5m",
+									"1h"
+								],
+								"description": "实际应用的缓存有效期"
+							}
+						}
 					}
 				}
 			},
@@ -3526,6 +3652,31 @@
 							}
 						}
 					},
+					"cache_control": {
+						"type": "object",
+						"description": "上下文缓存写入选项，仅在顶层传入时生效，messages 消息体内的 cache_control 标记会被忽略。不传时本次请求只尝试读取缓存（5m 档），不写入缓存",
+						"properties": {
+							"type": {
+								"type": "string",
+								"enum": [
+									"ephemeral"
+								],
+								"description": "缓存类型，固定为 ephemeral"
+							},
+							"ttl": {
+								"type": "string",
+								"enum": [
+									"5m",
+									"1h"
+								],
+								"default": "5m",
+								"description": "缓存写入的有效期，5m 与 1h 两档缓存相互独立。相同前缀的请求在有效期内命中后，缓存有效期按原 TTL 刷新"
+							}
+						},
+						"required": [
+							"type"
+						]
+					},
 					"output_config": {
 						"type": "object",
 						"description": "输出配置：推理强度与结构化输出",
@@ -3698,7 +3849,7 @@
 						"properties": {
 							"input_tokens": {
 								"type": "integer",
-								"description": "输入 Token 数（不含命中缓存的部分）"
+								"description": "输入 Token 数（不含命中缓存与写入缓存的部分）。总输入 = input_tokens + cache_read_input_tokens + cache_creation_input_tokens"
 							},
 							"output_tokens": {
 								"type": "integer",
@@ -3711,6 +3862,24 @@
 							"cache_creation_input_tokens": {
 								"type": "integer",
 								"description": "写入缓存的输入 Token 数"
+							},
+							"cache_creation": {
+								"type": "object",
+								"description": "缓存写入按 TTL 档位的明细",
+								"properties": {
+									"ephemeral_5m_input_tokens": {
+										"type": "integer",
+										"description": "写入 5m 档缓存的输入 Token 数"
+									},
+									"ephemeral_1h_input_tokens": {
+										"type": "integer",
+										"description": "写入 1h 档缓存的输入 Token 数"
+									}
+								},
+								"required": [
+									"ephemeral_5m_input_tokens",
+									"ephemeral_1h_input_tokens"
+								]
 							},
 							"output_tokens_details": {
 								"type": "object",
@@ -3951,7 +4120,7 @@
 								"properties": {
 									"input_tokens": {
 										"type": "integer",
-										"description": "输入 Token 数（不含命中缓存的部分）"
+										"description": "输入 Token 数（不含命中缓存与写入缓存的部分）。总输入 = input_tokens + cache_read_input_tokens + cache_creation_input_tokens"
 									},
 									"output_tokens": {
 										"type": "integer",
@@ -3964,6 +4133,24 @@
 									"cache_creation_input_tokens": {
 										"type": "integer",
 										"description": "写入缓存的输入 Token 数"
+									},
+									"cache_creation": {
+										"type": "object",
+										"description": "缓存写入按 TTL 档位的明细",
+										"properties": {
+											"ephemeral_5m_input_tokens": {
+												"type": "integer",
+												"description": "写入 5m 档缓存的输入 Token 数"
+											},
+											"ephemeral_1h_input_tokens": {
+												"type": "integer",
+												"description": "写入 1h 档缓存的输入 Token 数"
+											}
+										},
+										"required": [
+											"ephemeral_5m_input_tokens",
+											"ephemeral_1h_input_tokens"
+										]
 									},
 									"output_tokens_details": {
 										"type": "object",
