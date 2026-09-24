@@ -674,8 +674,8 @@ paths:
                   items:
                     $ref: '#/components/schemas/StyleCode'
                   description: >-
-                    A list of 8 character hexadecimal codes representing the style of the image. Cannot be used in
-                    conjunction with style_reference_images or style_type.
+                    A list of 8-character hexadecimal codes representing the style of the image. Refer to each endpoint
+                    for supported combinations with style types, presets, and reference images.
                 style_type:
                   $ref: '#/components/schemas/StyleTypeV3'
                   default: GENERAL
@@ -1066,9 +1066,15 @@ paths:
                     Optional. How strongly the output should resemble the input image. Higher values keep
                     the input image's structure; lower values allow the prompt to drive the output more.
                     When omitted, the weight is chosen automatically from the edit instruction; supplying
-                    a value overrides that automatic choice.
+                    a value overrides that automatic choice. Only accepted when the output keeps the input
+                    image's shape: combining image_weight with a resolution whose aspect ratio differs
+                    from the input image's is rejected with a 400.
                 resolution:
                   $ref: '#/components/schemas/ResolutionV4'
+                  description: |
+                    Optional. When supplied, the images are generated at this resolution. When omitted,
+                    the input image's shape is kept. A resolution whose aspect ratio differs from the
+                    input image's cannot be combined with image_weight.
                 rendering_speed:
                   $ref: '#/components/schemas/RenderingSpeed'
                   default: DEFAULT
@@ -1856,10 +1862,8 @@ paths:
         usage-based pricing in `usage_cost_usd_micros`. If a `webhook_url` is
         supplied, the completed result is also POSTed to that URL.
 
-        Supply the advertisement image as either an `AssetIdentifier` reference
-        (`image_asset_identifier`) or the raw image bytes directly (`image`,
-        multipart requests only). Provide exactly one of the two; supplying both,
-        or neither, is rejected with a 400.
+        Supply the advertisement image as raw `image` bytes via
+        `multipart/form-data`.
 
         The required `resolution` (`WIDTHxHEIGHT`) sets the exact output
         dimensions.
@@ -1917,22 +1921,18 @@ paths:
               schema:
                 description: Any type
       requestBody:
-        description: >-
-          A request to resize a source image. Use `multipart/form-data` to upload `image` bytes directly, or
-          `application/json` (or multipart with `image_asset_identifier`) to reference an existing asset instead.
+        description: A request to resize a source image.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
-                image_asset_identifier:
-                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: >-
                     The source image to reframe (max size 25MB), as raw bytes; only JPEG, PNG, and WEBP formats are
-                    supported. Multipart requests only. Provide exactly one of `image_asset_identifier` or `image`.
+                    supported.
                 resolution:
                   $ref: '#/components/schemas/V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution'
                   description: |
@@ -1981,22 +1981,31 @@ paths:
         `GET /v1/generations/{generation_id}` with the returned `generation_id`
         until the generation is completed or failed.
 
-        Supply the product photo as either an `AssetIdentifier` reference
-        (`image_asset_identifier`) or the raw image bytes directly (`image`,
-        multipart requests only). Provide exactly one of the two forms;
-        supplying both, or neither, is rejected with a 400.
+        Supply the product photo as raw `image` bytes via
+        `multipart/form-data`.
 
-        Supply the masks marking the regions to recolor as either
-        `AssetIdentifier` references (`mask_asset_identifiers`) or the raw
-        mask bytes directly (`masks`, multipart requests only), paired by
-        position with `colors` — up to 4 regions; a single-region edit is a
-        one-item list. Provide exactly one of the two forms. Every mask must
-        have the same pixel dimensions as the product photo. White pixels
-        mark the region to recolor; black pixels are preserved. Alpha-only
-        masks are also supported: opaque pixels mark the region to recolor
-        and transparent pixels are preserved.
+        Supply the masks marking the regions to recolor as raw `masks` bytes,
+        paired by position with `colors` — up to 4 regions; a single-region
+        edit is a one-item list. Every mask must have the same pixel
+        dimensions as the product photo. White pixels mark the region to
+        recolor; black pixels are preserved. Alpha-only masks are also
+        supported: opaque pixels mark the region to recolor and transparent
+        pixels are preserved.
       tags:
         - edit-workflow
+      parameters:
+        - name: dry_run
+          in: query
+          description: |
+            When true, the request is validated and priced but not run: nothing is
+            generated, stored, or billed, and no safety review is performed. The
+            response is a `PriceQuote` object instead of the usual response for this
+            endpoint. Send exactly the request you would send to generate, so the
+            quote reflects the same options.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Colorway accepted for asynchronous processing.
@@ -2021,7 +2030,7 @@ paths:
           content:
             application/json:
               schema:
-                description: Any type
+                $ref: '#/components/schemas/GenerationErrorResponse'
         '403':
           description: Not authorized to create a colorway.
           content:
@@ -2033,38 +2042,20 @@ paths:
           content:
             application/json:
               schema:
-                description: Any type
+                $ref: '#/components/schemas/GenerationErrorResponse'
       requestBody:
-        description: >-
-          The product photo, one mask or several masks marking the regions to recolor, and one target color per mask.
-          Use `multipart/form-data` to upload `image` bytes directly, or `application/json` (or multipart with
-          `image_asset_identifier`) to reference an existing asset instead.
+        description: The product photo, one mask or several masks marking the regions to recolor, and one target color per mask.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
-                image_asset_identifier:
-                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: |
                     The product photo to recolor (max size 25MB), as raw bytes; only
-                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
-                    Provide exactly one of `image_asset_identifier` or `image`.
-                mask_asset_identifiers:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AssetIdentifier'
-                  description: |
-                    The masks marking the regions of the product photo to recolor, by
-                    reference, paired by position with `colors` (max 4). Every mask
-                    must have the same pixel dimensions as the product photo. White
-                    pixels mark the region to recolor; black pixels are preserved.
-                    Alpha-only masks are also supported: opaque pixels mark the
-                    region to recolor and transparent pixels are preserved. Provide
-                    exactly one of `mask_asset_identifiers` or `masks`.
+                    JPEG, PNG, and WEBP formats are supported.
                 masks:
                   type: array
                   items:
@@ -2074,20 +2065,19 @@ paths:
                     The masks marking the regions of the product photo to recolor
                     (max 4, max size 25MB each), as raw bytes, paired by position with
                     `colors`; only JPEG, PNG, and WEBP formats are supported. Every
-                    mask must have the same pixel dimensions as the product photo,
-                    and follows the same pixel rules as `mask_asset_identifiers`.
-                    Multipart requests only. Provide exactly one of
-                    `mask_asset_identifiers` or `masks`.
+                    mask must have the same pixel dimensions as the product photo.
+                    White pixels mark the region to recolor; black pixels are
+                    preserved. Alpha-only masks are also supported: opaque pixels
+                    mark the region to recolor and transparent pixels are preserved.
                 colors:
                   type: array
                   items:
                     type: string
                     pattern: ^#[0-9a-fA-F]{6}$
                   description: |
-                    One target color per mask in `masks` or
-                    `mask_asset_identifiers`, as six-digit hex codes like `#B3202C`,
-                    paired by position. The product's shape, construction, materials,
-                    prints, and logos are always preserved.
+                    One target color per mask in `masks`, as six-digit hex codes like
+                    `#B3202C`, paired by position. The product's shape, construction,
+                    materials, prints, and logos are always preserved.
                 aspect_ratio:
                   type: string
                   pattern: ^(1:1|3:4|4:3|16:9|9:16)$
@@ -2099,7 +2089,7 @@ paths:
                     part of the frame is newly generated. Supported values are `1:1`,
                     `3:4`, `4:3`, `16:9`, and `9:16`.
                 quality:
-                  $ref: '#/components/schemas/GptImage2Quality'
+                  $ref: '#/components/schemas/ColorwaysQuality'
                 webhook_url:
                   type: string
                   format: uri
@@ -2132,27 +2122,30 @@ paths:
         `GET /v1/generations/{generation_id}` with the returned `generation_id`
         until the generation is completed or failed.
 
-        Supply the product photo as either an `AssetIdentifier` reference
-        (`image_asset_identifier`) or the raw image bytes directly (`image`,
-        multipart requests only). Provide exactly one of the two forms;
-        supplying both, or neither, is rejected with a 400.
-
-        Supply the masks marking the regions to re-material as either
-        `AssetIdentifier` references (`mask_asset_identifiers`) or the raw mask
-        bytes directly (`masks`, multipart requests only) — up to 4 regions; a
-        single-region edit is a one-item list. Provide exactly one of the two
-        forms. Every mask must have the same pixel dimensions as the product
-        photo. White pixels mark the region to change; black pixels are
-        preserved. Alpha-only masks are also supported: opaque pixels mark the
-        region to change and transparent pixels are preserved.
-
-        Supply the material references as either `AssetIdentifier` references
-        (`material_asset_identifiers`) or the raw image bytes directly
-        (`materials`, multipart requests only). Provide exactly one of the two
-        forms. Send either one material, which every mask takes, or exactly one
-        material per mask, paired by position.
+        Supply the product photo, the masks marking the regions to
+        re-material, and the material reference images as raw bytes (`image`,
+        `masks`, and `materials`) via `multipart/form-data` — up to 4 masks; a
+        single-region edit is a one-item list. Every mask must have the same
+        pixel dimensions as the product photo. White pixels mark the region to
+        change; black pixels are preserved. Alpha-only masks are also
+        supported: opaque pixels mark the region to change and transparent
+        pixels are preserved. Send either one material, which every mask
+        takes, or exactly one material per mask, paired by position.
       tags:
         - edit-workflow
+      parameters:
+        - name: dry_run
+          in: query
+          description: |
+            When true, the request is validated and priced but not run: nothing is
+            generated, stored, or billed, and no safety review is performed. The
+            response is a `PriceQuote` object instead of the usual response for this
+            endpoint. Send exactly the request you would send to generate, so the
+            quote reflects the same options.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Material swap accepted for asynchronous processing.
@@ -2177,7 +2170,7 @@ paths:
           content:
             application/json:
               schema:
-                description: Any type
+                $ref: '#/components/schemas/GenerationErrorResponse'
         '403':
           description: Not authorized to create a material swap.
           content:
@@ -2189,38 +2182,22 @@ paths:
           content:
             application/json:
               schema:
-                description: Any type
+                $ref: '#/components/schemas/GenerationErrorResponse'
       requestBody:
         description: >-
           The product photo, one mask or several masks marking the regions to change, and either one shared material
-          reference or one per mask. Use `multipart/form-data` to upload raw bytes directly, or `application/json` (or
-          multipart with `*_asset_identifiers` fields) to reference existing assets instead.
+          reference or one per mask.
         content:
           multipart/form-data:
             schema:
               type: object
               properties:
-                image_asset_identifier:
-                  $ref: '#/components/schemas/AssetIdentifier'
                 image:
                   type: string
                   format: binary
                   description: |
                     The product photo to edit (max size 25MB), as raw bytes; only
-                    JPEG, PNG, and WEBP formats are supported. Multipart requests only.
-                    Provide exactly one of `image_asset_identifier` or `image`.
-                mask_asset_identifiers:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AssetIdentifier'
-                  description: |
-                    The masks marking the regions of the product photo to change, by
-                    reference (max 4). Every mask must have the same pixel dimensions
-                    as the product photo. White pixels mark the region to change; black
-                    pixels are preserved. Alpha-only masks are also supported: opaque
-                    pixels mark the region to change and transparent pixels are
-                    preserved. Provide exactly one of `mask_asset_identifiers` or
-                    `masks`.
+                    JPEG, PNG, and WEBP formats are supported.
                 masks:
                   type: array
                   items:
@@ -2230,19 +2207,10 @@ paths:
                     The masks marking the regions of the product photo to change (max
                     4, max size 25MB each), as raw bytes; only JPEG, PNG, and WEBP
                     formats are supported. Every mask must have the same pixel
-                    dimensions as the product photo, and follows the same pixel rules
-                    as `mask_asset_identifiers`. Multipart requests only. Provide
-                    exactly one of `mask_asset_identifiers` or `masks`.
-                material_asset_identifiers:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/AssetIdentifier'
-                  description: |
-                    The material reference images, by reference. Only their material —
-                    color, texture, pattern scale, and orientation — is applied to the
-                    masked regions. Send one material, which every mask takes, or
-                    exactly one per mask paired by position. Provide exactly one of
-                    `material_asset_identifiers` or `materials`.
+                    dimensions as the product photo. White pixels mark the region to
+                    change; black pixels are preserved. Alpha-only masks are also
+                    supported: opaque pixels mark the region to change and transparent
+                    pixels are preserved.
                 materials:
                   type: array
                   items:
@@ -2253,8 +2221,7 @@ paths:
                     only JPEG, PNG, and WEBP formats are supported. Only their material
                     — color, texture, pattern scale, and orientation — is applied to
                     the masked regions. Send one material, which every mask takes, or
-                    exactly one per mask paired by position. Multipart requests only.
-                    Provide exactly one of `material_asset_identifiers` or `materials`.
+                    exactly one per mask paired by position.
                 aspect_ratio:
                   type: string
                   pattern: ^(1:1|3:4|4:3|16:9|9:16)$
@@ -2266,7 +2233,7 @@ paths:
                     part of the frame is newly generated. Supported values are `1:1`,
                     `3:4`, `4:3`, `16:9`, and `9:16`.
                 quality:
-                  $ref: '#/components/schemas/GptImage2Quality'
+                  $ref: '#/components/schemas/MaterialSwapQuality'
                 webhook_url:
                   type: string
                   format: uri
@@ -2280,70 +2247,6 @@ paths:
                     `is_image_safe`). Each delivery is signed with Ed25519 and verifiable
                     against the public keys at `https://api.ideogram.ai/v1/.well-known/jwks.json`. Must be HTTPS;
                     private and loopback hosts and the cloud metadata service are rejected.
-      security:
-        - ApiKeyAuth: []
-  /upscale:
-    post:
-      operationId: generate_post_upscale_image
-      summary: Upscale
-      description: >
-        Upscale provided images synchronously with an optional prompt.
-
-
-        Supported image formats include JPEG, PNG, and WebP.
-
-
-        Images links are available for a limited period of time; if you would like to keep the image, you must download
-        it.
-      tags:
-        - generate
-      responses:
-        '200':
-          description: Image(s) generated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenerateImageResponse'
-        '400':
-          description: Invalid input provided.
-          content:
-            application/json:
-              schema:
-                description: Any type
-        '403':
-          description: Not authorized to generate an image.
-          content:
-            application/json:
-              schema:
-                description: Any type
-        '422':
-          description: Prompt or provided image failed safety check.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenerateImageSafetyError'
-        '429':
-          description: Too many requests.
-          content:
-            application/json:
-              schema:
-                description: Any type
-      requestBody:
-        description: A request to upscale a provided image with Ideogram.
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image_request:
-                  $ref: '#/components/schemas/UpscaleInitialImageRequest'
-                image_file:
-                  type: string
-                  format: binary
-                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
-              required:
-                - image_request
-                - image_file
       security:
         - ApiKeyAuth: []
   /v1/ideogram-v3/layerize-text:
@@ -2411,6 +2314,14 @@ paths:
                     from the image.
                 seed:
                   $ref: '#/components/schemas/Seed'
+                font_candidate_files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: >-
+                    Candidate font files to make available for text style matching. Supported formats .ttf, .otf, .woff,
+                    .woff2 (max 5MB each, maximum 5 files).
               required:
                 - image
       security:
@@ -3159,6 +3070,158 @@ paths:
                 - prompt
       security:
         - ApiKeyAuth: []
+  /upscale:
+    post:
+      operationId: generate_post_upscale_image
+      summary: Upscale
+      description: >
+        Upscale provided images synchronously with an optional prompt.
+
+
+        Supported image formats include JPEG, PNG, and WebP.
+
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      tags:
+        - generate
+      responses:
+        '200':
+          description: Image(s) generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageResponse'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '403':
+          description: Not authorized to generate an image.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: Prompt or provided image failed safety check.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateImageSafetyError'
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: A request to upscale a provided image with Ideogram.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image_request:
+                  $ref: '#/components/schemas/UpscaleInitialImageRequest'
+                image_file:
+                  type: string
+                  format: binary
+                  description: An image binary (max size 25MB); only JPEG, WebP and PNG formats are supported at this time.
+              required:
+                - image_request
+                - image_file
+      security:
+        - ApiKeyAuth: []
+  /v2/tool/product-360-video:
+    post:
+      operationId: videoGenerate_post_product360_video
+      summary: Create a looping 360-degree product video
+      description: >-
+        Animates one product image through a complete turntable revolution and returns to the starting pose so the
+        result loops cleanly.
+
+        Video generation runs asynchronously. Poll `GET /v1/generations/{generation_id}` with the returned
+        `generation_id` until the generation completes or fails.
+      tags:
+        - video-generate
+      parameters:
+        - name: dry_run
+          in: query
+          description: |
+            When true, the request is validated and priced but not run: nothing is
+            generated, stored, or billed, and no safety review is performed. The
+            response is a `PriceQuote` object instead of the usual response for this
+            endpoint. Send exactly the request you would send to generate, so the
+            quote reflects the same options.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Product video accepted for asynchronous processing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateVideoSeedDance25Response'
+        '400':
+          description: Invalid input provided.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '402':
+          description: Insufficient credits or quota.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationErrorResponse'
+        '403':
+          description: This account does not have access to product video generation.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '404':
+          description: The product image was not found or is not readable.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '422':
+          description: The product description did not pass safety checks.
+          content:
+            application/json:
+              schema:
+                description: Any type
+        '429':
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationErrorResponse'
+        '503':
+          description: The endpoint is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                description: Any type
+      requestBody:
+        description: The product image and requested turntable motion.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product360VideoRequest'
+      security:
+        - ApiKeyAuth: []
 tags:
   - name: generate
   - name: vision
@@ -3166,6 +3229,7 @@ tags:
   - name: edit-workflow
   - name: datasets
   - name: models
+  - name: video-generate
 servers:
   - url: https://api.ideogram.ai
     description: https://api.ideogram.ai
@@ -3895,6 +3959,110 @@ components:
         - url
       description: Present when `status` is `completed`; always "url" for this shape.
       title: GenerationResponseResponseType
+    DetectedTextBlockAlignment:
+      type: string
+      enum:
+        - left
+        - center
+        - right
+      description: Detected text alignment.
+      title: DetectedTextBlockAlignment
+    DetectedTextBlockFormattingItems:
+      type: string
+      enum:
+        - bold
+        - italic
+        - underline
+        - strikethrough
+        - all_caps
+        - small_caps
+        - superscript
+        - subscript
+      title: DetectedTextBlockFormattingItems
+    DetectedTextBlockRole:
+      type: string
+      enum:
+        - heading
+        - subheading
+        - body
+        - caption
+      description: Inferred typographic role of this text block.
+      title: DetectedTextBlockRole
+    DetectedTextBlock:
+      type: object
+      properties:
+        x:
+          type: integer
+          description: X coordinate in pixels from the top-left corner.
+        'y':
+          type: integer
+          description: Y coordinate in pixels from the top-left corner.
+        width:
+          type: integer
+          description: Width of the text region in pixels.
+        height:
+          type: integer
+          description: Height of the text region in pixels.
+        text:
+          type: string
+          description: The detected text content. Line breaks are represented as \n.
+        alignment:
+          $ref: '#/components/schemas/DetectedTextBlockAlignment'
+          description: Detected text alignment.
+        angle:
+          type: string
+          title: float
+          description: Rotation angle in degrees (clockwise). Defaults to 0.
+          default: 0
+        font_name:
+          type:
+            - string
+            - 'null'
+          description: Best-matching font name from the font library.
+        font_alternatives:
+          type:
+            - array
+            - 'null'
+          items:
+            type: string
+          description: Alternative font matches, ranked by similarity.
+        font_size:
+          type:
+            - integer
+            - 'null'
+          description: Detected font size in points.
+        line_height:
+          type:
+            - string
+            - 'null'
+          title: float
+          description: Line height multiplier (e.g., 1.2).
+        color:
+          type:
+            - string
+            - 'null'
+          pattern: ^#[0-9A-Fa-f]{6}$
+          description: Detected text color in hex format.
+        formatting:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectedTextBlockFormattingItems'
+          description: Detected text formatting effects.
+        role:
+          oneOf:
+            - $ref: '#/components/schemas/DetectedTextBlockRole'
+            - type: 'null'
+          description: Inferred typographic role of this text block.
+      required:
+        - x
+        - 'y'
+        - width
+        - height
+        - text
+        - alignment
+        - formatting
+      description: A single detected text region with its position, content, font information, and styling.
+      title: DetectedTextBlock
     GenerationResponse_data_inner:
       oneOf:
         - type: object
@@ -3939,6 +4107,11 @@ components:
                 - 'null'
               format: uri
               description: The direct link to the image generated.
+            asset_id:
+              type:
+                - string
+                - 'null'
+              description: The base64url-encoded identifier of the generated image asset. Present for safe workflow-owned outputs.
             prompt:
               type: string
               description: The prompt used for the generation. This may be different from the original prompt.
@@ -3992,6 +4165,54 @@ components:
             - aspect_ratio
             - duration
           description: A single generated video returned by the generation polling endpoint.
+        - type: object
+          properties:
+            object_type:
+              type: string
+              enum:
+                - layerized_image
+              description: 'Discriminator value: layerized_image'
+            url:
+              type:
+                - string
+                - 'null'
+              format: uri
+              description: >-
+                The direct link to the design image with its text intact. Empty when the image did not pass safety
+                checks.
+            base_image_url:
+              type:
+                - string
+                - 'null'
+              format: uri
+              description: >-
+                The direct link to the base image with all detected text removed. Empty when the image did not pass
+                safety checks.
+            resolution:
+              type: string
+              description: The resolution of the design, formatted as "WIDTHxHEIGHT".
+            is_image_safe:
+              type: boolean
+              description: Whether the image passed safety checks. If false, the image links are empty.
+            seed:
+              type: integer
+              minimum: 0
+              maximum: 2147483647
+              description: Random seed. Set for reproducible generation.
+            text_blocks:
+              type: array
+              items:
+                $ref: '#/components/schemas/DetectedTextBlock'
+              description: Flat list of detected text regions in the design.
+          required:
+            - object_type
+            - resolution
+            - is_image_safe
+            - seed
+            - text_blocks
+          description: |
+            One layerized design. Image links are available for a limited period
+            of time; if you would like to keep an image, you must download it.
       discriminator:
         propertyName: object_type
       title: GenerationResponse_data_inner
@@ -4034,7 +4255,8 @@ components:
           description: |
             A list of generated images or videos. Present when `status` is
             `completed`. Video entries carry an `object_type` of
-            `video.generation`; entries without an `object_type` are images.
+            `video.generation`; layerized designs carry `layerized_image`;
+            entries without an `object_type` are images.
       required:
         - generation_id
         - status
@@ -4117,8 +4339,8 @@ components:
       items:
         $ref: '#/components/schemas/StyleCode'
       description: >-
-        A list of 8 character hexadecimal codes representing the style of the image. Cannot be used in conjunction with
-        style_reference_images or style_type.
+        A list of 8-character hexadecimal codes representing the style of the image. Refer to each endpoint for
+        supported combinations with style types, presets, and reference images.
       title: StyleCodes
     DescribeResponseV4:
       type: object
@@ -4299,27 +4521,6 @@ components:
         Image links are available for a limited period of time; if you would like to keep
         the image, you must download it.
       title: LayerizeLogosResponse
-    AssetType:
-      type: string
-      enum:
-        - ASSET
-        - CANVAS_ASSET
-        - LAYERED_ASSET
-        - RESPONSE
-        - UPLOAD
-      title: AssetType
-    AssetIdentifier:
-      type: object
-      properties:
-        asset_type:
-          $ref: '#/components/schemas/AssetType'
-        asset_id:
-          type: string
-      required:
-        - asset_type
-        - asset_id
-      description: An identifier for an ideogram asset.
-      title: AssetIdentifier
     V1AsyncAdResizerPostRequestBodyContentMultipartFormDataSchemaResolution:
       type: string
       enum:
@@ -4367,16 +4568,16 @@ components:
         - MEDIUM
         - HIGH
       title: ResizeAdImageQuality
-    GptImage2Quality:
+    ColorwaysQuality:
       type: string
       enum:
-        - LOW
-        - MEDIUM
-        - HIGH
+        - low
+        - medium
+        - high
       description: |
-        The quality tier for the image edit. Higher tiers may improve detail
-        and take longer to complete.
-      title: GptImage2Quality
+        The quality tier for the edit. Higher tiers may improve detail and
+        take longer to complete.
+      title: ColorwaysQuality
     ColorwaysResponse:
       type: object
       properties:
@@ -4389,6 +4590,40 @@ components:
         Acknowledgement that the colorway was accepted. Poll
         `GET /v1/generations/{generation_id}` for status and results.
       title: ColorwaysResponse
+    GenerationRejectReason:
+      type: string
+      enum:
+        - insufficient_funds
+        - subscription_required
+        - daily_limit
+        - priority_credit_required
+        - inflight_limit
+        - feature_limit
+      description: The account or usage limit that rejected a generation request.
+      title: GenerationRejectReason
+    GenerationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: A message describing why the generation request was rejected.
+        reject_reason:
+          $ref: '#/components/schemas/GenerationRejectReason'
+      required:
+        - error
+        - reject_reason
+      description: A generation request rejected by an account or usage limit.
+      title: GenerationErrorResponse
+    MaterialSwapQuality:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+      description: |
+        The quality tier for the edit. Higher tiers may improve detail and
+        take longer to complete.
+      title: MaterialSwapQuality
     MaterialSwapResponse:
       type: object
       properties:
@@ -4401,113 +4636,6 @@ components:
         Acknowledgement that the material swap was accepted. Poll
         `GET /v1/generations/{generation_id}` for status and results.
       title: MaterialSwapResponse
-    UpscaleInitialImageRequest:
-      type: object
-      properties:
-        prompt:
-          type: string
-          description: An optional prompt to guide the upscale
-        resemblance:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 50
-        detail:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 50
-        magic_prompt_option:
-          $ref: '#/components/schemas/MagicPromptOption'
-        num_images:
-          type: integer
-          minimum: 1
-          maximum: 8
-          default: 1
-          description: The number of images to generate.
-        seed:
-          type: integer
-          minimum: 0
-          maximum: 2147483647
-          description: Random seed. Set for reproducible generation.
-      description: A request to upscale a provided image with the help of an optional prompt.
-      title: UpscaleInitialImageRequest
-    StyleType:
-      type: string
-      enum:
-        - AUTO
-        - GENERAL
-        - FICTION
-        - REALISTIC
-        - DESIGN
-        - RENDER_3D
-        - ANIME
-      description: >-
-        The style type to generate with; this is only applicable for models V_2 and above and should not be specified
-        for model versions V_1.
-      title: StyleType
-    ImageObject:
-      type: object
-      properties:
-        url:
-          type:
-            - string
-            - 'null'
-          format: uri
-          description: The direct link to the image generated.
-        prompt:
-          type: string
-          description: The prompt used for the generation. This may be different from the original prompt.
-        resolution:
-          type: string
-          description: The resolution of the final image.
-        upscaled_resolution:
-          type: string
-          pattern: ^\d{2,5}x\d{2,5}$
-          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
-        is_image_safe:
-          type: boolean
-          description: Whether this request passes safety checks. If false, the url field will be empty.
-        seed:
-          type: integer
-          minimum: 0
-          maximum: 2147483647
-          description: Random seed. Set for reproducible generation.
-        style_type:
-          $ref: '#/components/schemas/StyleType'
-      required:
-        - prompt
-        - resolution
-        - is_image_safe
-        - seed
-      title: ImageObject
-    GenerateImageResponse:
-      type: object
-      properties:
-        request_id:
-          type: string
-          description: |
-            URL-safe base64 ID of the sampling request. Present when the caller
-            supplied `webhook_url` and the request was accepted for async
-            delivery; in that case `data` is omitted and the generated images
-            will be POSTed to the customer's `webhook_url` when ready.
-        created:
-          type: string
-          format: date-time
-          description: The time the request was created.
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/ImageObject'
-          description: A list of ImageObjects that contain the generated image(s).
-      required:
-        - created
-      description: >-
-        The response which contains information about the generated image, including the download link.
-
-        Images links are available for a limited period of time; if you would like to keep the image, you must download
-        it.
-      title: GenerateImageResponse
     LayerizeTextResponse:
       type: object
       properties:
@@ -4552,8 +4680,6 @@ components:
           type: string
           format: date-time
           description: When the dataset was created.
-        cover_asset_identifier:
-          $ref: '#/components/schemas/AssetIdentifier'
       required:
         - dataset_id
         - name
@@ -4635,18 +4761,13 @@ components:
     DatasetUploadSucceededAsset:
       type: object
       properties:
-        asset_identifier:
-          $ref: '#/components/schemas/AssetIdentifier'
         file_name:
           type:
             - string
             - 'null'
           description: >
             Original filename of the uploaded file. For a caption sidecar (.txt or .json) this is the sidecar's
-            filename, and asset_identifier points to the image the caption was applied to. A single image therefore
-            yields one entry for the image plus one per caption file.
-      required:
-        - asset_identifier
+            filename. A single image therefore yields one entry for the image plus one per caption file.
       title: DatasetUploadSucceededAsset
     DatasetAssetFailureReason:
       type: string
@@ -4858,6 +4979,20 @@ components:
         The model used to generate an image or edit one. /generate and /remix supports all model types, however, /edit
         is only supported for V_2 and V_2_TURBO.
       title: ModelEnum
+    StyleType:
+      type: string
+      enum:
+        - AUTO
+        - GENERAL
+        - FICTION
+        - REALISTIC
+        - DESIGN
+        - RENDER_3D
+        - ANIME
+      description: >-
+        The style type to generate with; this is only applicable for models V_2 and above and should not be specified
+        for model versions V_1.
+      title: StyleType
     Resolution:
       type: string
       enum:
@@ -4989,6 +5124,68 @@ components:
       required:
         - image_request
       title: GenerateImageRequest
+    ImageObject:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - 'null'
+          format: uri
+          description: The direct link to the image generated.
+        prompt:
+          type: string
+          description: The prompt used for the generation. This may be different from the original prompt.
+        resolution:
+          type: string
+          description: The resolution of the final image.
+        upscaled_resolution:
+          type: string
+          pattern: ^\d{2,5}x\d{2,5}$
+          description: Output resolution, only used if operations alters image dimensions, such as upscale, crop etc.
+        is_image_safe:
+          type: boolean
+          description: Whether this request passes safety checks. If false, the url field will be empty.
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          description: Random seed. Set for reproducible generation.
+        style_type:
+          $ref: '#/components/schemas/StyleType'
+      required:
+        - prompt
+        - resolution
+        - is_image_safe
+        - seed
+      title: ImageObject
+    GenerateImageResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          description: |
+            URL-safe base64 ID of the sampling request. Present when the caller
+            supplied `webhook_url` and the request was accepted for async
+            delivery; in that case `data` is omitted and the generated images
+            will be POSTed to the customer's `webhook_url` when ready.
+        created:
+          type: string
+          format: date-time
+          description: The time the request was created.
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageObject'
+          description: A list of ImageObjects that contain the generated image(s).
+      required:
+        - created
+      description: >-
+        The response which contains information about the generated image, including the download link.
+
+        Images links are available for a limited period of time; if you would like to keep the image, you must download
+        it.
+      title: GenerateImageResponse
     InitialImageRequest:
       type: object
       properties:
@@ -5059,6 +5256,121 @@ components:
           description: A collection of descriptions for given content.
       description: The response for a describe request encapsulates a list of descriptions.
       title: DescribeResponse
+    UpscaleInitialImageRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: An optional prompt to guide the upscale
+        resemblance:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+        detail:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+        magic_prompt_option:
+          $ref: '#/components/schemas/MagicPromptOption'
+        num_images:
+          type: integer
+          minimum: 1
+          maximum: 8
+          default: 1
+          description: The number of images to generate.
+        seed:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          description: Random seed. Set for reproducible generation.
+      description: A request to upscale a provided image with the help of an optional prompt.
+      title: UpscaleInitialImageRequest
+    AssetType:
+      type: string
+      enum:
+        - ASSET
+        - CANVAS_ASSET
+        - LAYERED_ASSET
+        - RESPONSE
+        - UPLOAD
+      title: AssetType
+    AssetIdentifier:
+      type: object
+      properties:
+        asset_type:
+          $ref: '#/components/schemas/AssetType'
+        asset_id:
+          type: string
+      required:
+        - asset_type
+        - asset_id
+      description: An identifier for an ideogram asset.
+      title: AssetIdentifier
+    Product360VideoDirection:
+      type: string
+      enum:
+        - clockwise
+        - counter-clockwise
+      description: Direction the product rotates around its vertical axis.
+      title: Product360VideoDirection
+    SeedDance25Resolution:
+      type: string
+      enum:
+        - 480p
+        - 720p
+        - 1080p
+      default: 720p
+      description: The resolution tier of the generated video.
+      title: SeedDance25Resolution
+    Product360VideoRequest:
+      type: object
+      properties:
+        image_asset_identifier:
+          $ref: '#/components/schemas/AssetIdentifier'
+        direction:
+          $ref: '#/components/schemas/Product360VideoDirection'
+        product_description:
+          type: string
+          maxLength: 200
+          description: Optional factual description of the product in the source image.
+        resolution:
+          $ref: '#/components/schemas/SeedDance25Resolution'
+          default: 720p
+        duration:
+          type: integer
+          minimum: 4
+          maximum: 30
+          description: |
+            The length of the generated video in seconds. When omitted, the model
+            picks the best duration for the prompt ("auto").
+      required:
+        - image_asset_identifier
+        - direction
+      title: Product360VideoRequest
+    GenerateVideoSeedDance25Response:
+      type: object
+      properties:
+        generation_id:
+          type: string
+          description: |
+            URL-safe base64 ID of the accepted generation. Accepted by the
+            `GET /v1/generations/{generation_id}` polling endpoint.
+        created:
+          type: string
+          format: date-time
+          description: The time the request was accepted.
+      required:
+        - generation_id
+        - created
+      description: |
+        Acknowledgement returned by the Seedance 2.5 video generation
+        endpoints. Video generation always runs asynchronously, so the
+        generated video is never part of this response: poll for it with
+        `GET /v1/generations/{generation_id}` using the returned
+        `generation_id`, or receive it at the `webhook_url` you supplied.
+      title: GenerateVideoSeedDance25Response
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
