@@ -2275,9 +2275,10 @@
               },
               "search_type": {
                 "default": "web",
-                "description": "Search type - \"web\" for general web search, \"people\" for people search. max_results above 20 is only supported for people search.",
+                "description": "Search type - \"web\" for general web search, \"fast\" for lower-latency, lower-cost web search, \"people\" for people search. max_results above 20 is only supported for people search.",
                 "enum": [
                   "web",
+                  "fast",
                   "people"
                 ],
                 "type": "string"
@@ -5003,6 +5004,14 @@
           "filters": {
             "$ref": "#/components/schemas/WebSearchFilters",
             "description": "Domain and date filters for search results"
+          },
+          "search_type": {
+            "description": "Search type for this tool. `web` uses standard web search. `fast` uses the lower-latency Fast Search path, billed at $1.00 per 1,000 invocations plus model tokens. When omitted, inherits the preset's search type if configured; otherwise uses `web`.",
+            "enum": [
+              "web",
+              "fast"
+            ],
+            "type": "string"
           },
           "search_context_size": {
             "description": "Named search context budget. Explicit max_tokens / max_tokens_per_page budgets override it.",
