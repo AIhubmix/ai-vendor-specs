@@ -3652,7 +3652,7 @@
             "type": "integer"
           },
           "model": {
-            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5\", \"anthropic/claude-sonnet-4-6\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor preset is provided.\n",
+            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5.6-terra\", \"anthropic/claude-sonnet-4-6\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor preset is provided.\n",
             "type": "string"
           },
           "models": {
