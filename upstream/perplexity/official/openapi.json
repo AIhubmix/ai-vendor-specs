@@ -802,12 +802,6 @@
                       "owned_by": "moonshotai"
                     },
                     {
-                      "id": "perplexity/kimi-k2.7-code",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "perplexity"
-                    },
-                    {
                       "id": "perplexity/sonar",
                       "object": "model",
                       "created": 0,
