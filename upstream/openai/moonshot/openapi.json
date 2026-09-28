@@ -924,7 +924,7 @@
 									},
 									"cache_write_tokens": {
 										"type": "integer",
-										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 档位计费，详见 prompt_cache_options"
+										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 计费，详见 prompt_cache_options"
 									}
 								},
 								"required": [
@@ -996,7 +996,7 @@
 									},
 									"cache_write_tokens": {
 										"type": "integer",
-										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 档位计费，详见 prompt_cache_options"
+										"description": "本次写入缓存的 Token 数量。按写入时的 TTL 计费，详见 prompt_cache_options"
 									}
 								},
 								"required": [
@@ -3865,7 +3865,7 @@
 							},
 							"cache_creation": {
 								"type": "object",
-								"description": "缓存写入按 TTL 档位的明细",
+								"description": "缓存写入按 TTL 的明细",
 								"properties": {
 									"ephemeral_5m_input_tokens": {
 										"type": "integer",
@@ -4136,7 +4136,7 @@
 									},
 									"cache_creation": {
 										"type": "object",
-										"description": "缓存写入按 TTL 档位的明细",
+										"description": "缓存写入按 TTL 的明细",
 										"properties": {
 											"ephemeral_5m_input_tokens": {
 												"type": "integer",
