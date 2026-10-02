@@ -4036,9 +4036,22 @@
           "type": {
             "enum": [
               "input_text",
-              "input_image"
+              "input_image",
+              "input_file"
             ],
             "type": "string"
+          },
+          "filename": {
+            "type": "string",
+            "description": "Optional input_file basename, at most 255 UTF-8 bytes. Its extension must match the document type."
+          },
+          "file_data": {
+            "type": "string",
+            "description": "For input_file, standard base64 or a base64 data URI. Exactly one of file_data and file_url is required. Native Agent input allows at most 30 document parts and 50 MiB combined decoded inline bytes, including inherited documents. Provider limits also apply. Browser tools are unavailable with document inputs or document continuations."
+          },
+          "file_url": {
+            "type": "string",
+            "description": "For input_file, public HTTPS URL fetched by the provider. Exactly one of file_data and file_url is required. Defaults to PDF unless filename supplies another supported extension; the remote content must match. No file_id support. Browser tools are unavailable with document inputs or document continuations."
           }
         },
         "required": [
