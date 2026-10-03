@@ -2162,41 +2162,38 @@
         "title": "ApiPublicSearchResult"
       },
       "ImageResult": {
+        "description": "A single image search result",
         "properties": {
           "image_url": {
             "type": "string",
-            "title": "Image Url",
             "description": "URL of the image"
           },
           "origin_url": {
             "type": "string",
-            "title": "Origin Url",
             "description": "Original URL where the image was found"
+          },
+          "height": {
+            "format": "int64",
+            "type": "integer",
+            "description": "Height of the image in pixels"
+          },
+          "width": {
+            "format": "int64",
+            "type": "integer",
+            "description": "Width of the image in pixels"
           },
           "title": {
             "type": "string",
-            "title": "Title",
             "description": "Title or description of the image"
-          },
-          "width": {
-            "type": "integer",
-            "title": "Width",
-            "description": "Width of the image in pixels"
-          },
-          "height": {
-            "type": "integer",
-            "title": "Height",
-            "description": "Height of the image in pixels"
           }
         },
-        "type": "object",
         "required": [
           "image_url",
           "origin_url",
-          "title",
-          "width",
-          "height"
+          "height",
+          "width"
         ],
+        "type": "object",
         "title": "ImageResult"
       },
       "ApiSearchPage": {
@@ -3695,6 +3692,14 @@
             },
             "type": "array"
           },
+          "tool_choice": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ToolChoice"
+              }
+            ],
+            "description": "Tool choice strategy. Use `{\"type\":\"image_search\"}` to force image search."
+          },
           "skills": {
             "type": "array",
             "description": "Built-in, request-scoped inline, and organization-owned custom skills available to the model. Skill metadata is disclosed to the model up front; full instructions are loaded on demand through the load_skill tool. Selecting any skill enables the sandbox tool for the request. Requests with skills run on the durable backend and skills are not echoed back on Response objects.",
@@ -3924,6 +3929,14 @@
             "format": "double",
             "type": "number"
           },
+          "tool_calls_cost_details": {
+            "description": "USD cost attributed to each reported tool by tool name.\nUnpriced reported tools are included with a value of 0.\n",
+            "additionalProperties": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": "object"
+          },
           "total_cost": {
             "description": "Total cost for the request in USD",
             "format": "double",
@@ -4070,6 +4083,7 @@
             "people_search_results": "#/components/schemas/PeopleSearchResultsOutputItem",
             "sandbox_results": "#/components/schemas/SandboxResultsOutputItem",
             "search_results": "#/components/schemas/SearchResultsOutputItem",
+            "image_search_results": "#/components/schemas/ImageSearchResultsOutputItem",
             "mcp_list_tools": "#/components/schemas/McpListToolsOutputItem",
             "mcp_call": "#/components/schemas/McpCallOutputItem",
             "tool_search_output": "#/components/schemas/ToolSearchOutputItem"
@@ -4082,6 +4096,9 @@
           },
           {
             "$ref": "#/components/schemas/SearchResultsOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/ImageSearchResultsOutputItem"
           },
           {
             "$ref": "#/components/schemas/FetchUrlResultsOutputItem"
@@ -4171,6 +4188,38 @@
         ],
         "type": "object",
         "title": "SearchResultsOutputItem"
+      },
+      "ImageSearchResultsOutputItem": {
+        "properties": {
+          "error": {
+            "description": "Present when image search failed. The value is image_search_failed.",
+            "type": "string"
+          },
+          "queries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ImageResult"
+            },
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "image_search_results"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "results"
+        ],
+        "type": "object",
+        "title": "ImageSearchResultsOutputItem"
       },
       "FetchUrlResultsOutputItem": {
         "properties": {
@@ -4857,6 +4906,7 @@
             "people_search": "#/components/schemas/PeopleSearchTool",
             "sandbox": "#/components/schemas/SandboxTool",
             "web_search": "#/components/schemas/WebSearchTool",
+            "image_search": "#/components/schemas/ImageSearchTool",
             "mcp": "#/components/schemas/McpTool",
             "connector": "#/components/schemas/ConnectorTool"
           },
@@ -4865,6 +4915,9 @@
         "oneOf": [
           {
             "$ref": "#/components/schemas/WebSearchTool"
+          },
+          {
+            "$ref": "#/components/schemas/ImageSearchTool"
           },
           {
             "$ref": "#/components/schemas/FinanceSearchTool"
@@ -5064,6 +5117,80 @@
         "type": "object",
         "title": "WebSearchTool"
       },
+      "ToolChoice": {
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "none",
+              "auto",
+              "required"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": true
+          }
+        ],
+        "title": "ToolChoice"
+      },
+      "ImageSearchFilters": {
+        "properties": {
+          "domain_filter": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "type": "array"
+          },
+          "format_filter": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "bmp",
+                "gif",
+                "jpeg",
+                "png",
+                "webp",
+                "svg"
+              ]
+            },
+            "maxItems": 10,
+            "type": "array"
+          },
+          "safe_search": {
+            "default": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object",
+        "title": "ImageSearchFilters"
+      },
+      "ImageSearchTool": {
+        "properties": {
+          "type": {
+            "enum": [
+              "image_search"
+            ],
+            "type": "string"
+          },
+          "max_results": {
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 5,
+            "type": "integer"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/ImageSearchFilters"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "title": "ImageSearchTool"
+      },
       "FinanceSearchTool": {
         "description": "Finance search tool configuration for the Agent API",
         "properties": {
@@ -5242,13 +5369,18 @@
             "description": "Number of times this tool was invoked",
             "format": "int64",
             "type": "integer"
+          },
+          "cost_usd": {
+            "description": "Accumulated customer charge in USD for this tool when the API can attribute one directly.",
+            "format": "double",
+            "type": "number"
           }
         },
         "type": "object",
         "title": "ToolCallDetails"
       },
       "ResponseStreamEvent": {
-        "description": "SSE stream event. Discriminate by the `type` field:\n- `response.created`: Initial response object\n- `response.in_progress`: Response processing started\n- `response.completed`: Final response with output\n- `response.failed`: Error occurred\n- `response.output_item.added`: New output item started\n- `response.output_item.done`: Output item completed\n- `response.output_text.delta`: Streaming text delta\n- `response.output_text.done`: Final text content\n- `response.reasoning.started`: Reasoning phase started\n- `response.reasoning.search_queries`: Search queries issued\n- `response.reasoning.search_results`: Search results received\n- `response.reasoning.fetch_url_queries`: URL fetch queries issued\n- `response.reasoning.fetch_url_results`: URL fetch results received\n- `response.reasoning.stopped`: Reasoning phase complete\n",
+        "description": "SSE stream event. Discriminate by the `type` field:\n- `response.created`: Initial response object\n- `response.in_progress`: Response processing started\n- `response.completed`: Final response with output\n- `response.failed`: Error occurred\n- `response.output_item.added`: New output item started\n- `response.output_item.done`: Output item completed\n- `response.output_text.delta`: Streaming text delta\n- `response.output_text.done`: Final text content\n- `response.reasoning.started`: Reasoning phase started\n- `response.reasoning.search_queries`: Search queries issued\n- `response.reasoning.search_results`: Search results received\n- `response.reasoning.image_search_queries`: Image queries issued\n- `response.reasoning.image_search_results`: Image results received\n- `response.reasoning.fetch_url_queries`: URL fetch queries issued\n- `response.reasoning.fetch_url_results`: URL fetch results received\n- `response.reasoning.stopped`: Reasoning phase complete\n",
         "discriminator": {
           "mapping": {
             "response.completed": "#/components/schemas/ResponseCompletedEvent",
@@ -5263,6 +5395,8 @@
             "response.reasoning.fetch_url_results": "#/components/schemas/FetchUrlResultsEvent",
             "response.reasoning.search_queries": "#/components/schemas/SearchQueriesEvent",
             "response.reasoning.search_results": "#/components/schemas/SearchResultsEvent",
+            "response.reasoning.image_search_queries": "#/components/schemas/ImageSearchQueriesEvent",
+            "response.reasoning.image_search_results": "#/components/schemas/ImageSearchResultsEvent",
             "response.reasoning.started": "#/components/schemas/ReasoningStartedEvent",
             "response.reasoning.stopped": "#/components/schemas/ReasoningStoppedEvent"
           },
@@ -5303,6 +5437,12 @@
             "$ref": "#/components/schemas/SearchResultsEvent"
           },
           {
+            "$ref": "#/components/schemas/ImageSearchQueriesEvent"
+          },
+          {
+            "$ref": "#/components/schemas/ImageSearchResultsEvent"
+          },
+          {
             "$ref": "#/components/schemas/FetchUrlQueriesEvent"
           },
           {
@@ -5328,6 +5468,8 @@
           "response.reasoning.started",
           "response.reasoning.search_queries",
           "response.reasoning.search_results",
+          "response.reasoning.image_search_queries",
+          "response.reasoning.image_search_results",
           "response.reasoning.fetch_url_queries",
           "response.reasoning.fetch_url_results",
           "response.reasoning.stopped"
@@ -5636,6 +5778,71 @@
         ],
         "type": "object",
         "title": "SearchResultsEvent"
+      },
+      "ImageSearchQueriesEvent": {
+        "properties": {
+          "call_id": {
+            "type": "string"
+          },
+          "queries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sequence_number": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "thought": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          }
+        },
+        "required": [
+          "type",
+          "sequence_number",
+          "call_id",
+          "queries"
+        ],
+        "type": "object",
+        "title": "ImageSearchQueriesEvent"
+      },
+      "ImageSearchResultsEvent": {
+        "properties": {
+          "call_id": {
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ImageResult"
+            },
+            "type": "array"
+          },
+          "sequence_number": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "thought": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/EventType"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ResponsesUsage"
+          }
+        },
+        "required": [
+          "type",
+          "sequence_number",
+          "call_id",
+          "results"
+        ],
+        "type": "object",
+        "title": "ImageSearchResultsEvent"
       },
       "FetchUrlQueriesEvent": {
         "description": "URL fetch queries event (type: \"response.reasoning.fetch_url_queries\").\nContains URLs being fetched.\n",
