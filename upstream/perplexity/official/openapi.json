@@ -5374,10 +5374,83 @@
             "description": "Accumulated customer charge in USD for this tool when the API can attribute one directly.",
             "format": "double",
             "type": "number"
+          },
+          "token_usage": {
+            "description": "Model token usage for tools backed by internal LLM calls. Sandbox SDK usage is aggregated by model; advisor entries represent individual invocations.\n",
+            "items": {
+              "$ref": "#/components/schemas/ToolCallTokenUsage"
+            },
+            "type": "array"
           }
         },
         "type": "object",
         "title": "ToolCallDetails"
+      },
+      "InputTokensDetails": {
+        "properties": {
+          "cached_tokens": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "cache_creation_input_tokens": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "cache_read_input_tokens": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cached_tokens"
+        ],
+        "type": "object",
+        "title": "InputTokensDetails"
+      },
+      "OutputTokensDetails": {
+        "properties": {
+          "reasoning_tokens": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reasoning_tokens"
+        ],
+        "type": "object",
+        "title": "OutputTokensDetails"
+      },
+      "ToolCallTokenUsage": {
+        "properties": {
+          "model": {
+            "description": "Model identifier reported by the internal LLM call.",
+            "type": "string"
+          },
+          "input_tokens": {
+            "description": "Total input tokens, including uncached, cache write, and cache read tokens.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "description": "Output tokens returned by the internal LLM call.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "input_tokens_details": {
+            "$ref": "#/components/schemas/InputTokensDetails"
+          },
+          "output_tokens_details": {
+            "$ref": "#/components/schemas/OutputTokensDetails"
+          }
+        },
+        "required": [
+          "input_tokens",
+          "output_tokens",
+          "input_tokens_details",
+          "output_tokens_details"
+        ],
+        "type": "object",
+        "title": "ToolCallTokenUsage"
       },
       "ResponseStreamEvent": {
         "description": "SSE stream event. Discriminate by the `type` field:\n- `response.created`: Initial response object\n- `response.in_progress`: Response processing started\n- `response.completed`: Final response with output\n- `response.failed`: Error occurred\n- `response.output_item.added`: New output item started\n- `response.output_item.done`: Output item completed\n- `response.output_text.delta`: Streaming text delta\n- `response.output_text.done`: Final text content\n- `response.reasoning.started`: Reasoning phase started\n- `response.reasoning.search_queries`: Search queries issued\n- `response.reasoning.search_results`: Search results received\n- `response.reasoning.image_search_queries`: Image queries issued\n- `response.reasoning.image_search_results`: Image results received\n- `response.reasoning.fetch_url_queries`: URL fetch queries issued\n- `response.reasoning.fetch_url_results`: URL fetch results received\n- `response.reasoning.stopped`: Reasoning phase complete\n",

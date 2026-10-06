@@ -2,10 +2,10 @@
   "protocol": "cohere",
   "provider": "official",
   "displayName": "Cohere Official",
-  "version": "2026-10-05",
+  "version": "2026-10-06",
   "specFormat": "openapi-3.1",
   "source": "https://raw.githubusercontent.com/cohere-ai/cohere-developer-experience/main/cohere-openapi.yaml",
-  "lastSynced": "2026-10-05T11:35:44Z",
+  "lastSynced": "2026-10-06T11:35:24Z",
   "hash": "sha256:814093aac6748d91ca9e6886970b11b34bf2edcf03c4eafac622f17c18e5c851",
   "autoSync": true
 }
