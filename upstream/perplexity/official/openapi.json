@@ -2274,10 +2274,6 @@
                 ],
                 "type": "string"
               },
-              "search_context_size": {
-                "description": "Controls how much content is extracted from result pages.\n\n- `low` — short passages most relevant to the query.\n- `medium` — a balanced amount of content per document.\n- `high` (default) — detailed content relevant to the query.\n\nOmit when using `max_tokens` or `max_tokens_per_page`.",
-                "type": "string"
-              },
               "max_tokens": {
                 "description": "Maximum total webpage content tokens to return across all search results",
                 "maximum": 1000000,
@@ -5070,15 +5066,6 @@
             "enum": [
               "web",
               "fast"
-            ],
-            "type": "string"
-          },
-          "search_context_size": {
-            "description": "Named search context budget. Explicit max_tokens / max_tokens_per_page budgets override it.",
-            "enum": [
-              "low",
-              "medium",
-              "high"
             ],
             "type": "string"
           },

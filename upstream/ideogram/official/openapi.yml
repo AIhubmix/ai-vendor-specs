@@ -4,20 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Available APIs</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 60px auto; padding: 0 20px; color: #e5e5e5; background: rgba(10, 10, 11, 1); line-height: 1.6; }
-    h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 6px 0; }
-    .subtitle { color: #888888; font-size: 0.875rem; margin: 0 0 24px 0; }
-    code { background: #1e1e1e; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
-    a { color: rgba(249, 249, 249, 1); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .api-list { list-style: none; padding: 0; margin: 0; border: 1px solid rgba(29, 29, 32, 1); border-radius: 10px; overflow: hidden; }
-    .api-list li { border-bottom: 1px solid rgba(29, 29, 32, 1); }
-    .api-list li:last-child { border-bottom: none; }
-    .api-list a { display: flex; align-items: center; gap: 12px; padding: 16px 18px; color: #e5e5e5; text-decoration: none; transition: background 0.15s; font-size: 0.9rem; }
-    .api-list a:hover { background: #1a1a1a; text-decoration: none; }
-    .api-icon { flex-shrink: 0; width: 20px; height: 20px; color: #888888; }
-  </style>
+  <link rel="stylesheet" href="/_astro/inline.pvM-ta3YnCIP_kw8.css">
 </head>
 <body>
   <h1>Available APIs</h1>
