@@ -1747,8 +1747,8 @@
             "anyOf": [
               {
                 "type": "integer",
-                "maximum": 128000.0,
-                "exclusiveMinimum": 0.0
+                "maximum": 128000,
+                "exclusiveMinimum": 0
               },
               {
                 "type": "null"
@@ -1803,8 +1803,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 2.0
+                "minimum": 0,
+                "maximum": 2
               },
               {
                 "type": "null"
@@ -1817,8 +1817,8 @@
             "anyOf": [
               {
                 "type": "number",
-                "minimum": 0.0,
-                "maximum": 1.0
+                "minimum": 0,
+                "maximum": 1
               },
               {
                 "type": "null"
@@ -3970,7 +3970,11 @@
           "mapping": {
             "function_call": "#/components/schemas/FunctionCallInput",
             "function_call_output": "#/components/schemas/FunctionCallOutputInput",
-            "message": "#/components/schemas/InputMessage"
+            "message": "#/components/schemas/InputMessage",
+            "mcp_approval_response": "#/components/schemas/McpApprovalResponseInput",
+            "mcp_approval_request": "#/components/schemas/McpApprovalRequestInput",
+            "mcp_call": "#/components/schemas/McpCallInput",
+            "mcp_list_tools": "#/components/schemas/McpListToolsInput"
           },
           "propertyName": "type"
         },
@@ -3983,6 +3987,18 @@
           },
           {
             "$ref": "#/components/schemas/FunctionCallInput"
+          },
+          {
+            "$ref": "#/components/schemas/McpApprovalResponseInput"
+          },
+          {
+            "$ref": "#/components/schemas/McpApprovalRequestInput"
+          },
+          {
+            "$ref": "#/components/schemas/McpCallInput"
+          },
+          {
+            "$ref": "#/components/schemas/McpListToolsInput"
           }
         ],
         "title": "InputItem"
@@ -4082,7 +4098,8 @@
             "image_search_results": "#/components/schemas/ImageSearchResultsOutputItem",
             "mcp_list_tools": "#/components/schemas/McpListToolsOutputItem",
             "mcp_call": "#/components/schemas/McpCallOutputItem",
-            "tool_search_output": "#/components/schemas/ToolSearchOutputItem"
+            "tool_search_output": "#/components/schemas/ToolSearchOutputItem",
+            "mcp_approval_request": "#/components/schemas/McpApprovalRequestOutputItem"
           },
           "propertyName": "type"
         },
@@ -4116,6 +4133,9 @@
           },
           {
             "$ref": "#/components/schemas/McpCallOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/McpApprovalRequestOutputItem"
           },
           {
             "$ref": "#/components/schemas/ToolSearchOutputItem"
@@ -6589,6 +6609,19 @@
             "additionalProperties": true,
             "description": "The server's JSON Schema for the tool, passed through unmodified.",
             "type": "object"
+          },
+          "annotations": {
+            "additionalProperties": true,
+            "description": "Tool annotations. `read_only` is untrusted catalog metadata used by approval filters, not a side-effect guarantee.",
+            "properties": {
+              "read_only": {
+                "type": "boolean"
+              }
+            },
+            "type": [
+              "object",
+              "null"
+            ]
           }
         },
         "required": [
@@ -6673,6 +6706,13 @@
               "string",
               "null"
             ]
+          },
+          "approval_request_id": {
+            "description": "The `mcp_approval_request` ID this call resolved; null when the call ran automatically.",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -6686,7 +6726,7 @@
         "title": "McpCallOutputItem"
       },
       "McpTool": {
-        "description": "Connects a user-supplied remote MCP server. Agent API discovers the server's tools when the request starts and calls them like native tools. Matches OpenAI's mcp tool. `defer_loading: true` keeps discovered definitions out of the initial model context and lets the model search, inspect, and call them as needed. `require_approval` and `connector_id` are ignored: every call auto-runs, and only bring-your-own `server_url` is honored.",
+        "description": "Connects a user-supplied remote MCP server. Agent API discovers the server's tools when the request starts and calls them like native tools. `defer_loading: true` keeps discovered definitions out of the initial model context and lets the model search, inspect, and call them as needed. The `require_approval` contract pauses gated calls for an application decision.",
         "properties": {
           "type": {
             "enum": [
@@ -6723,6 +6763,10 @@
           "defer_loading": {
             "description": "When true, keeps discovered tool definitions out of the initial model context and lets the model load relevant schemas as needed. Defaults to false.",
             "type": "boolean"
+          },
+          "require_approval": {
+            "description": "Approval policy for this server's tool calls. Omitted, null, or `\"never\"` runs every call automatically; `\"always\"` gates every call; the object form filters by exact tool name and reported read-only classification.",
+            "$ref": "#/components/schemas/RequireApproval"
           }
         },
         "required": [
@@ -6842,7 +6886,7 @@
         "title": "ToolSearchOutputItem"
       },
       "ConnectorTool": {
-        "description": "A Perplexity-managed connector scoped to the authenticated API organization.",
+        "description": "A saved managed or custom connector scoped to the authenticated Project.",
         "properties": {
           "type": {
             "enum": [
@@ -6868,6 +6912,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "require_approval": {
+            "description": "Approval policy for this connector's MCP tool calls. Omitted, null, or `\"never\"` runs every call automatically; `\"always\"` gates every call; the object form filters by exact tool name and reported read-only classification.",
+            "$ref": "#/components/schemas/RequireApproval"
           }
         },
         "required": [
@@ -7049,6 +7097,291 @@
             "format": "date-time"
           }
         }
+      },
+      "RequireApproval": {
+        "description": "Approval policy for an MCP server or connector. A call matching `always` requires approval; otherwise a call matching `never` runs automatically; otherwise approval is required. Omitted or null behaves like `\"never\"`.",
+        "oneOf": [
+          {
+            "title": "ApprovalMode",
+            "type": "string",
+            "enum": [
+              "always",
+              "never"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ApprovalFilters"
+          },
+          {
+            "title": "NoApprovalPolicy",
+            "type": "null"
+          }
+        ],
+        "title": "RequireApproval"
+      },
+      "ApprovalFilters": {
+        "description": "Per-tool approval filters. An absent or null member matches no tool. Matching `always` takes precedence over matching `never`, and an unmatched call requires approval.",
+        "additionalProperties": false,
+        "properties": {
+          "always": {
+            "description": "Calls matching this filter require approval.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalFilter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "never": {
+            "description": "Calls matching this filter run automatically unless `always` also matches.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalFilter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ApprovalFilters"
+      },
+      "ApprovalFilter": {
+        "description": "Matches a tool when every present field matches. An empty filter matches every tool.",
+        "additionalProperties": false,
+        "properties": {
+          "tool_names": {
+            "description": "Exact, case-sensitive tool names. Omitted, null, or empty imposes no name constraint.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "read_only": {
+            "description": "Matches the untrusted catalog classification reported as `mcp_list_tools.tools[].annotations.read_only`. Omitted or null imposes no classification constraint.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ApprovalFilter"
+      },
+      "McpApprovalResponseInput": {
+        "description": "The application's decision for one pending `mcp_approval_request`. Every pending request in the selected history needs exactly one decision before any approved call runs.",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "enum": [
+              "mcp_approval_response"
+            ],
+            "type": "string"
+          },
+          "approval_request_id": {
+            "description": "The `id` of the `mcp_approval_request` being answered.",
+            "type": "string"
+          },
+          "approve": {
+            "description": "When true, run the recorded call. When false, skip it and tell the model the user denied the action.",
+            "type": "boolean"
+          },
+          "reason": {
+            "description": "Optional text returned to the model with a denial. A string is rejected when `approve` is true; null is accepted.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "description": "Optional client item ID. It is ignored for correlation; use `approval_request_id` instead.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "approval_request_id",
+          "approve"
+        ],
+        "type": "object",
+        "title": "McpApprovalResponseInput"
+      },
+      "McpApprovalRequestInput": {
+        "description": "A prior `mcp_approval_request` output item resent as manual history. Resend `thought_signature` unchanged when it is present.",
+        "properties": {
+          "type": {
+            "enum": [
+              "mcp_approval_request"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "server_label": {
+            "type": "string"
+          },
+          "connector_id": {
+            "description": "Present only when the request came from a connector.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "arguments": {
+            "description": "JSON-encoded arguments the model proposed.",
+            "type": "string"
+          },
+          "thought_signature": {
+            "description": "Base64-encoded signature for thinking models.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "server_label",
+          "name",
+          "arguments"
+        ],
+        "type": "object",
+        "title": "McpApprovalRequestInput"
+      },
+      "McpCallInput": {
+        "description": "A prior `mcp_call` output item resent as manual history. It records history and does not trigger execution.",
+        "properties": {
+          "type": {
+            "enum": [
+              "mcp_call"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "server_label": {
+            "type": "string"
+          },
+          "connector_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "arguments": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approval_request_id": {
+            "description": "The approval request this call resolved, or null for an automatic call.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "server_label",
+          "name",
+          "arguments"
+        ],
+        "type": "object",
+        "title": "McpCallInput"
+      },
+      "McpListToolsInput": {
+        "description": "A prior `mcp_list_tools` output item resent as history. The API accepts and drops it because tool discovery runs again.",
+        "properties": {
+          "type": {
+            "enum": [
+              "mcp_list_tools"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "server_label": {
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/McpToolDef"
+            },
+            "type": "array"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "title": "McpListToolsInput"
+      },
+      "McpApprovalRequestOutputItem": {
+        "description": "One MCP or connector tool call waiting for the application to approve or deny it. The call has not run. Answer with an `mcp_approval_response` input item in the next request.",
+        "properties": {
+          "type": {
+            "enum": [
+              "mcp_approval_request"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "description": "Opaque approval request ID. Return it as `approval_request_id` when submitting a decision.",
+            "type": "string"
+          },
+          "server_label": {
+            "type": "string"
+          },
+          "connector_id": {
+            "description": "Present only when the item originated from a connector.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "arguments": {
+            "description": "JSON-encoded arguments the model proposed.",
+            "type": "string"
+          },
+          "thought_signature": {
+            "description": "Base64-encoded signature for thinking models. Resend it unchanged in manual history.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "server_label",
+          "name",
+          "arguments"
+        ],
+        "type": "object",
+        "title": "McpApprovalRequestOutputItem"
       }
     },
     "securitySchemes": {
