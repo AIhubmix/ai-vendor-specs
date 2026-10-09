@@ -8,7 +8,7 @@ This document records the official sources and sync method for every spec in ai-
 
 | Protocol | Variant | Tier | Source format | Sync | Official |
 |---|---|---|---|---|---|
-| openai | official | 1 | OpenAPI 3.1 | auto | [Stainless](https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml) |
+| openai | official | 1 | OpenAPI 3.1 | auto (pinned `main`) | [openai/openai-openapi `openapi.yaml`](https://github.com/openai/openai-openapi/blob/main/openapi.yaml) |
 | openai | azure | 1 | OpenAPI 3.0 | auto (stable 2024-10-21) | [Azure REST API Specs](https://github.com/Azure/azure-rest-api-specs) |
 | openai | azure-preview | 1 | OpenAPI 3.1 | auto (preview, pinned) | [Azure REST API Specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) |
 | openai | groq | 3 | overlay (no spec) | manual `overlay.yml` | [Groq API docs](https://console.groq.com/docs/openai) |
@@ -51,16 +51,16 @@ This document records the official sources and sync method for every spec in ai-
 
 ### openai/official
 
-**Source**: OpenAI, hosted by Stainless.
+**Source**: OpenAI's official [openai/openai-openapi](https://github.com/openai/openai-openapi) repository. Its README states that `openapi.yaml` / `openapi.json` are generated artifacts synchronized automatically from upstream source and that the official SDKs are generated from this spec; the openai-python / openai-node READMEs also say "generated from our OpenAPI specification" and link to it. The repo has no release-tracking tags, so the sync pins `main`.
 
 ```bash
 curl -o upstream/openai/official/openapi.yml \
-  "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
+  "https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml"
 ```
 
 - OpenAPI 3.1 (YAML)
 - Daily auto-update; complete endpoints and parameters
-- GitHub mirror: https://github.com/openai/openai-openapi
+- History: until 2026-10-09 the sync used the Stainless documented URL (`app.stainless.com/api/spec/documented/openai/openapi.documented.yml`). Its content stopped changing after 2026-08-04 (semantically equal to openai-openapi `d4fb706` of 2026-08-03, differing only in the SDK code samples inside `x-oaiMeta`) and it has returned 404 since 2026-09-17; because the sync script exits 0 on failure, the last successful openai/official sync stayed at 2026-09-16
 - Reference docs: https://platform.openai.com/docs/api-reference
 
 ---
@@ -434,7 +434,7 @@ jobs:
 
 | # | Script | Method | Notes |
 |---|---|---|---|
-| 1 | `openai-official.sh` | Single curl from Stainless public URL | — |
+| 1 | `openai-official.sh` | Single curl from GitHub raw (`openai/openai-openapi` main) | Since 2026-10-09; the old Stainless URL has returned 404 since 2026-09-17 |
 | 2 | `openai-azure.sh` | Single curl from GitHub raw | Pinned to `2024-10-21` stable |
 | 3 | `openai-azure-preview.sh` | Single curl from GitHub raw | Pinned to `2025-04-01-preview`; bump manually |
 | 4 | `anthropic-official.sh` | **Two-step**: parse `.stats.yml`, then fetch the hashed spec URL | Spec URL changes per regeneration |

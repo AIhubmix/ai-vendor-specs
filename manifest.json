@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "@aihubmix/ai-vendor-specs",
   "description": "Curated official OpenAPI / Discovery specifications for major AI providers, with overlay support for OpenAI-compatible vendors and daily upstream sync with drift detection.",
-  "generatedAt": "2026-10-08T11:36:46Z",
+  "generatedAt": "2026-10-09T07:55:32Z",
   "repository": "AIhubmix/ai-vendor-specs",
   "upstream": {
     "anthropic/bedrock": {
@@ -320,11 +320,11 @@
       "protocol": "openai",
       "provider": "official",
       "displayName": "OpenAI Official",
-      "hash": "sha256:9045dde43bdbfa96b2fab82e0fb347e099db2c150526b7a1f52f101c41fcae0c",
-      "syncedAt": "2026-09-16T11:31:46Z",
+      "hash": "sha256:06d914881ac7e73185739ce80bc3ad84bfcd5df022e6bab5527b87d938f67506",
+      "syncedAt": "2026-10-09T07:54:16Z",
       "kind": "spec",
       "specFormat": "openapi-3.1",
-      "sourceUrl": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",
+      "sourceUrl": "https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml",
       "specPath": "upstream/openai/official/openapi.yml",
       "uri": "avs://openai/official",
       "rawUrl": "https://raw.githubusercontent.com/AIhubmix/ai-vendor-specs/main/upstream/openai/official/openapi.yml",

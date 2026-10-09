@@ -16,7 +16,7 @@
 
 | 协议 | provider | 类型 | 上游来源 |
 |---|---|---|---|
-| openai | official | spec | [openai/openai-openapi](https://github.com/openai/openai-openapi)(Stainless) |
+| openai | official | spec | [openai/openai-openapi](https://github.com/openai/openai-openapi) |
 | openai | azure | spec | [Azure/azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/stable) · 钉版 `2024-10-21` |
 | openai | azure-preview | spec | [Azure/azure-rest-api-specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) · 钉版 `2025-04-01-preview` |
 | openai | deepseek | overlay | [api-docs.deepseek.com](https://api-docs.deepseek.com/) |
