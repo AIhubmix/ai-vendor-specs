@@ -2,10 +2,12 @@
   "protocol": "openai",
   "provider": "official",
   "displayName": "OpenAI Official",
-  "version": "2026-09-16",
+  "version": "2026-10-09",
   "specFormat": "openapi-3.1",
-  "source": "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml",
-  "lastSynced": "2026-09-16T11:31:46Z",
-  "hash": "sha256:9045dde43bdbfa96b2fab82e0fb347e099db2c150526b7a1f52f101c41fcae0c",
+  "source": "https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml",
+  "lastSynced": "2026-10-09T07:54:16Z",
+  "hash": "sha256:06d914881ac7e73185739ce80bc3ad84bfcd5df022e6bab5527b87d938f67506",
+  "sourceAuthority": "official-repo",
+  "authorityNote": "OpenAI 官方 org openai 的 openai-openapi 仓库(README:官方 SDK 由此 spec 生成,openapi.yaml 由上游源自动同步);openai-python / openai-node 的 README 写明 generated from our OpenAPI specification 并链接该仓。无跟随发布的 tag,钉 main。原 Stainless documented URL 自 2026-09-17 起 404。",
   "autoSync": true
 }

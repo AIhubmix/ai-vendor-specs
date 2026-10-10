@@ -8,7 +8,7 @@
 
 | 协议 | 变体 | Tier | 来源格式 | 同步方式 | 官方地址 |
 |------|------|------|---------|---------|---------|
-| openai | official | 1 | OpenAPI 3.1 | 自动 | [Stainless](https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml) |
+| openai | official | 1 | OpenAPI 3.1 | 自动(钉 main) | [openai/openai-openapi `openapi.yaml`](https://github.com/openai/openai-openapi/blob/main/openapi.yaml) |
 | openai | azure | 1 | OpenAPI 3.0 | 自动(stable 2024-10-21) | [Azure REST API Specs](https://github.com/Azure/azure-rest-api-specs) |
 | openai | azure-preview | 1 | OpenAPI 3.1 | 自动(preview,版本号钉死) | [Azure REST API Specs preview](https://github.com/Azure/azure-rest-api-specs/tree/main/specification/cognitiveservices/data-plane/AzureOpenAI/inference/preview) |
 | openai | groq | 3 | overlay(无独立 spec) | 手动维护 overlay.yml | [Groq API docs](https://console.groq.com/docs/openai) |
@@ -93,13 +93,21 @@
 
 ### openai/official
 
-**来源**: OpenAI 官方，由 Stainless 托管
+**来源**: OpenAI 官方 GitHub org 的 [openai/openai-openapi](https://github.com/openai/openai-openapi) 仓库。
+其 README 写明 `openapi.yaml` / `openapi.json` 由上游源自动同步生成、官方 SDK 由此 spec 生成;
+openai-python / openai-node 的 README 也写明 "generated from our OpenAPI specification" 并链接该仓。
+仓库没有跟随发布的 tag,钉 `main`。
 
 ```bash
-# 同步命令
+# 同步命令(URL 取自该仓 README 的下载示例)
 curl -o upstream/openai/official/openapi.yml \
-  "https://app.stainless.com/api/spec/documented/openai/openapi.documented.yml"
+  "https://raw.githubusercontent.com/openai/openai-openapi/main/openapi.yaml"
 ```
+
+> 历史:2026-10-09 之前用 Stainless documented URL
+> (`app.stainless.com/api/spec/documented/openai/openapi.documented.yml`)。该 URL 内容自 2026-08-04 起
+> 不再变化(语义上等于 openai-openapi 2026-08-03 的 `d4fb706`,只差 `x-oaiMeta` 里的 SDK 示例代码),
+> 2026-09-17 起 404;同步脚本失败后 `exit 0`,openai/official 最后一次成功同步停在 2026-09-16。
 
 **特点**:
 - ✅ OpenAPI 3.1 格式
@@ -520,7 +528,7 @@ jobs:
 
 | # | 脚本 | 拉取方式 | 备注 |
 |---|---|---|---|
-| 1 | `openai-official.sh` | 单步 curl Stainless 公共 URL | — |
+| 1 | `openai-official.sh` | 单步 curl GitHub raw(`openai/openai-openapi` main) | 2026-10-09 起;原 Stainless URL 自 2026-09-17 起 404 |
 | 2 | `openai-azure.sh` | 单步 curl GitHub raw | 钉死 `2024-10-21` stable |
 | 3 | `openai-azure-preview.sh` | 单步 curl GitHub raw | 钉死 `2025-04-01-preview`,Azure 出新 preview 时需人手动 bump 脚本里的 `AZURE_API_VERSION` |
 | 4 | `anthropic-official.sh` | **两步**:先 curl SDK 仓库 `.stats.yml`,sed 解析出当前 spec URL,再 curl 那 URL | spec URL 含内容 hash,每次 Stainless 重新生成时变化 |
