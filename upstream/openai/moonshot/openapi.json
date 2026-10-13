@@ -3654,7 +3654,7 @@
 					},
 					"cache_control": {
 						"type": "object",
-						"description": "上下文缓存写入选项，仅在顶层传入时生效，messages 消息体内的 cache_control 标记会被忽略。不传时本次请求只尝试读取缓存（5m 档），不写入缓存",
+						"description": "上下文缓存写入选项，仅在顶层传入时生效，messages 消息体内的 cache_control 标记会被忽略。不传时默认按 5m TTL 读写缓存",
 						"properties": {
 							"type": {
 								"type": "string",
