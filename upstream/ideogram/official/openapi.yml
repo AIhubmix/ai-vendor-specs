@@ -9,7 +9,7 @@
 <body>
   <h1>Available APIs</h1>
 <p class="subtitle">Select an API to view its OpenAPI specification.</p>
-<ul class="api-list"><li><a href="openapi/api-reference.yaml"><svg class="api-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg><span>API Reference</span></a></li>
-<li><a href="openapi/api-reference-2.yaml"><svg class="api-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg><span>API Reference</span></a></li></ul>
+<ul class="api-list"><li><a href="openapi/ideogram-api-v2.yaml"><svg class="api-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg><span>Ideogram API v2</span></a></li>
+<li><a href="openapi/ideogram-api-v1.yaml"><svg class="api-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg><span>Ideogram API v1</span></a></li></ul>
 </body>
 </html>
