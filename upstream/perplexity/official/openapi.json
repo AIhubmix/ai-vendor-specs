@@ -646,12 +646,6 @@
                       "owned_by": "anthropic"
                     },
                     {
-                      "id": "anthropic/claude-opus-4-8",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "anthropic"
-                    },
-                    {
                       "id": "anthropic/claude-sonnet-5",
                       "object": "model",
                       "created": 0,
@@ -664,10 +658,10 @@
                       "owned_by": "anthropic"
                     },
                     {
-                      "id": "anthropic/claude-sonnet-4-6",
+                      "id": "openai/gpt-6-astra",
                       "object": "model",
                       "created": 0,
-                      "owned_by": "anthropic"
+                      "owned_by": "openai"
                     },
                     {
                       "id": "openai/gpt-6-sol",
@@ -706,19 +700,7 @@
                       "owned_by": "openai"
                     },
                     {
-                      "id": "google/gemini-3.1-flash-lite",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "google"
-                    },
-                    {
-                      "id": "google/gemini-3.5-flash",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "google"
-                    },
-                    {
-                      "id": "google/gemini-3.5-flash-lite",
+                      "id": "google/gemini-4-argon",
                       "object": "model",
                       "created": 0,
                       "owned_by": "google"
@@ -760,30 +742,6 @@
                       "owned_by": "xai"
                     },
                     {
-                      "id": "xai/grok-4.3",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "xai"
-                    },
-                    {
-                      "id": "xai/grok-4.20-reasoning",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "xai"
-                    },
-                    {
-                      "id": "xai/grok-4.20-non-reasoning",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "xai"
-                    },
-                    {
-                      "id": "xai/grok-4.20-multi-agent",
-                      "object": "model",
-                      "created": 0,
-                      "owned_by": "xai"
-                    },
-                    {
                       "id": "perplexity/glm-5.3",
                       "object": "model",
                       "created": 0,
@@ -800,6 +758,12 @@
                       "object": "model",
                       "created": 0,
                       "owned_by": "moonshotai"
+                    },
+                    {
+                      "id": "perplexity/deepseek-v4-pro-0813",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "perplexity"
                     },
                     {
                       "id": "perplexity/sonar",
@@ -930,11 +894,11 @@
                       "by_categories": {
                         "Model": [
                           {
-                            "category": "claude-opus-4-8",
+                            "category": "claude-opus-5-5",
                             "count": 210
                           },
                           {
-                            "category": "claude-sonnet-4-6",
+                            "category": "claude-sonnet-5-5",
                             "count": 120
                           }
                         ],
@@ -1106,7 +1070,7 @@
                           "by_categories": {
                             "Model": [
                               {
-                                "category": "claude-opus-4-8",
+                                "category": "claude-opus-5-5",
                                 "count": 900
                               }
                             ],
@@ -1124,7 +1088,7 @@
                           "by_categories": {
                             "Model": [
                               {
-                                "category": "claude-sonnet-4-6",
+                                "category": "claude-sonnet-5-5",
                                 "count": 500
                               }
                             ],
@@ -1752,7 +1716,7 @@
                 "mixed-questions": {
                   "summary": "Three question types about one product review",
                   "value": {
-                    "model": "pplx-decider-v1.1-27b",
+                    "model": "pplx-decider-latest",
                     "state": {
                       "title": "Battery died after two weeks",
                       "review": "The headphones sound great, but the battery stopped charging after two weeks."
@@ -1815,7 +1779,7 @@
                   "answers": {
                     "summary": "One answer per question, typed like its question",
                     "value": {
-                      "model": "pplx-decider-v1.1-27b",
+                      "model": "pplx-decider-latest",
                       "answers": {
                         "defect": {
                           "type": "noul",
@@ -1898,7 +1862,7 @@
         "x-mint": {
           "href": "/api-reference/decisions-post"
         },
-        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.1-27b` or `pplx-decider-v1-27b`; a missing or unknown model returns `400`. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
+        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
       }
     }
   },
@@ -3802,7 +3766,7 @@
             "type": "integer"
           },
           "model": {
-            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5.6-terra\", \"anthropic/claude-sonnet-4-6\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor preset is provided.\n",
+            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5.6-terra\", \"anthropic/claude-sonnet-5-5\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor preset is provided.\n",
             "type": "string"
           },
           "models": {
@@ -7986,8 +7950,8 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "description": "The model to use: `pplx-decider-v1.1-27b` or `pplx-decider-v1-27b`. A missing or unknown model returns `400`.",
-            "example": "pplx-decider-v1.1-27b"
+            "description": "The decision model: `pplx-decider-v1.2` (27B, $0.02 per million input tokens) or `pplx-decider-flash-v1.2` (4B, $0.01 per million input tokens). The aliases `pplx-decider-latest` and `perplexity/pplx-decider-latest` select `pplx-decider-v1.2`, and `pplx-decider-flash-latest` and `perplexity/pplx-decider-flash-latest` select `pplx-decider-flash-v1.2`; an alias can move to a newer model over time. `pplx-decider-v1.1-27b` and `pplx-decider-v1-27b` remain accepted and select `pplx-decider-v1.2`. A missing or unknown model returns `400`.",
+            "example": "pplx-decider-latest"
           },
           "state": {
             "anyOf": [
@@ -8004,7 +7968,7 @@
               }
             ],
             "title": "State",
-            "description": "The content every question in the request refers to: a string, an object, or an array. Images go in an array as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs.",
+            "description": "The content every question in the request refers to: a string, an object, or an array. Images can appear anywhere in `state` as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs and are read in place. Up to 8 images per question.",
             "example": "The headphones sound great, but the battery stopped charging after two weeks."
           },
           "questions": {
@@ -8029,7 +7993,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. Input must stay under 262,144 tokens and the body under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. Input must stay under 256K tokens and the body under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -8040,7 +8004,7 @@
             "type": "string",
             "title": "Model",
             "description": "The model name you sent, echoed back.",
-            "example": "pplx-decider-v1.1-27b"
+            "example": "pplx-decider-latest"
           },
           "answers": {
             "type": "object",
@@ -8284,7 +8248,7 @@
             },
             "example": {
               "error": {
-                "message": "Invalid model 'pplx-decider-v1.1-27b-latest'. Permitted models can be found in the documentation at https://docs.perplexity.ai/docs/getting-started/models.",
+                "message": "Invalid model 'pplx-decidr-latest'. Permitted models can be found in the documentation at https://docs.perplexity.ai/docs/getting-started/models.",
                 "type": "invalid_request_error",
                 "param": null,
                 "code": null
