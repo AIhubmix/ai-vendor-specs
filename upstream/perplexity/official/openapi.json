@@ -3779,7 +3779,7 @@
             "type": "array"
           },
           "preset": {
-            "description": "Preset configuration name (e.g., \"fast\", \"low\", \"medium\", \"high\", \"xhigh\").\nPre-configured model with system prompt and search parameters.\nRequired if model is not provided.\n",
+            "description": "Preset to run, as `name`, `name@latest`, or `name@<version>` (e.g., \"fast\", \"low\", \"fast@2026-09-29.0\").\nA preset is a pre-configured model with system prompt and search parameters.\n`name` and `name@latest` run the active version. `name@<version>` runs that exact version.\nA `preset` value returned on a response pins that configuration only when it carries a version.\nA returned value without a version runs the active version.\nVersions are opaque: do not parse, order, or calculate them.\nRequired if model is not provided.\n",
             "type": "string"
           },
           "profile": {
@@ -3927,6 +3927,11 @@
           "model": {
             "description": "Model used for generation",
             "type": "string"
+          },
+          "preset": {
+            "type": "string",
+            "title": "Preset",
+            "description": "Preset and version that ran this response, as `name@<version>` (e.g., \"fast@2026-09-29.0\").\nPresent only when the request used a preset. Streams resumed with `starting_after` omit it.\nFor an alias, this is the preset and version that the alias selects.\nSend a value with a version as the request `preset` to run that configuration again.\nA released version can receive bug-fix patches, so sending it back runs that version as currently patched.\nA value without a version is the bare preset name: the run was created before preset versions, or was served without versions.\nSending it runs the active version.\n"
           },
           "object": {
             "$ref": "#/components/schemas/ResponsesObjectType",
@@ -5510,7 +5515,7 @@
             "type": "number"
           },
           "token_usage": {
-            "description": "Model token usage for tools backed by internal LLM calls. Sandbox SDK usage is aggregated by model; advisor entries represent individual invocations.\n",
+            "description": "Model token usage for tools backed by internal LLM calls. Sandbox SDK usage is aggregated by model.\n",
             "items": {
               "$ref": "#/components/schemas/ToolCallTokenUsage"
             },
@@ -7554,7 +7559,7 @@
           "confidence": {
             "type": "number",
             "title": "Confidence",
-            "description": "Confidence in the selected option, from 0 to 1. Higher means more certainty.",
+            "description": "Computed from `probabilities` as `(p_top - 1/n) / (1 - 1/n)`, where `p_top` is the highest probability and `n` is the number of options. 0 when every option is equally likely; 1 when one option has all the probability or there is only one option.",
             "example": 0.9255246944002182
           },
           "probabilities": {
@@ -7824,7 +7829,7 @@
           "confidence": {
             "type": "number",
             "title": "Confidence",
-            "description": "Confidence in the score, from 0 to 1. Higher means more certainty.",
+            "description": "Computed from `probabilities` as `1 - spread / baseline`, with a floor of 0. `spread` is the sum of `p_i × |i - top|`, where `top` is the most likely level; `baseline` is the unweighted average of `|i - top|` over all levels. 1 for a single level.",
             "example": 0.7838686319784252
           },
           "legend": {
@@ -7993,7 +7998,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. Input must stay under 256K tokens and the body under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. The `state` plus any one question must stay under 256K input tokens; questions that do not fit together are answered in groups, and each group counts the `state` again. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -8062,7 +8067,7 @@
           "input_tokens",
           "output_tokens"
         ],
-        "description": "Token counts for the request. Input tokens are billed at $0.02 per million; output tokens are free."
+        "description": "Token counts for the request. Input tokens are billed per million at the rate of the selected model: $0.02 for `pplx-decider-v1.2` and $0.01 for `pplx-decider-flash-v1.2`. Output tokens are free."
       },
       "Error": {
         "type": "object",
