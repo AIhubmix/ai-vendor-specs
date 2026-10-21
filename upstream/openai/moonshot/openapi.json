@@ -282,7 +282,7 @@
 					},
 					"max_completion_tokens": {
 						"type": "integer",
-						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入加 max_completion_tokens 超出模型上下文窗口，将返回 invalid_request_error。"
+						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
 					},
 					"response_format": {
 						"type": "object",
@@ -493,7 +493,7 @@
 					},
 					"max_completion_tokens": {
 						"type": "integer",
-						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入加 max_completion_tokens 超出模型上下文窗口，将返回 invalid_request_error。"
+						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
 					},
 					"response_format": {
 						"type": "object",
