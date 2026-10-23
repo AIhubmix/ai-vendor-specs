@@ -1864,6 +1864,593 @@
         },
         "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
       }
+    },
+    "/v1/batches": {
+      "post": {
+        "operationId": "createBatch",
+        "summary": "Create a batch",
+        "description": "Creates a batch from an uploaded input file. The batch starts in\n`validating`. Send an `Idempotency-Key` header to make retries safe: a\nrepeat with the same key returns the original batch.\n`output_expires_after` is not supported and is rejected with a 400;\noutput and error files are kept 30 days.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchIdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created batch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, input file, or reused idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "API credits exhausted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Batch is not available to organizations with zero data retention",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Batch service unavailable; retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      },
+      "get": {
+        "operationId": "listBatches",
+        "summary": "List batches",
+        "description": "Lists your organization's batches, newest first.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "Maximum number of batches to return"
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Batch id to start after, the `last_id` of the previous page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of batches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
+    },
+    "/v1/batches/{batch_id}": {
+      "get": {
+        "operationId": "getBatch",
+        "summary": "Retrieve a batch",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The batch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Batch not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
+    },
+    "/v1/batches/{batch_id}/cancel": {
+      "post": {
+        "operationId": "cancelBatch",
+        "summary": "Cancel a batch",
+        "description": "Moves the batch to `cancelling`; it becomes `cancelled` once running\nitems stop. Completed items stay in the output file and are billed.\nCancelling a cancelled or cancelling batch returns it unchanged.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The batch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Batch"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Batch not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The batch is finalizing or already finished",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
+    },
+    "/v1/files": {
+      "get": {
+        "operationId": "listFiles",
+        "summary": "List files",
+        "description": "Lists your organization's files, both uploads and the output and error\nfiles batches write. Deleted and expired files are not listed.\n",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            },
+            "description": "Maximum number of files to return"
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File id to start after, the `last_id` of the previous page"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            },
+            "description": "Sort order, `desc` for newest first"
+          },
+          {
+            "name": "purpose",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "batch",
+                "batch_output"
+              ]
+            },
+            "description": "Only list files with this purpose, `batch` for uploads or `batch_output` for output and error files"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchFileList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      },
+      "post": {
+        "operationId": "createFile",
+        "summary": "Upload a file",
+        "description": "Uploads a JSONL batch input file, up to 50,000 lines and 200 MB. Every\nline is validated before the file is stored. Files expire after 30 days;\n`expires_after` is not supported and is rejected with a 400.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "purpose"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The JSONL file"
+                  },
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "batch"
+                    ],
+                    "description": "Only `batch` is accepted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchFile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or file contents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Batch is not available to organizations with zero data retention",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File exceeds 200 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or upload concurrency limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
+    },
+    "/v1/files/{file_id}": {
+      "get": {
+        "operationId": "getFile",
+        "summary": "Retrieve a file",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchFileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchFile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteFile",
+        "summary": "Delete a file",
+        "description": "Deletes a file. Batches already created from it are not affected.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchFileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file was deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchFileDeleted"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
+    },
+    "/v1/files/{file_id}/content": {
+      "get": {
+        "operationId": "getFileContent",
+        "summary": "Download file content",
+        "description": "Streams the raw bytes of an input, output, or error file.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BatchFileId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file bytes",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "tags": [
+          "Batches"
+        ]
+      }
     }
   },
   "components": {
@@ -3759,14 +4346,14 @@
             "type": "integer"
           },
           "max_steps": {
-            "description": "Maximum number of research loop steps.\nIf provided, overrides the preset's max_steps value. For requests that specify model or models without a preset, the default is 1.\nSet max_steps to at least 3 when using finance_search with a direct model so the agent has enough steps to initialize and run the tool.\nMust be >= 1 if specified. Maximum allowed is 100.\n",
+            "description": "Maximum number of research loop steps.\nIf provided, overrides the effort level's max_steps value. For requests that specify model or models without an effort level, the default is 1.\nSet max_steps to at least 3 when using finance_search with a direct model so the agent has enough steps to initialize and run the tool.\nMust be >= 1 if specified. Maximum allowed is 100.\n",
             "format": "int32",
             "maximum": 100,
             "minimum": 1,
             "type": "integer"
           },
           "model": {
-            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5.6-terra\", \"anthropic/claude-sonnet-5-5\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor preset is provided.\n",
+            "description": "Model ID in provider/model format (e.g., \"openai/gpt-5.6-terra\", \"anthropic/claude-sonnet-5-5\").\nIf models is also provided, models takes precedence.\nRequired if neither models nor effort is provided.\n",
             "type": "string"
           },
           "models": {
@@ -3778,8 +4365,8 @@
             "minItems": 1,
             "type": "array"
           },
-          "preset": {
-            "description": "Preset to run, as `name`, `name@latest`, or `name@<version>` (e.g., \"fast\", \"low\", \"fast@2026-09-29.0\").\nA preset is a pre-configured model with system prompt and search parameters.\n`name` and `name@latest` run the active version. `name@<version>` runs that exact version.\nA `preset` value returned on a response pins that configuration only when it carries a version.\nA returned value without a version runs the active version.\nVersions are opaque: do not parse, order, or calculate them.\nRequired if model is not provided.\n",
+          "effort": {
+            "description": "Effort to run, as `name`, `name@latest`, or `name@<version>` (e.g., \"fast\", \"low\", \"fast@2026-09-29.0\").\nAn effort level is a pre-configured model with system prompt and search parameters.\n`name` and `name@latest` run the active version. `name@<version>` runs that exact version.\nAn `effort` value returned on a response pins that configuration only when it carries a version.\nA returned value without a version runs the active version.\nVersions are opaque: do not parse, order, or calculate them.\nRequired if model is not provided.\n",
             "type": "string"
           },
           "profile": {
@@ -3788,7 +4375,7 @@
                 "$ref": "#/components/schemas/ProfileReference"
               }
             ],
-            "description": "Saved, versioned configuration to run with. The version is resolved when the request is admitted. Cannot be combined with preset."
+            "description": "Saved, versioned configuration to run with. The version is resolved when the request is admitted. Cannot be combined with effort."
           },
           "previous_response_id": {
             "description": "OpenAI-compatible previous response id for multi-turn response chains. When set, the new response continues from the completed prior response's saved state. The prior response must belong to the same account and have completed.",
@@ -3928,10 +4515,10 @@
             "description": "Model used for generation",
             "type": "string"
           },
-          "preset": {
+          "effort": {
             "type": "string",
-            "title": "Preset",
-            "description": "Preset and version that ran this response, as `name@<version>` (e.g., \"fast@2026-09-29.0\").\nPresent only when the request used a preset. Streams resumed with `starting_after` omit it.\nFor an alias, this is the preset and version that the alias selects.\nSend a value with a version as the request `preset` to run that configuration again.\nA released version can receive bug-fix patches, so sending it back runs that version as currently patched.\nA value without a version is the bare preset name: the run was created before preset versions, or was served without versions.\nSending it runs the active version.\n"
+            "title": "Effort",
+            "description": "Effort and version that ran this response, as `name@<version>` (e.g., \"fast@2026-09-29.0\").\nPresent only when the request used an effort level. Streams resumed with `starting_after` omit it.\nFor an alias, this is the effort and version that the alias selects.\nSend a value with a version as the request `effort` to run that configuration again.\nA released version can receive bug-fix patches, so sending it back runs that version as currently patched.\nA value without a version is the bare effort name: the run was created before effort versions, or was served without versions.\nSending it runs the active version.\n"
           },
           "object": {
             "$ref": "#/components/schemas/ResponsesObjectType",
@@ -5214,7 +5801,7 @@
             "description": "Domain and date filters for search results"
           },
           "search_type": {
-            "description": "Search type for this tool. `web` uses standard web search. `fast` uses the lower-latency Fast Search path, billed at $1.00 per 1,000 invocations plus model tokens. When omitted, inherits the preset's search type if configured; otherwise uses `web`.",
+            "description": "Search type for this tool. `web` uses standard web search. `fast` uses the lower-latency Fast Search path, billed at $1.00 per 1,000 invocations plus model tokens. When omitted, inherits the effort's search type if configured; otherwise uses `web`.",
             "enum": [
               "web",
               "fast"
@@ -8123,6 +8710,413 @@
           "error"
         ],
         "description": "The body of an error response."
+      },
+      "CreateBatchRequest": {
+        "type": "object",
+        "required": [
+          "input_file_id",
+          "endpoint"
+        ],
+        "properties": {
+          "input_file_id": {
+            "type": "string",
+            "description": "Id of a file uploaded with `purpose=batch`"
+          },
+          "endpoint": {
+            "type": "string",
+            "enum": [
+              "/v1/responses"
+            ],
+            "description": "Endpoint every line in the input file targets"
+          },
+          "completion_window": {
+            "type": "string",
+            "enum": [
+              "24h"
+            ],
+            "description": "Target completion time; `24h` is the only value and the default"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Up to 16 key value pairs; keys up to 64 characters, values up to 512"
+          }
+        }
+      },
+      "BatchStatus": {
+        "type": "string",
+        "enum": [
+          "validating",
+          "in_progress",
+          "finalizing",
+          "completed",
+          "expired",
+          "cancelling",
+          "cancelled",
+          "failed"
+        ]
+      },
+      "BatchRequestCounts": {
+        "type": "object",
+        "required": [
+          "total",
+          "completed",
+          "failed"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "completed": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "BatchUsage": {
+        "type": "object",
+        "required": [
+          "input_tokens",
+          "input_tokens_details",
+          "output_tokens",
+          "output_tokens_details",
+          "total_tokens"
+        ],
+        "properties": {
+          "input_tokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "input_tokens_details": {
+            "type": "object",
+            "required": [
+              "cached_tokens"
+            ],
+            "properties": {
+              "cached_tokens": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "output_tokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "output_tokens_details": {
+            "type": "object",
+            "required": [
+              "reasoning_tokens"
+            ],
+            "properties": {
+              "reasoning_tokens": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "total_tokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "BatchError": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "1-based input line the error refers to"
+          }
+        }
+      },
+      "BatchErrors": {
+        "type": "object",
+        "required": [
+          "object",
+          "data"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchError"
+            }
+          }
+        }
+      },
+      "Batch": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "endpoint",
+          "input_file_id",
+          "completion_window",
+          "status",
+          "created_at",
+          "request_counts",
+          "usage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "batch"
+            ]
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "errors": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BatchErrors"
+              }
+            ],
+            "nullable": true
+          },
+          "input_file_id": {
+            "type": "string"
+          },
+          "completion_window": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BatchStatus"
+          },
+          "output_file_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "error_file_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix seconds"
+          },
+          "in_progress_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "finalizing_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "completed_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "failed_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "expired_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "cancelling_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "cancelled_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "request_counts": {
+            "$ref": "#/components/schemas/BatchRequestCounts"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/BatchUsage"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "BatchList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "has_more"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Batch"
+            }
+          },
+          "first_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BatchFile": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "bytes",
+          "created_at",
+          "filename",
+          "purpose"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "file"
+            ]
+          },
+          "bytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix seconds"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Unix seconds"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "batch",
+              "batch_output"
+            ],
+            "description": "`batch` for uploads, `batch_output` for output and error files"
+          }
+        }
+      },
+      "BatchFileDeleted": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "file"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BatchFileList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "has_more"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchFile"
+            }
+          },
+          "first_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "last_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -8178,6 +9172,34 @@
         "schema": {
           "type": "string"
         }
+      },
+      "BatchFileId": {
+        "name": "file_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "File identifier (file_...)"
+      },
+      "BatchId": {
+        "name": "batch_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Batch identifier (batch_...)"
+      },
+      "BatchIdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": "Unique key for this create; a repeat returns the original batch"
       }
     },
     "requestBodies": {
