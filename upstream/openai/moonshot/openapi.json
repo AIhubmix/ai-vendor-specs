@@ -198,7 +198,7 @@
 			},
 			"KimiK3DynamicToolMessage": {
 				"type": "object",
-				"description": "Kimi K3 动态加载工具消息。该消息只能使用 system 角色，通过 tools 字段在当前对话位置声明后续对话可用的工具，且不包含 content 字段。",
+				"description": "通过 tools 字段声明后续对话可用的工具。role 必须为 system，且不能包含 content 字段。",
 				"properties": {
 					"role": {
 						"type": "string",
@@ -232,7 +232,7 @@
 						"$ref": "#/components/schemas/KimiK3DynamicToolMessage"
 					}
 				],
-				"description": "Kimi K3 对话消息。既支持标准消息，也支持不含 content、通过 tools 声明动态工具的 system 消息。"
+				"description": "支持标准对话消息和用于动态加载工具的 system 消息。"
 			},
 			"ChatRequestCommon": {
 				"type": "object",
@@ -282,7 +282,7 @@
 					},
 					"max_completion_tokens": {
 						"type": "integer",
-						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
+						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 系列（kimi-k3.1-pro、kimi-k3.1-pro-highspeed、kimi-k3）默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
 					},
 					"response_format": {
 						"type": "object",
@@ -493,7 +493,7 @@
 					},
 					"max_completion_tokens": {
 						"type": "integer",
-						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
+						"description": "聊天补全生成的最大 Token 数量。默认值因模型而异：Kimi K3 系列（kimi-k3.1-pro、kimi-k3.1-pro-highspeed、kimi-k3）默认为 131072，最大可设置为 1048576。如果结果达到最大 Token 数而未结束，finish reason 将为 \"length\"；否则为 \"stop\"。此值为期望返回的 Token 长度，而非输入加输出的总长度。如果输入 Token 数（`prompt_tokens`）与 `max_completion_tokens` 之和超过模型上下文窗口，API 会根据剩余上下文空间自动调低本次请求的生成上限，并继续处理请求。输入 Token 数本身必须小于模型上下文窗口。"
 					},
 					"response_format": {
 						"type": "object",
@@ -652,8 +652,7 @@
 					"messages"
 				]
 			},
-			"KimiK3ChatRequest": {
-				"title": "kimi-k3",
+			"KimiK3ChatRequestBase": {
 				"allOf": [
 					{
 						"$ref": "#/components/schemas/ChatRequestCommon"
@@ -661,17 +660,9 @@
 					{
 						"type": "object",
 						"properties": {
-							"model": {
-								"type": "string",
-								"description": "模型 ID",
-								"enum": [
-									"kimi-k3"
-								],
-								"default": "kimi-k3"
-							},
 							"messages": {
 								"type": "array",
-								"description": "Kimi K3 对话消息列表。除标准消息外，还可在任意对话位置插入 {\"role\": \"system\", \"tools\": [...]} 消息动态加载工具；该动态工具消息不包含 content 字段，并且只影响后续对话。",
+								"description": "对话消息列表。",
 								"items": {
 									"$ref": "#/components/schemas/KimiK3Message"
 								}
@@ -684,12 +675,60 @@
 									"max"
 								],
 								"default": "max",
-								"description": "Kimi K3 始终启用思考，并开启 Preserved Thinking。推理强度支持 low、high 和 max，默认为 max。"
+								"description": "Kimi K3 系列始终启用思考，并开启 Preserved Thinking。推理强度支持 low、high 和 max，默认为 max。"
 							}
 						},
 						"required": [
-							"model",
 							"messages"
+						]
+					}
+				]
+			},
+			"KimiK31ProChatRequest": {
+				"title": "kimi-k3.1-pro 系列",
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/KimiK3ChatRequestBase"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"model": {
+								"type": "string",
+								"description": "模型 ID",
+								"enum": [
+									"kimi-k3.1-pro",
+									"kimi-k3.1-pro-highspeed"
+								],
+								"default": "kimi-k3.1-pro"
+							}
+						},
+						"required": [
+							"model"
+						]
+					}
+				]
+			},
+			"KimiK3ChatRequest": {
+				"title": "kimi-k3",
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/KimiK3ChatRequestBase"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"model": {
+								"type": "string",
+								"description": "模型 ID",
+								"enum": [
+									"kimi-k3"
+								],
+								"default": "kimi-k3"
+							}
+						},
+						"required": [
+							"model"
 						]
 					}
 				]
@@ -1101,8 +1140,8 @@
 				"properties": {
 					"model": {
 						"type": "string",
-						"description": "使用的模型 ID。本接口当前支持 `kimi-k3`。",
-						"example": "kimi-k3"
+						"description": "使用的模型 ID。本接口当前支持 `kimi-k3.1-pro`、`kimi-k3.1-pro-highspeed` 和 `kimi-k3`。",
+						"example": "kimi-k3.1-pro"
 					},
 					"input": {
 						"description": "本次请求的输入。传字符串等价于一条 user 消息；传数组时按顺序给出带类型的 item，可包含历史对话、工具调用与工具结果。",
@@ -1129,7 +1168,7 @@
 					},
 					"max_output_tokens": {
 						"type": "integer",
-						"description": "本次响应最多生成的 Token 数量。`kimi-k3` 默认为 131072，最大可设置为 1048576。此值为期望返回的 Token 长度，而非输入加输出的总长度。达到上限时 `status` 为 `incomplete`，`incomplete_details.reason` 为 `max_output_tokens`。"
+						"description": "本次响应最多生成的 Token 数量。Kimi K3 系列（`kimi-k3.1-pro`、`kimi-k3.1-pro-highspeed`、`kimi-k3`）默认为 131072，最大可设置为 1048576。此值为期望返回的 Token 长度，而非输入加输出的总长度。达到上限时 `status` 为 `incomplete`，`incomplete_details.reason` 为 `max_output_tokens`。"
 					},
 					"reasoning": {
 						"type": "object",
@@ -2556,8 +2595,10 @@
 					"model": {
 						"type": "string",
 						"description": "模型 ID",
-						"default": "kimi-k3",
+						"default": "kimi-k3.1-pro",
 						"enum": [
+							"kimi-k3.1-pro",
+							"kimi-k3.1-pro-highspeed",
 							"kimi-k3",
 							"kimi-k2.7-code",
 							"kimi-k2.7-code-highspeed",
@@ -3583,16 +3624,18 @@
 				]
 			},
 			"MessagesRequest": {
-				"title": "kimi-k3",
+				"title": "Kimi K3 系列",
 				"type": "object",
 				"properties": {
 					"model": {
 						"type": "string",
-						"description": "模型 ID",
+						"description": "使用的模型 ID。本接口当前支持 `kimi-k3.1-pro`、`kimi-k3.1-pro-highspeed` 和 `kimi-k3`。",
 						"enum": [
+							"kimi-k3.1-pro",
+							"kimi-k3.1-pro-highspeed",
 							"kimi-k3"
 						],
-						"default": "kimi-k3"
+						"default": "kimi-k3.1-pro"
 					},
 					"messages": {
 						"type": "array",
@@ -4258,7 +4301,7 @@
 													"id": {
 														"type": "string",
 														"description": "模型 ID",
-														"example": "kimi-k3"
+														"example": "kimi-k3.1-pro"
 													},
 													"object": {
 														"type": "string",
@@ -4718,6 +4761,9 @@
 							"schema": {
 								"oneOf": [
 									{
+										"$ref": "#/components/schemas/KimiK31ProChatRequest"
+									},
+									{
 										"$ref": "#/components/schemas/KimiK3ChatRequest"
 									},
 									{
@@ -4730,6 +4776,8 @@
 								"discriminator": {
 									"propertyName": "model",
 									"mapping": {
+										"kimi-k3.1-pro": "#/components/schemas/KimiK31ProChatRequest",
+										"kimi-k3.1-pro-highspeed": "#/components/schemas/KimiK31ProChatRequest",
 										"kimi-k3": "#/components/schemas/KimiK3ChatRequest",
 										"kimi-k2.7-code": "#/components/schemas/KimiK27CodeChatRequest",
 										"kimi-k2.7-code-highspeed": "#/components/schemas/KimiK27CodeChatRequest",
