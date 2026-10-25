@@ -5965,6 +5965,20 @@
               "people_search"
             ],
             "type": "string"
+          },
+          "max_tokens": {
+            "description": "Maximum total tokens for search context",
+            "format": "int32",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 120000
+          },
+          "max_tokens_per_page": {
+            "description": "Maximum tokens to extract per search result page",
+            "format": "int32",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20000
           }
         },
         "required": [
