@@ -8599,7 +8599,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. The `state` plus any one question must stay under 256K input tokens; questions that do not fit together are answered in groups, and each group counts the `state` again. The body must stay under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
