@@ -875,7 +875,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Bucketed usage for the requested window. Buckets without data carry count 0; the analytics store syncs periodically, so a zero in a recent bucket can mean the data hasn't synced yet.",
+            "description": "Bucketed usage for the requested window. Buckets without data carry count 0; the analytics store syncs periodically, so a zero in a recent bucket can mean the data hasn't synced yet. The example includes legacy funding data. For credit_usage, Credit Source and its paid/promo entries are omitted when funding data is unavailable or totals-only reporting is enabled; total and model breakdown remain available. Missing funding data does not mean zero usage.",
             "content": {
               "application/json": {
                 "schema": {
@@ -974,7 +974,7 @@
     "/v2/analytics/computer/usage": {
       "get": {
         "summary": "Usage Analytics per Member",
-        "description": "Returns your organization's Perplexity usage broken down per member, as daily buckets. Each day lists one row per member with usage that day, keyed by email. credit_usage carries the same Model and Credit Source breakdown as v1; query_volume carries Feature, Project and Comet. Uses the same organization analytics API key as v1. Only complete UTC days are returned; the in-progress day is never included.",
+        "description": "Returns your organization's Perplexity usage broken down per member, as daily buckets. Each day lists one row per member with usage that day, keyed by email. credit_usage carries a Model breakdown and an optional legacy Credit Source breakdown, subject to the same availability rules as v1; query_volume carries Feature, Project and Comet. Read the available axes from categories rather than assuming paid/promo data is present. Uses the same organization analytics API key as v1. Only complete UTC days are returned; the in-progress day is never included.",
         "operationId": "getComputerUsageAnalyticsV2",
         "security": [
           {
@@ -1048,7 +1048,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Per-member daily usage for the requested window. Days with no attributable usage are omitted; the analytics store syncs periodically, so recent days may not yet be present.",
+            "description": "Per-member daily usage for the requested window. Days with no attributable usage are omitted; the analytics store syncs periodically, so recent days may not yet be present. The example includes legacy funding data. For credit_usage, Credit Source and its paid/promo entries are omitted when funding data is unavailable or totals-only reporting is enabled; member totals and model breakdowns remain available. Missing funding data does not mean zero usage.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1974,7 +1974,7 @@
             "description": "Maximum number of batches to return"
           },
           {
-            "name": "after",
+            "name": "after_id",
             "in": "query",
             "required": false,
             "schema": {
@@ -2157,7 +2157,7 @@
             "description": "Maximum number of files to return"
           },
           {
-            "name": "after",
+            "name": "after_id",
             "in": "query",
             "required": false,
             "schema": {
@@ -2450,6 +2450,217 @@
         "tags": [
           "Batches"
         ]
+      }
+    },
+    "/v1/admin/audit-events": {
+      "get": {
+        "summary": "List audit events",
+        "description": "Returns the organization's audit events, newest first. Requires an **audit log API key** (scope `audit_logs:read`) created by an org admin under **Enterprise APIs → Audit API**; Sonar API keys are rejected with `403`. Without time parameters the endpoint covers the most recent 30 days; a single request can span at most 30 days. See the [Audit API guide](/docs/admin/audit-api) for key setup, pagination patterns, and event fields.",
+        "operationId": "list_admin_audit_events_v1_admin_audit_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of events to return in one page.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          },
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive lower bound on `created_at`, as an RFC 3339 timestamp with a timezone offset (for example `2026-10-01T00:00:00Z`). Defaults to 30 days before `end_time`.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive upper bound on `created_at`, as an RFC 3339 timestamp with a timezone offset. Defaults to the current time. The window between `start_time` and `end_time` cannot exceed 30 days.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "required": false,
+            "description": "Return only events of this type, for example `member_role_changed`. Required to see `audit_events_accessed` events, which the default feed omits.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after_id",
+            "in": "query",
+            "required": false,
+            "description": "Opaque cursor. Return events older than this cursor; pass the previous page's `last_id` to fetch the next older page. Cannot be combined with `before_id`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before_id",
+            "in": "query",
+            "required": false,
+            "description": "Opaque cursor. Return events newer than this cursor; pass a saved `first_id` to fetch only events that arrived since. Cannot be combined with `after_id`.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of audit events, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditEventsResponse"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "id": "6a0d9a2c-3c6f-4e0e-9e2b-1a2b3c4d5e6f",
+                      "created_at": "2026-10-27T18:42:11.512000Z",
+                      "type": "member_role_changed",
+                      "actor_email": "admin@example.com",
+                      "actor_external_user_id": "",
+                      "ip_address": "203.0.113.42",
+                      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) AppleWebKit/605.1.15 Safari/605.1.15",
+                      "session_id": "7c1e0e2a-9f3d-4a2e-8c1e-4b9d6e2f1a3c",
+                      "metadata": {
+                        "target_user_email": "jordan@example.com",
+                        "target_external_user_id": "",
+                        "org_user_uuid": "0d2f0b1e-7a4c-4b6e-9f3a-2c1d5e6f7a8b",
+                        "old_role": "member",
+                        "new_role": "admin"
+                      }
+                    }
+                  ],
+                  "has_more": true,
+                  "first_id": "eyJ2ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTI3VDE4OjQyOjExLjUxMjAwMCswMDowMCIsInV1aWQiOiI2YTBkOWEyYy0zYzZmLTRlMGUtOWUyYi0xYTJiM2M0ZDVlNmYifQ",
+                  "last_id": "eyJ2ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTI3VDA5OjAzOjU0LjAwMTAwMCswMDowMCIsInV1aWQiOiIzZjJhMWIwYy1kNGU1LTRmNmEtOGI3Yy05ZDBlMWYyYTNiNGMifQ"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters (type: bad_request), or a semantically invalid request (type: invalid_request) such as a timestamp without a timezone offset, a window longer than 30 days, an invalid cursor, or `after_id` and `before_id` used together.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "The requested time range cannot exceed 30 days.",
+                    "type": "invalid_request",
+                    "code": 400
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "Authentication required.",
+                    "type": "unauthorized",
+                    "code": 401
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The API key does not have the `audit_logs:read` scope (for example, a Sonar API key was used).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "This API key is not authorized to read audit events.",
+                    "type": "permission_denied",
+                    "code": 403
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Audit logging is not enabled for the organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "Enterprise Admin API audit events are not available for this organization.",
+                    "type": "not_found",
+                    "code": 404
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Each organization may make up to 2 requests per second across all of its audit log API keys. Honor the `Retry-After` header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "Request rate limit exceeded, please try again later.",
+                    "type": "request_rate_limit_exceeded",
+                    "code": 429
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The audit log store is temporarily unavailable. Retry with backoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminApiErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "message": "Enterprise Admin API audit events are temporarily unavailable.",
+                    "type": "service_unavailable",
+                    "code": 503
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -7183,7 +7394,7 @@
         "properties": {
           "categories": {
             "type": "array",
-            "description": "Category breakdown labels the requested dataset surfaces, in canonical render order. Each label is a key in every bucket's `by_categories`.",
+            "description": "Available category breakdown labels, in canonical render order. Each label is a key in every bucket's `by_categories`. For credit_usage, the legacy Credit Source axis is optional; use this list rather than assuming paid/promo data is available.",
             "items": {
               "type": "string"
             }
@@ -7272,7 +7483,7 @@
         "properties": {
           "categories": {
             "type": "array",
-            "description": "Category breakdown labels each member row surfaces, in canonical render order. Each label is a key in every row's `by_categories`.",
+            "description": "Available category breakdown labels for member rows, in canonical render order. Each label is a key in every row's `by_categories`. For credit_usage, the legacy Credit Source axis is optional; use this list rather than assuming paid/promo data is available.",
             "items": {
               "type": "string"
             }
@@ -9131,6 +9342,127 @@
             "type": "boolean"
           }
         }
+      },
+      "AuditEvent": {
+        "type": "object",
+        "description": "A single audit event. Field semantics match audit log webhooks.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable, unique event identifier."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the event occurred, in UTC."
+          },
+          "type": {
+            "type": "string",
+            "description": "Event type, for example `query`, `member_invited`, or `connector_connected`."
+          },
+          "actor_email": {
+            "type": "string",
+            "description": "Email of the member who performed the action. Empty for system-generated events such as `audit_events_accessed`."
+          },
+          "actor_external_user_id": {
+            "type": "string",
+            "description": "The actor's external identifier from your identity provider (SCIM `externalId`) when set; otherwise an empty string."
+          },
+          "ip_address": {
+            "type": "string",
+            "description": "Client IP address recorded for the action, or an empty string when unavailable."
+          },
+          "user_agent": {
+            "type": "string",
+            "description": "Client user agent recorded for the action, or an empty string when unavailable."
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Identifier for the actor's sign-in session, or `null` when no session applies."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Event-specific details. Keys vary by `type` and match the audit log webhook payload for that event. Treat the object as additive; new keys may appear without a version change."
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "type",
+          "actor_email",
+          "actor_external_user_id",
+          "ip_address",
+          "user_agent",
+          "session_id",
+          "metadata"
+        ]
+      },
+      "AuditEventsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "description": "Events in this page, newest first."
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Whether more events exist beyond this page in the direction you are paging. Stop when `false`; do not wait for an empty page."
+          },
+          "first_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque cursor for the newest event in the page, or `null` when `data` is empty. Save it and pass it as `before_id` on a later poll."
+          },
+          "last_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque cursor for the oldest event in the page, or `null` when `data` is empty. Pass it as `after_id` to fetch the next older page."
+          }
+        },
+        "required": [
+          "data",
+          "has_more",
+          "first_id",
+          "last_id"
+        ]
+      },
+      "AdminApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "code": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "message",
+              "type",
+              "code"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
       }
     },
     "securitySchemes": {
