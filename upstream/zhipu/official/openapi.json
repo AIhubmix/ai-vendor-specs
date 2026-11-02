@@ -1476,12 +1476,13 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "The model code to be called. The `GLM-5.3-Flash` series supports visual understanding, delivering excellent multimodal comprehension and tool calling capabilities.",
+            "description": "The model code to be called. The `GLM-5.3-Flash` series supports visual understanding, delivering excellent multimodal comprehension and tool calling capabilities. The `glm-5.3-flashx-legal` variant is further optimized for professional legal workflows such as legal research, contract review, and legal document drafting.",
             "example": "glm-5.3-flashx",
             "default": "glm-5.3-flashx",
             "enum": [
               "glm-5.3-flashx",
-              "glm-5.3-flash"
+              "glm-5.3-flash",
+              "glm-5.3-flashx-legal"
             ]
           },
           "messages": {
