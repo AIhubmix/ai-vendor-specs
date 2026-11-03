@@ -857,7 +857,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "Opaque pagination cursor from a previous response's next_page. Valid only with the same query parameters it was issued for.",
+            "description": "Opaque pagination cursor from a previous response's next_page. Keep the other query parameters unchanged to continue the same report.",
             "schema": {
               "type": "string"
             }
@@ -875,7 +875,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Bucketed usage for the requested window. Buckets without data carry count 0; the analytics store syncs periodically, so a zero in a recent bucket can mean the data hasn't synced yet. The example includes legacy funding data. For credit_usage, Credit Source and its paid/promo entries are omitted when funding data is unavailable or totals-only reporting is enabled; total and model breakdown remain available. Missing funding data does not mean zero usage.",
+            "description": "Bucketed usage for the requested window. Buckets without data carry count 0; the analytics store syncs periodically, so a zero in a recent bucket can mean the data hasn't synced yet. The credit_usage example shows total credit usage and a Model breakdown. Use categories to determine which breakdowns are available. Do not infer zero usage for a breakdown that is not returned.",
             "content": {
               "application/json": {
                 "schema": {
@@ -883,8 +883,7 @@
                 },
                 "example": {
                   "categories": [
-                    "Model",
-                    "Credit Source"
+                    "Model"
                   ],
                   "data": [
                     {
@@ -901,16 +900,6 @@
                             "category": "claude-sonnet-5-5",
                             "count": 120
                           }
-                        ],
-                        "Credit Source": [
-                          {
-                            "category": "paid",
-                            "count": 250
-                          },
-                          {
-                            "category": "promo",
-                            "count": 80
-                          }
                         ]
                       }
                     }
@@ -922,7 +911,7 @@
             }
           },
           "400": {
-            "description": "Invalid parameters (type: bad_request) or semantically invalid request (type: invalid_request) — e.g. start_time after end_time, a window over 90 days, a misused pagination cursor, or a user_email that doesn't match a member of the organization.",
+            "description": "Invalid parameters (type: bad_request) or semantically invalid request (type: invalid_request): for example, start_time after end_time, a window over 90 days, an invalid pagination token, or a user_email that doesn't match a member of the organization.",
             "content": {
               "application/json": {
                 "schema": {
@@ -974,7 +963,7 @@
     "/v2/analytics/computer/usage": {
       "get": {
         "summary": "Usage Analytics per Member",
-        "description": "Returns your organization's Perplexity usage broken down per member, as daily buckets. Each day lists one row per member with usage that day, keyed by email. credit_usage carries a Model breakdown and an optional legacy Credit Source breakdown, subject to the same availability rules as v1; query_volume carries Feature, Project and Comet. Read the available axes from categories rather than assuming paid/promo data is present. Uses the same organization analytics API key as v1. Only complete UTC days are returned; the in-progress day is never included.",
+        "description": "Returns your organization's Perplexity usage broken down per member, as daily buckets. Each day lists one row per member with usage that day, keyed by email. credit_usage returns each member's total credits and a Model breakdown; query_volume carries Feature, Project and Comet. Read the available axes from categories to determine which breakdowns are available. Uses the same organization analytics API key as v1. Only complete UTC days are returned; the in-progress day is never included.",
         "operationId": "getComputerUsageAnalyticsV2",
         "security": [
           {
@@ -1040,7 +1029,7 @@
             "name": "page",
             "in": "query",
             "required": false,
-            "description": "Opaque pagination cursor from a previous response's next_page. Valid only with the same query parameters it was issued for.",
+            "description": "Opaque pagination cursor from a previous response's next_page. Keep the other query parameters unchanged to continue the same report.",
             "schema": {
               "type": "string"
             }
@@ -1048,7 +1037,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Per-member daily usage for the requested window. Days with no attributable usage are omitted; the analytics store syncs periodically, so recent days may not yet be present. The example includes legacy funding data. For credit_usage, Credit Source and its paid/promo entries are omitted when funding data is unavailable or totals-only reporting is enabled; member totals and model breakdowns remain available. Missing funding data does not mean zero usage.",
+            "description": "Per-member daily usage for the requested window. Days with no attributable usage are omitted; the analytics store syncs periodically, so recent days may not yet be present. The credit_usage example shows each member's total credits and a Model breakdown. Use categories to determine which breakdowns are available. Do not infer zero usage for a breakdown that is not returned.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1056,8 +1045,7 @@
                 },
                 "example": {
                   "categories": [
-                    "Model",
-                    "Credit Source"
+                    "Model"
                   ],
                   "data": [
                     {
@@ -1073,12 +1061,6 @@
                                 "category": "claude-opus-5-5",
                                 "count": 900
                               }
-                            ],
-                            "Credit Source": [
-                              {
-                                "category": "paid",
-                                "count": 900
-                              }
                             ]
                           }
                         },
@@ -1091,26 +1073,20 @@
                                 "category": "claude-sonnet-5-5",
                                 "count": 500
                               }
-                            ],
-                            "Credit Source": [
-                              {
-                                "category": "promo",
-                                "count": 500
-                              }
                             ]
                           }
                         }
                       ]
                     }
                   ],
-                  "has_more": true,
-                  "next_page": "eyJwayI6ICJPUkcjLi4uIn0="
+                  "has_more": false,
+                  "next_page": null
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid parameters (type: bad_request) — e.g. a dataset or group_by outside the accepted values — or a semantically invalid request (type: invalid_request), e.g. start_time after end_time, a window over 90 days, or a misused pagination cursor.",
+            "description": "Invalid parameters (type: bad_request), such as a dataset or group_by outside the accepted values, or a semantically invalid request (type: invalid_request), such as start_time after end_time, a window over 90 days, or an invalid pagination token.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7342,7 +7318,7 @@
       },
       "ComputerUsageCategoryCount": {
         "type": "object",
-        "description": "A bucket's count for one value of a category breakdown — e.g. a connector name for connectors, a duration band for task_durations, or paid/promo for credit_usage's Credit Source axis.",
+        "description": "A bucket's count for one value of a category breakdown, such as a connector name for connectors, a duration band for task_durations, or a model name for credit_usage's Model axis.",
         "properties": {
           "category": {
             "type": "string"
@@ -7394,7 +7370,7 @@
         "properties": {
           "categories": {
             "type": "array",
-            "description": "Available category breakdown labels, in canonical render order. Each label is a key in every bucket's `by_categories`. For credit_usage, the legacy Credit Source axis is optional; use this list rather than assuming paid/promo data is available.",
+            "description": "Available category breakdown labels, in canonical render order. Each label is a key in every bucket's `by_categories`. Use this list to determine which breakdowns are available. The credit_usage example uses the Model axis.",
             "items": {
               "type": "string"
             }
@@ -7408,14 +7384,14 @@
           },
           "has_more": {
             "type": "boolean",
-            "description": "Whether more buckets exist beyond this page. False also when the window's remaining buckets are past the current data frontier."
+            "description": "Whether additional complete buckets remain in the requested time window. This does not indicate whether the data has synced."
           },
           "next_page": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Cursor for the next page; pass as the page parameter with otherwise identical query parameters."
+            "description": "Opaque cursor for the next page. Pass it as page and keep the other query parameters unchanged to continue the same report."
           }
         },
         "required": [
@@ -7426,7 +7402,7 @@
       },
       "ComputerUsageV2Result": {
         "type": "object",
-        "description": "One member's credit usage for a single day.",
+        "description": "One member's usage for the selected dataset for a single day.",
         "properties": {
           "user_email": {
             "type": "string",
@@ -7434,7 +7410,7 @@
           },
           "count": {
             "type": "integer",
-            "description": "The member's credit total for the day. May exceed the sum of any single breakdown — usage without a category attribution counts toward the total but not the breakdown."
+            "description": "The member's total for the selected dataset that day: credits for credit_usage, queries for query_volume. For credit_usage, the total may exceed the sum of a breakdown because usage without category attribution still counts toward the total."
           },
           "by_categories": {
             "type": "object",
@@ -7466,7 +7442,7 @@
           },
           "results": {
             "type": "array",
-            "description": "One row per member with credit usage on this day.",
+            "description": "One row per member with recorded usage for the selected dataset on this day.",
             "items": {
               "$ref": "#/components/schemas/ComputerUsageV2Result"
             }
@@ -7483,14 +7459,14 @@
         "properties": {
           "categories": {
             "type": "array",
-            "description": "Available category breakdown labels for member rows, in canonical render order. Each label is a key in every row's `by_categories`. For credit_usage, the legacy Credit Source axis is optional; use this list rather than assuming paid/promo data is available.",
+            "description": "Available category breakdown labels for member rows, in canonical render order. Each label is a key in every row's `by_categories`. Use this list to determine which breakdowns are available. The credit_usage example uses the Model axis.",
             "items": {
               "type": "string"
             }
           },
           "data": {
             "type": "array",
-            "description": "Daily buckets in chronological order, each with one row per member who used credits that day. Days with no attributable usage are omitted.",
+            "description": "Daily buckets in chronological order, each with one row per member with recorded usage for the selected dataset that day. Days with no attributable usage are omitted.",
             "items": {
               "$ref": "#/components/schemas/ComputerUsageV2Bucket"
             }
@@ -7504,7 +7480,7 @@
               "string",
               "null"
             ],
-            "description": "Cursor for the next page; pass as the page parameter with otherwise identical query parameters."
+            "description": "Opaque cursor for the next page. Pass it as page and keep the other query parameters unchanged to continue the same report."
           }
         },
         "required": [
