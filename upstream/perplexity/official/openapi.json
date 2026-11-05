@@ -1838,7 +1838,7 @@
         "x-mint": {
           "href": "/api-reference/decisions-post"
         },
-        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
+        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Set `mode` to `web_grounding` to fetch a URL-only state and search the web before the model answers. Use `max_staleness` to control fetched page age. Each search or successful URL fetch is billed. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
       }
     },
     "/v1/batches": {
@@ -8761,7 +8761,7 @@
               }
             ],
             "title": "State",
-            "description": "The content every question in the request refers to: a string, an object, or an array. Images can appear anywhere in `state` as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs and are read in place. Up to 8 images per question.",
+            "description": "The content every question in the request refers to: a string, an object, or an array. Images can appear anywhere in `state` as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs and are read in place. Up to 8 images per question. With `mode: \"web_grounding\"`, a single page URL is fetched and replaced with its text before web search. Use `max_staleness` to control the age of the fetched copy.",
             "example": "The headphones sound great, but the battery stopped charging after two weeks."
           },
           "questions": {
@@ -8771,14 +8771,29 @@
             },
             "minProperties": 1,
             "title": "Questions",
-            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. 1 to 128 questions.",
+            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. At least one question. With `mode` `web_grounding`, at most 100; more returns `400` with `param` `questions`.",
             "example": {
               "defect": {
                 "type": "noul",
                 "instructions": "Does the review report a product defect?"
               }
-            },
-            "maxProperties": 128
+            }
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "web_grounding"
+            ],
+            "title": "Mode",
+            "description": "Set to `web_grounding` to search the web before the model answers. For a URL-only state, the API first fetches the page and replaces the URL with its text. It then runs one Fast Search per question, up to 100 questions, and adds the top results to `state`. The response lists search evidence in `search_results` and fetched page text in `fetched_results`. If no search returns a result, the model answers from `state`, including any fetched text. Each search or successful URL fetch costs $0.001; fetched text and search evidence count as input tokens. Any other mode value, including an empty string or `null`, returns `400`. See [Web grounding](/docs/decisions/quickstart#web-grounding)."
+          },
+          "max_staleness": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Max Staleness",
+            "description": "Maximum age of the fetched page in seconds since its last crawl. Applies to URL-only state with `mode: \"web_grounding\"`. An older stored copy triggers a fresh crawl before the page text is used. Omit to use a stored copy without an age limit. Ignored without `mode`. Does not filter search results.",
+            "example": 86400,
+            "format": "int64"
           }
         },
         "required": [
@@ -8786,7 +8801,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. Unknown fields return `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -8825,6 +8840,24 @@
               "input_tokens": 367,
               "output_tokens": 3
             }
+          },
+          "search_results": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/DecisionSearchResult"
+            },
+            "title": "Search Results",
+            "description": "Only with `mode` `web_grounding`: the web results added to `state` as evidence, one per URL, ordered by rank: the top result of each query, then the second of each, and so on. `[]` when no search evidence was added. Absent without `mode`. `usage.input_tokens` includes them."
+          },
+          "fetched_results": {
+            "type": "array",
+            "maxItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/DecisionFetchedResult"
+            },
+            "title": "Fetched Results",
+            "description": "The page text that replaced a URL-only state before web search, returned with `mode: \"web_grounding\"`. Absent when no usable page text was fetched. `usage.input_tokens` includes the fetched text."
           }
         },
         "required": [
@@ -8833,6 +8866,72 @@
           "usage"
         ],
         "description": "Answers keyed by question name, plus the model that answered and token usage."
+      },
+      "DecisionFetchedResult": {
+        "type": "object",
+        "title": "DecisionFetchedResult",
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The fetched page title, up to 300 characters."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "title": "URL",
+            "description": "The fetched page URL, normalized."
+          },
+          "snippet": {
+            "type": "string",
+            "maxLength": 40000,
+            "title": "Snippet",
+            "description": "The page text that replaced the URL in state, up to 40,000 characters."
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "snippet"
+        ],
+        "description": "One fetched page used to replace URL-only state text before web search."
+      },
+      "DecisionSearchResult": {
+        "type": "object",
+        "title": "DecisionSearchResult",
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "The page title, up to 300 characters."
+          },
+          "url": {
+            "type": "string",
+            "title": "URL",
+            "description": "The page URL, normalized. Each URL appears once in `search_results`."
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet",
+            "description": "Page text, up to 2,000 characters per snippet. When several searches return the same URL, their snippets are joined by a `---` line."
+          },
+          "date": {
+            "type": "string",
+            "title": "Date",
+            "description": "Publication date, `YYYY-MM-DD`. Absent when unknown."
+          },
+          "last_updated": {
+            "type": "string",
+            "title": "Last Updated",
+            "description": "Last update date, `YYYY-MM-DD`. Absent when unknown."
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "snippet"
+        ],
+        "description": "One web result added to `state` as evidence. Same fields as a Search API (`/search`) result."
       },
       "Usage": {
         "type": "object",
