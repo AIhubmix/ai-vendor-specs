@@ -4527,7 +4527,7 @@
             "type": "string"
           },
           "max_output_tokens": {
-            "description": "Maximum tokens to generate. This is a shared optional Agent API request parameter, but it is required when using anthropic/* models. If omitted for an Anthropic model, the API returns HTTP 400 with: validation failed: max_output_tokens is required when using Anthropic models.",
+            "description": "Optional total output-token budget across the run, including for Anthropic models. When neither the request nor its effort level or saved profile supplies a budget, each generation can produce up to 128,000 output tokens, capped by the model's supported limit.",
             "format": "int32",
             "minimum": 1,
             "type": "integer"

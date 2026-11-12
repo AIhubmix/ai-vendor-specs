@@ -735,6 +735,8 @@
 			},
 			"KimiK26ChatRequest": {
 				"title": "kimi-k2.6",
+				"deprecated": true,
+				"description": "已停止向新注册用户开放。2026 年 11 月 1 日前注册的用户可继续使用，预计于 2026 年 12 月底全面下线。",
 				"allOf": [
 					{
 						"$ref": "#/components/schemas/ChatRequestBase"
@@ -788,6 +790,8 @@
 			},
 			"KimiK27CodeChatRequest": {
 				"title": "kimi-k2.7-code",
+				"deprecated": true,
+				"description": "已停止向新注册用户开放。2026 年 11 月 1 日前注册的用户可继续使用，预计于 2026 年 12 月底全面下线。",
 				"allOf": [
 					{
 						"$ref": "#/components/schemas/ChatRequestBase"
@@ -2659,7 +2663,7 @@
 						"type": "string",
 						"description": "调用模型接口时请求体中的 `model` 值，需与原值完全一致。",
 						"minLength": 1,
-						"example": "kimi-k2.7-code"
+						"example": "kimi-k3.1-pro"
 					},
 					"signature": {
 						"type": "string",
