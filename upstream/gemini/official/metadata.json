@@ -2,10 +2,10 @@
   "protocol": "gemini",
   "provider": "official",
   "displayName": "Google Gemini",
-  "version": "2026-11-12",
+  "version": "2026-11-13",
   "specFormat": "google-discovery",
   "source": "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta",
-  "lastSynced": "2026-11-12T11:31:02Z",
-  "hash": "sha256:54a93f4a7e39094be51ff47d03d0bf5884bf0e2a30beaedf064e2c4a56557f85",
+  "lastSynced": "2026-11-13T11:31:02Z",
+  "hash": "sha256:298d9c88819585ff1167c32e72d169f5d3df31eddc8f57ef754156a204d1ba1e",
   "autoSync": true
 }

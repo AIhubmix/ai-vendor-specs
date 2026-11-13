@@ -1838,7 +1838,7 @@
         "x-mint": {
           "href": "/api-reference/decisions-post"
         },
-        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, and `score` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Set `mode` to `web_grounding` to fetch a URL-only state and search the web before the model answers. Use `max_staleness` to control fetched page age. Each search or successful URL fetch is billed. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
+        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, `score`, and `locate` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.3`, `pplx-decider-flash-v1.3`, `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Set `mode` to `web_grounding` to fetch a URL-only state and search the web before the model answers. Use `max_staleness` to control fetched page age. Each search or successful URL fetch is billed. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
       }
     },
     "/v1/batches": {
@@ -8313,6 +8313,9 @@
           },
           {
             "$ref": "#/components/schemas/ChoiceAnswer"
+          },
+          {
+            "$ref": "#/components/schemas/LocateAnswer"
           }
         ],
         "discriminator": {
@@ -8320,7 +8323,8 @@
           "mapping": {
             "choice": "#/components/schemas/ChoiceAnswer",
             "noul": "#/components/schemas/NoulAnswer",
-            "score": "#/components/schemas/ScoreAnswer"
+            "score": "#/components/schemas/ScoreAnswer",
+            "locate": "#/components/schemas/LocateAnswer"
           }
         },
         "description": "One answer. Its `type` matches the question's `type`."
@@ -8583,6 +8587,9 @@
           },
           {
             "$ref": "#/components/schemas/ScoreQuestion"
+          },
+          {
+            "$ref": "#/components/schemas/LocateQuestion"
           }
         ],
         "discriminator": {
@@ -8590,7 +8597,8 @@
           "mapping": {
             "choice": "#/components/schemas/ChoiceQuestion",
             "noul": "#/components/schemas/NoulQuestion",
-            "score": "#/components/schemas/ScoreQuestion"
+            "score": "#/components/schemas/ScoreQuestion",
+            "locate": "#/components/schemas/LocateQuestion"
           }
         },
         "description": "A named question about `state`. Discriminated by `type`."
@@ -8743,7 +8751,7 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "description": "The decision model: `pplx-decider-v1.2` (27B, $0.02 per million input tokens) or `pplx-decider-flash-v1.2` (4B, $0.01 per million input tokens). The aliases `pplx-decider-latest` and `perplexity/pplx-decider-latest` select `pplx-decider-v1.2`, and `pplx-decider-flash-latest` and `perplexity/pplx-decider-flash-latest` select `pplx-decider-flash-v1.2`; an alias can move to a newer model over time. `pplx-decider-v1.1-27b` and `pplx-decider-v1-27b` remain accepted and select `pplx-decider-v1.2`. A missing or unknown model returns `400`.",
+            "description": "The decision model: `pplx-decider-v1.3` (27B, $0.02 per million input tokens), `pplx-decider-flash-v1.3` (4B, $0.01 per million input tokens), `pplx-decider-v1.2` (27B, $0.02 per million input tokens) or `pplx-decider-flash-v1.2` (4B, $0.01 per million input tokens). The aliases `pplx-decider-latest` and `perplexity/pplx-decider-latest` select `pplx-decider-v1.3`, and `pplx-decider-flash-latest` and `perplexity/pplx-decider-flash-latest` select `pplx-decider-flash-v1.3`; an alias can move to a newer model over time. `pplx-decider-v1.1-27b` and `pplx-decider-v1-27b` remain accepted and select `pplx-decider-v1.2`. Only the v1.3 models serve `locate` questions. A missing or unknown model returns `400`.",
             "example": "pplx-decider-latest"
           },
           "state": {
@@ -8771,7 +8779,7 @@
             },
             "minProperties": 1,
             "title": "Questions",
-            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. At least one question. With `mode` `web_grounding`, at most 100; more returns `400` with `param` `questions`.",
+            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. At least one question. With `mode` `web_grounding`, at most 100, and `locate` questions are not accepted; either returns `400` with `param` `questions`.",
             "example": {
               "defect": {
                 "type": "noul",
@@ -8801,7 +8809,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.3`, `pplx-decider-flash-v1.3` and `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -8954,7 +8962,7 @@
           "input_tokens",
           "output_tokens"
         ],
-        "description": "Token counts for the request. Input tokens are billed per million at the rate of the selected model: $0.02 for `pplx-decider-v1.2` and $0.01 for `pplx-decider-flash-v1.2`. Output tokens are free."
+        "description": "Token counts for the request. Input tokens are billed per million at the rate of the selected model: $0.02 for `pplx-decider-v1.3` and `pplx-decider-v1.2`, and $0.01 for `pplx-decider-flash-v1.3` and `pplx-decider-flash-v1.2`. Output tokens are free."
       },
       "Error": {
         "type": "object",
@@ -9538,6 +9546,96 @@
         "required": [
           "error"
         ]
+      },
+      "LocateQuestion": {
+        "type": "object",
+        "title": "LocateQuestion",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "locate"
+            ],
+            "title": "Type",
+            "description": "Always `locate`.",
+            "example": "locate"
+          },
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Instructions",
+            "description": "What to find in `state`: a short label such as `email address` or an instruction such as `Extract the city where the job is located.` Whitespace-only text returns `400`.",
+            "example": "Extract every product name mentioned in the review."
+          }
+        },
+        "required": [
+          "instructions",
+          "type"
+        ],
+        "description": "A question that returns the spans of `state` that match `instructions`. It ignores `criteria` and any other member besides `type` and `instructions`. Only `pplx-decider-v1.3` and `pplx-decider-flash-v1.3` serve it; other models return `400`. A request with a `locate` question needs a string `state`, no images, at most 128 questions and native mode (no `web_grounding`). Other question types can be sent in the same request. Locate was trained on inputs of up to 8k tokens and evaluated on inputs of up to 32k tokens; longer inputs are accepted, but span quality on them is not measured."
+      },
+      "LocateSpan": {
+        "type": "object",
+        "title": "LocateSpan",
+        "properties": {
+          "start": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Start",
+            "description": "Offset of the first character of the span in `state`, in Unicode characters."
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "End",
+            "description": "Offset after the last character of the span in `state`, in Unicode characters (exclusive)."
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "The text of `state` from `start` to `end`."
+          },
+          "score": {
+            "type": "number",
+            "title": "Score",
+            "description": "The model's score for the span. Higher means more certainty."
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "text",
+          "score"
+        ],
+        "description": "One span of `state`."
+      },
+      "LocateAnswer": {
+        "type": "object",
+        "title": "LocateAnswer",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "locate"
+            ],
+            "title": "Type",
+            "description": "Always `locate`.",
+            "example": "locate"
+          },
+          "spans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocateSpan"
+            },
+            "title": "Spans",
+            "description": "The spans that match the question, as verbatim substrings of `state`. `[]` when nothing matches."
+          }
+        },
+        "required": [
+          "spans",
+          "type"
+        ],
+        "description": "Answer to a `locate` question: the matching spans of `state`."
       }
     },
     "securitySchemes": {
