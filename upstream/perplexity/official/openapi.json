@@ -2626,6 +2626,974 @@
           }
         }
       }
+    },
+    "/v1/monitors": {
+      "post": {
+        "operationId": "createMonitor",
+        "summary": "Create a monitor",
+        "description": "Creates an `active` monitor. Its first run is due immediately and starts asynchronously; retrieve results with Get a run or List a monitor's runs.\n\nOmit `webhook` or set it to null to retrieve results without notifications. If you configure a webhook without a `secret`, this response returns the generated secret in `webhook.secret`. Store it to verify deliveries. A secret you supply is never returned.\n\nUse `Idempotency-Key` for retries. The same key and body return the original monitor in its current state, without its secret. Reusing the key with a different body returns `400`. If the first response was lost, set a new secret with Update a monitor.\n\nActive-monitor limits apply per API organization: 100 for tiers 0 and 1, 200 for tier 2, 300 for tier 3, 400 for tier 4, and 500 for tier 5. Paused monitors do not count. Creating or resuming at the limit returns HTTP `409` with `quota_exceeded`. Pause or delete an active monitor, or upgrade the organization's tier, before retrying.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorIdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMonitorRequest"
+              },
+              "examples": {
+                "search": {
+                  "summary": "Search monitor on an interval schedule",
+                  "value": {
+                    "name": "Acme launches",
+                    "goal": "Alert on new product launches or price changes. Ignore opinion pieces.",
+                    "targets": [
+                      {
+                        "type": "search",
+                        "query": "Acme Corp product launch",
+                        "max_results": 20,
+                        "filters": {
+                          "freshness": [
+                            "published",
+                            "updated"
+                          ],
+                          "include_domains": [
+                            "techcrunch.com",
+                            "theverge.com"
+                          ]
+                        }
+                      }
+                    ],
+                    "schedule": {
+                      "type": "interval",
+                      "interval": "1d"
+                    },
+                    "webhook": {
+                      "url": "https://example.com/hooks/perplexity",
+                      "events": [
+                        "monitor.changes.detected",
+                        "monitor.paused"
+                      ]
+                    },
+                    "metadata": {
+                      "customer_user": "u_123"
+                    }
+                  }
+                },
+                "own_secret": {
+                  "summary": "Search monitor with your own webhook secret and every event",
+                  "value": {
+                    "name": "Acme launches",
+                    "targets": [
+                      {
+                        "type": "search",
+                        "query": "Acme Corp product launch"
+                      }
+                    ],
+                    "schedule": {
+                      "type": "interval",
+                      "interval": "1d"
+                    },
+                    "webhook": {
+                      "url": "https://example.com/hooks/perplexity",
+                      "events": [
+                        "monitor.changes.detected",
+                        "monitor.run.completed",
+                        "monitor.paused"
+                      ],
+                      "secret": "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
+                    }
+                  }
+                },
+                "page": {
+                  "summary": "Page monitor without a webhook",
+                  "value": {
+                    "name": "Acme pricing",
+                    "targets": [
+                      {
+                        "type": "page",
+                        "url": "https://acme.com/pricing"
+                      },
+                      {
+                        "type": "page",
+                        "url": "https://acme.com/changelog"
+                      }
+                    ],
+                    "schedule": {
+                      "type": "interval",
+                      "interval": "6h"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created monitor, with `webhook.secret` if the service generated it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitor"
+                },
+                "example": {
+                  "id": "mon_01JC8ZK3Q4V5W6X7Y8Z9A0B1C2",
+                  "object": "monitor",
+                  "name": "Acme launches",
+                  "goal": "Alert on new product launches or price changes. Ignore opinion pieces.",
+                  "targets": [
+                    {
+                      "type": "search",
+                      "query": "Acme Corp product launch",
+                      "max_results": 20,
+                      "filters": {
+                        "freshness": [
+                          "published",
+                          "updated"
+                        ],
+                        "include_domains": [
+                          "techcrunch.com",
+                          "theverge.com"
+                        ],
+                        "exclude_domains": []
+                      }
+                    }
+                  ],
+                  "schedule": {
+                    "type": "interval",
+                    "interval": "1d"
+                  },
+                  "webhook": {
+                    "url": "https://example.com/hooks/perplexity",
+                    "events": [
+                      "monitor.changes.detected",
+                      "monitor.paused"
+                    ],
+                    "secret": "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw"
+                  },
+                  "metadata": {
+                    "customer_user": "u_123"
+                  },
+                  "status": "active",
+                  "next_run_at": "2026-11-12T10:00:00Z",
+                  "created_at": "2026-11-12T10:00:00Z",
+                  "updated_at": "2026-11-12T10:00:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/MonitorBadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/MonitorPaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "409": {
+            "description": "Organization active-monitor cap reached (`quota_exceeded`).\nPause or delete an active monitor, or upgrade the organization's\ntier, before retrying. Paused monitors do not count.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      },
+      "get": {
+        "operationId": "listMonitors",
+        "summary": "List monitors",
+        "description": "Lists your API Group's monitors, newest first.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorLimit"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorAfter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of monitors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/MonitorBadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}": {
+      "get": {
+        "operationId": "getMonitor",
+        "summary": "Retrieve a monitor",
+        "description": "Returns the monitor with its status, `next_run_at`, and last run.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The monitor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitor"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      },
+      "patch": {
+        "operationId": "updateMonitor",
+        "summary": "Update a monitor",
+        "description": "Replaces each top-level field the body names: any subset of `name`,\n`goal`, `targets`, `schedule`, `webhook` and `metadata`. An absent\nkey leaves the field unchanged. `null` clears an optional field:\n`goal` becomes `\"\"`, `metadata` becomes `{}`, `webhook` is removed;\n`null` for `name`, `targets` or `schedule` returns 400. An empty\nobject returns the monitor unchanged.\n\nA new `schedule` recomputes `next_run_at`. Updating targets preserves existing run windows, seen-URL history, and stored Page baselines, subject to retention. A Page URL without a stored baseline establishes one on its first successful fetch. A\n`webhook` replaces the whole webhook. Without a `secret` it keeps the\ncurrent one, or, on a monitor without a webhook, generates one that\nthis response returns in `webhook.secret`. A new `secret` rotates:\nfor 24 hours deliveries are signed with both the new and the old\nsecret.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMonitorRequest"
+              },
+              "example": {
+                "goal": "Alert on new product launches only.",
+                "targets": [
+                  {
+                    "type": "page",
+                    "url": "https://acme.com/pricing"
+                  }
+                ],
+                "webhook": null
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated monitor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitor"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/MonitorBadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/MonitorConcurrentUpdate"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteMonitor",
+        "summary": "Delete a monitor",
+        "description": "Deletes the monitor, its run history, and its state, and stops scheduling new runs.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deleted monitor id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteMonitorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/pause": {
+      "post": {
+        "operationId": "pauseMonitor",
+        "summary": "Pause a monitor",
+        "description": "Stops scheduled runs and keeps the monitor's state. A queued run is\ncancelled (it ends `skipped`); a run already running finishes. Pausing\na paused monitor returns it unchanged.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The paused monitor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitor"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/MonitorConcurrentUpdate"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/resume": {
+      "post": {
+        "operationId": "resumeMonitor",
+        "summary": "Resume a monitor",
+        "description": "Resumes scheduled runs and sets `next_run_at` from now. Missed runs are not replayed individually. Resuming a monitor that is not paused returns HTTP `409` with `invalid_state`. State has a 90-day retention period, so a long-paused monitor may establish a new baseline.\n\nThe same active-monitor limit applies to creation and resuming. At the limit, HTTP `409` with `quota_exceeded` leaves the monitor unchanged. Pause or delete an active monitor, or upgrade the organization's tier, before retrying.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The resumed monitor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Monitor"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "409": {
+            "description": "The monitor is not paused (`invalid_state`), was modified\nconcurrently (`conflict`, retry), or the organization's\nactive-monitor cap was reached (`quota_exceeded`).\nFor the quota error, pause or delete an active monitor, or upgrade\nthe organization's tier, before retrying.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/run": {
+      "post": {
+        "operationId": "runMonitor",
+        "summary": "Run a monitor now",
+        "description": "Queues a manual run and returns it at once with status `queued`. The\nrun's `id` is the `run_id` of its `monitor.run.completed` event, and\nyou can follow it with get run. A monitor has at most one run at a\ntime: while one is queued or running, this returns 409\n`run_in_progress` with that run's ID. A paused monitor returns 409\n`invalid_state`.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The queued run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorRun"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/MonitorPaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "409": {
+            "description": "A run is already queued or running (`run_in_progress`, with its `current_run_id`), the monitor is paused (`invalid_state`), or the monitor was modified concurrently (`conflict`; retry)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MonitorRunInProgressError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MonitorApiError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/webhook/test": {
+      "post": {
+        "operationId": "testMonitorWebhook",
+        "summary": "Test a monitor's webhook",
+        "description": "Sends one signed `monitor.webhook.test` event to the configured webhook URL. Takes no request body and returns the delivery outcome after a response or a 10-second timeout. The test is not retried and does not count toward the `webhook_failing` pause threshold. A monitor without a webhook returns HTTP `409` with `invalid_state`.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The outcome of the send, delivered or not",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorWebhookTest"
+                },
+                "examples": {
+                  "delivered": {
+                    "value": {
+                      "object": "monitor.webhook_test",
+                      "event_id": "evt_0f9e8d7c6b5a49382716051f2e3d4c5b",
+                      "delivered": true,
+                      "status_code": 200,
+                      "duration_ms": 184
+                    }
+                  },
+                  "rejected": {
+                    "value": {
+                      "object": "monitor.webhook_test",
+                      "event_id": "evt_0f9e8d7c6b5a49382716051f2e3d4c5b",
+                      "delivered": false,
+                      "status_code": 401,
+                      "duration_ms": 95,
+                      "error": "http_status"
+                    }
+                  },
+                  "timeout": {
+                    "value": {
+                      "object": "monitor.webhook_test",
+                      "event_id": "evt_0f9e8d7c6b5a49382716051f2e3d4c5b",
+                      "delivered": false,
+                      "duration_ms": 10000,
+                      "error": "timeout"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/MonitorInvalidState"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/runs": {
+      "get": {
+        "operationId": "listMonitorRuns",
+        "summary": "List a monitor's runs",
+        "description": "Lists the monitor's runs with their changes, newest first. Runs are kept 90 days.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorLimit"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorAfter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of runs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorRunList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/MonitorBadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/MonitorNotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
+    },
+    "/v1/monitors/{monitor_id}/runs/{run_id}": {
+      "get": {
+        "operationId": "getMonitorRun",
+        "summary": "Get a run",
+        "description": "Returns one run with its changes and target errors. A run is visible as soon as run-now returns it.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorRunId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorRun"
+                },
+                "example": {
+                  "id": "run_01JC90AB2C3D4E5F6G7H8J9K0M",
+                  "object": "monitor.run",
+                  "monitor_id": "mon_01JC8ZK3Q4V5W6X7Y8Z9A0B1C2",
+                  "trigger": "schedule",
+                  "status": "succeeded",
+                  "window": {
+                    "from": "2026-11-11T09:00:00Z",
+                    "to": "2026-11-12T09:00:00Z"
+                  },
+                  "counts": {
+                    "candidates": 14,
+                    "changes": 2,
+                    "errors": 1
+                  },
+                  "usage": {
+                    "fetched_urls": 0,
+                    "cost": {
+                      "total_cost": 0.001,
+                      "currency": "USD"
+                    }
+                  },
+                  "changes": [
+                    {
+                      "id": "chg_3f2a9b1c7d4e5f60718293a4b5c6d7e8",
+                      "type": "search_result",
+                      "url": "https://techcrunch.com/2026/11/11/acme-launches-x",
+                      "title": "Acme launches X, its first robot vacuum",
+                      "confidence": 0.93,
+                      "snippet": "Acme Corp on Tuesday announced X, a $499 robot vacuum shipping in December...",
+                      "published_at": "2026-11-11T00:00:00Z"
+                    },
+                    {
+                      "id": "chg_9c41d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+                      "type": "page_change",
+                      "url": "https://acme.com/pricing",
+                      "title": "Pricing | Acme",
+                      "confidence": 0.96,
+                      "diff": {
+                        "unified": "@@ -12,3 +12,3 @@\n Plans\n-Pro $20/mo\n+Pro $25/mo\n Enterprise\n",
+                        "added_lines": 1,
+                        "removed_lines": 1,
+                        "truncated": false
+                      },
+                      "previous_fetched_at": "2026-11-11T09:00:04Z",
+                      "fetched_at": "2026-11-12T09:00:03Z"
+                    }
+                  ],
+                  "target_errors": [
+                    {
+                      "type": "page",
+                      "url": "https://acme.com/changelog",
+                      "code": "http_status",
+                      "status_code": 503,
+                      "message": "page fetch failed: the page answered with HTTP 503"
+                    }
+                  ],
+                  "created_at": "2026-11-12T09:00:00Z",
+                  "finished_at": "2026-11-12T09:00:41Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/MonitorUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/MonitorForbidden"
+          },
+          "404": {
+            "description": "Monitor or run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/MonitorTooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/MonitorBadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/MonitorUnavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/MonitorGatewayTimeout"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://api.perplexity.ai",
+            "description": "Production API"
+          }
+        ],
+        "tags": [
+          "Monitors"
+        ]
+      }
     }
   },
   "components": {
@@ -4667,7 +5635,14 @@
             "type": "integer"
           },
           "error": {
-            "$ref": "#/components/schemas/ErrorInfo",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "Error details if the response failed"
           },
           "id": {
@@ -4699,7 +5674,14 @@
             "description": "Status of the response"
           },
           "usage": {
-            "$ref": "#/components/schemas/ResponsesUsage",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsesUsage"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "Token usage and cost information"
           }
         },
@@ -4981,7 +5963,11 @@
             "mcp_list_tools": "#/components/schemas/McpListToolsOutputItem",
             "mcp_call": "#/components/schemas/McpCallOutputItem",
             "tool_search_output": "#/components/schemas/ToolSearchOutputItem",
-            "mcp_approval_request": "#/components/schemas/McpApprovalRequestOutputItem"
+            "mcp_approval_request": "#/components/schemas/McpApprovalRequestOutputItem",
+            "sandbox_write_file": "#/components/schemas/SandboxWriteFileOutputItem",
+            "sandbox_read_file": "#/components/schemas/SandboxReadFileOutputItem",
+            "share_file": "#/components/schemas/ShareFileOutputItem",
+            "skill_loaded": "#/components/schemas/SkillLoadedOutputItem"
           },
           "propertyName": "type"
         },
@@ -5009,6 +5995,18 @@
           },
           {
             "$ref": "#/components/schemas/SandboxResultsOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/SandboxWriteFileOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/SandboxReadFileOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/ShareFileOutputItem"
+          },
+          {
+            "$ref": "#/components/schemas/SkillLoadedOutputItem"
           },
           {
             "$ref": "#/components/schemas/McpListToolsOutputItem"
@@ -5188,6 +6186,148 @@
         ],
         "type": "object",
         "title": "SandboxResultsOutputItem"
+      },
+      "SandboxWriteFileOutputItem": {
+        "description": "Result of a file write inside the sandbox.",
+        "properties": {
+          "type": {
+            "enum": [
+              "sandbox_write_file"
+            ],
+            "type": "string"
+          },
+          "call_id": {
+            "description": "Identifier of the tool call that produced this item.",
+            "type": "string"
+          },
+          "file_path": {
+            "description": "Path of the file the sandbox wrote.",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Size of the written file, in bytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "error": {
+            "description": "Error message if the write failed.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "call_id",
+          "file_path"
+        ],
+        "type": "object",
+        "title": "SandboxWriteFileOutputItem"
+      },
+      "SandboxReadFileOutputItem": {
+        "description": "Result of a file read inside the sandbox.",
+        "properties": {
+          "type": {
+            "enum": [
+              "sandbox_read_file"
+            ],
+            "type": "string"
+          },
+          "call_id": {
+            "description": "Identifier of the tool call that produced this item.",
+            "type": "string"
+          },
+          "file_path": {
+            "description": "Path of the file the sandbox read.",
+            "type": "string"
+          },
+          "content": {
+            "description": "Text read from the file.",
+            "type": "string"
+          },
+          "start_line": {
+            "description": "Line number where `content` starts. Present only when the read covered part of the file.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "total_lines": {
+            "description": "Number of lines in the file. Present only when the read covered part of the file.",
+            "format": "int32",
+            "type": "integer"
+          },
+          "error": {
+            "description": "Error message if the read failed.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "call_id",
+          "file_path"
+        ],
+        "type": "object",
+        "title": "SandboxReadFileOutputItem"
+      },
+      "ShareFileOutputItem": {
+        "description": "Result of a `share_file` tool call. On success, `file_id` and `filename` identify a sandbox file you can download with the response files endpoints.",
+        "properties": {
+          "type": {
+            "enum": [
+              "share_file"
+            ],
+            "type": "string"
+          },
+          "call_id": {
+            "description": "Identifier of the tool call that produced this item.",
+            "type": "string"
+          },
+          "file_id": {
+            "description": "Identifier of the shared file.",
+            "type": "string"
+          },
+          "filename": {
+            "description": "Name of the shared file.",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Size of the shared file, in bytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "url": {
+            "description": "Relative path for downloading the file's content.",
+            "type": "string"
+          },
+          "error": {
+            "description": "Error message if the file could not be shared.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "call_id"
+        ],
+        "type": "object",
+        "title": "ShareFileOutputItem"
+      },
+      "SkillLoadedOutputItem": {
+        "description": "Records that the model loaded a skill during the run.",
+        "properties": {
+          "type": {
+            "enum": [
+              "skill_loaded"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "description": "Name of the loaded skill.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "type": "object",
+        "title": "SkillLoadedOutputItem"
       },
       "FinanceResultsOutputItem": {
         "description": "Intermediate output item emitted when the finance_search tool runs. One item is emitted per tool invocation; the requested categories and tickers are echoed at the envelope level alongside the per-result entries.",
@@ -8755,7 +9895,7 @@
             },
             "minProperties": 1,
             "title": "Questions",
-            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. At least one question. With `mode` `web_grounding`, at most 100, and `locate` questions are not accepted; either returns `400` with `param` `questions`.",
+            "description": "Questions keyed by a non-empty name you choose. The response uses the same names. At least one question. With `mode` `web_grounding`, at most 100; more returns `400` with `param` `questions`.",
             "example": {
               "defect": {
                 "type": "noul",
@@ -8785,7 +9925,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; on `pplx-decider-v1.3`, `pplx-decider-flash-v1.3` and `pplx-decider-v1.2`, questions that do not fit together are answered in groups, and each group counts the `state` again. `pplx-decider-flash-v1.2` answers each question separately and counts the `state` again for every question. The body must stay under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; questions that do not fit together are answered in groups, and each group counts the `state` again. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -9548,7 +10688,7 @@
           "instructions",
           "type"
         ],
-        "description": "A question that returns the spans of `state` that match `instructions`. It ignores `criteria` and any other member besides `type` and `instructions`. Only `pplx-decider-v1.3` and `pplx-decider-flash-v1.3` serve it; other models return `400`. A request with a `locate` question needs a string `state`, no images, at most 128 questions and native mode (no `web_grounding`). Other question types can be sent in the same request. Locate was trained on inputs of up to 8k tokens and evaluated on inputs of up to 32k tokens; longer inputs are accepted, but span quality on them is not measured."
+        "description": "A question that returns the spans of `state` that match `instructions`. It ignores `criteria` and any other member besides `type` and `instructions`. Only `pplx-decider-v1.3` and `pplx-decider-flash-v1.3` serve it; other models return `400`. A request with a `locate` question needs a string `state`, no images, and at most 128 questions; with `web_grounding`, a page URL `state` returns `400` with `param` `state`. Other question types can be sent in the same request. Locate was trained on inputs of up to 8k tokens and evaluated on inputs of up to 32k tokens; longer inputs are accepted, but span quality on them is not measured."
       },
       "LocateSpan": {
         "type": "object",
@@ -9575,6 +10715,12 @@
             "type": "number",
             "title": "Score",
             "description": "The model's score for the span. Higher means more certainty."
+          },
+          "search_result": {
+            "type": "integer",
+            "minimum": 0,
+            "title": "Search Result",
+            "description": "With `web_grounding`, present when the span was found in search evidence: the index of that result in `search_results`. `start`, `end`, and `text` then refer to that result's `snippet`."
           }
         },
         "required": [
@@ -9612,6 +10758,1699 @@
           "type"
         ],
         "description": "Answer to a `locate` question: the matching spans of `state`."
+      },
+      "MonitorTimestamp": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+        "description": "RFC 3339 in UTC with whole seconds, for example `2026-11-12T09:00:41Z`."
+      },
+      "MonitorStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "paused"
+        ],
+        "description": "`active` monitors run on their schedule; `paused` ones don't run until\nresumed. Whether a run is in flight is `current_run_id`, not the\nstatus. New statuses may be added; treat an unknown one as not\nrunning on its schedule.\n"
+      },
+      "MonitorPauseReason": {
+        "type": "string",
+        "enum": [
+          "user",
+          "insufficient_credits",
+          "org_policy",
+          "webhook_failing",
+          "source_failing"
+        ],
+        "description": "Why a `paused` monitor stopped: you paused it (`user`), credits ran\nout, webhook deliveries repeatedly failed (`webhook_failing`), every source the monitor reads repeatedly failed (`source_failing`), or your API Group's policy\nno longer allows monitors. Resume it once the cause is\nfixed. New reasons may be added; treat an unknown value as a reason to\ncheck the monitor before resuming it.\n"
+      },
+      "MonitorFreshness": {
+        "type": "string",
+        "enum": [
+          "published",
+          "updated"
+        ],
+        "description": "New values may be added; ignore unknown ones in responses."
+      },
+      "MonitorSearchFilters": {
+        "type": "object",
+        "required": [
+          "freshness",
+          "include_domains",
+          "exclude_domains"
+        ],
+        "properties": {
+          "freshness": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorFreshness"
+            },
+            "description": "Which result date puts a result in the run window: `published`,\n`updated`, or both (either date counts). Responses always list\nthe values in use. `updated` uses the source's last-updated date\nwith calendar-day precision, not a content-version or page-diff\nguarantee. URLs this monitor has already reported stay\nsuppressed.\n"
+          },
+          "include_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorDomain"
+            },
+            "description": "Only results from these domains or their subdomains; `[]` for no restriction"
+          },
+          "exclude_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorDomain"
+            },
+            "description": "Results from these domains or their subdomains are dropped; may be `[]`"
+          }
+        }
+      },
+      "MonitorDomain": {
+        "type": "string",
+        "maxLength": 253,
+        "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)+$",
+        "description": "A bare host name, such as `example.com`."
+      },
+      "MonitorSearchFiltersRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorFreshness"
+            },
+            "description": "Omit or send an empty array for both `published` and `updated`."
+          },
+          "include_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string"
+            },
+            "description": "Up to 20 bare host names such as `example.com`, without a scheme, path, or port. Only results from these domains or their subdomains are included."
+          },
+          "exclude_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string"
+            },
+            "description": "Up to 20 host names whose results, and their subdomains', are\ndropped. A domain may not also be in `include_domains`.\n"
+          }
+        }
+      },
+      "MonitorJudgeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Judging settings for this target.",
+        "properties": {
+          "threshold": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Minimum score, above 0 and up to 1, that every judging check must reach for a result or page change to be kept. A higher value keeps fewer changes."
+          }
+        }
+      },
+      "MonitorJudge": {
+        "type": "object",
+        "description": "Judging settings for this target. Present only when the monitor overrides the default threshold.",
+        "properties": {
+          "threshold": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1,
+            "description": "Minimum score, above 0 and up to 1, that every judging check must reach for a result or page change to be kept. A higher value keeps fewer changes."
+          }
+        }
+      },
+      "MonitorSearchTarget": {
+        "type": "object",
+        "description": "Reports pages new to `query` since the last run.",
+        "required": [
+          "type",
+          "query",
+          "max_results",
+          "filters"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "search"
+            ]
+          },
+          "query": {
+            "type": "string"
+          },
+          "max_results": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Maximum search results considered per query; the run can keep fewer."
+          },
+          "filters": {
+            "$ref": "#/components/schemas/MonitorSearchFilters"
+          },
+          "judge": {
+            "$ref": "#/components/schemas/MonitorJudge"
+          }
+        }
+      },
+      "MonitorPageTarget": {
+        "type": "object",
+        "description": "Reports meaningful changes to one URL. The first run of a page\ntarget saves a baseline and reports nothing.\n",
+        "required": [
+          "type",
+          "url"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "page"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Absolute `http(s)` URL of a public host, without credentials"
+          },
+          "judge": {
+            "$ref": "#/components/schemas/MonitorJudge"
+          }
+        }
+      },
+      "MonitorPageTargetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "url"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "page"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "minLength": 1,
+            "maxLength": 2048,
+            "description": "Absolute `http(s)` URL of a public host, without credentials"
+          },
+          "judge": {
+            "$ref": "#/components/schemas/MonitorJudgeRequest"
+          }
+        }
+      },
+      "MonitorTarget": {
+        "description": "One thing a monitor watches. Today a monitor has exactly one `search`\ntarget, or 1 to 10 `page` targets with distinct URLs. New types may\nbe added; skip targets with an unknown type.\n",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorSearchTarget"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorPageTarget"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "search": "#/components/schemas/MonitorSearchTarget",
+            "page": "#/components/schemas/MonitorPageTarget"
+          }
+        }
+      },
+      "MonitorSearchTargetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "query"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "search"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Search query to run on each run"
+          },
+          "max_results": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 20,
+            "description": "Maximum search results considered per query; the run can keep fewer."
+          },
+          "filters": {
+            "$ref": "#/components/schemas/MonitorSearchFiltersRequest"
+          },
+          "judge": {
+            "$ref": "#/components/schemas/MonitorJudgeRequest"
+          }
+        }
+      },
+      "MonitorTargetRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorSearchTargetRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorPageTargetRequest"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "search": "#/components/schemas/MonitorSearchTargetRequest",
+            "page": "#/components/schemas/MonitorPageTargetRequest"
+          }
+        }
+      },
+      "MonitorTargets": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": {
+          "$ref": "#/components/schemas/MonitorTargetRequest"
+        },
+        "description": "Exactly one `search` target, or 1 to 10 `page` targets with distinct URLs"
+      },
+      "MonitorIntervalSchedule": {
+        "type": "object",
+        "required": [
+          "type",
+          "interval"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "interval"
+            ]
+          },
+          "interval": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*[mhdw]$",
+            "description": "A whole number of minutes, hours, days or weeks (`30m`, `6h`,\n`1d`, `2w`), from `1m` to `31d`. Responses use the largest exact\nunit, so `60m` reads back as `1h`. Runs get up to 10% jitter.\n"
+          }
+        }
+      },
+      "MonitorCronSchedule": {
+        "type": "object",
+        "required": [
+          "type",
+          "cron",
+          "timezone"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cron"
+            ]
+          },
+          "cron": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Five-field cron expression, for example `0 9 * * 1-5`, without a `TZ=` prefix. Runs may be as often as every minute and at most 31 days apart, checked in `timezone`: monthly passes; quarterly, yearly, the 31st and leap-day schedules are rejected. Runs get up to 10 minutes of jitter."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone, for example `Europe/Belgrade`. Optional in requests (default `UTC`); always returned."
+          }
+        }
+      },
+      "MonitorSchedule": {
+        "description": "When a monitor runs. New types may be added.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorIntervalSchedule"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorCronSchedule"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "interval": "#/components/schemas/MonitorIntervalSchedule",
+            "cron": "#/components/schemas/MonitorCronSchedule"
+          }
+        }
+      },
+      "MonitorIntervalScheduleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "interval"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "interval"
+            ]
+          },
+          "interval": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*[mhdw]$",
+            "description": "A whole number of minutes, hours, days or weeks (`30m`, `6h`,\n`1d`, `2w`), from `1m` to `31d`. Runs get up to 10% jitter.\n"
+          }
+        }
+      },
+      "MonitorCronScheduleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "cron"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cron"
+            ]
+          },
+          "cron": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "timezone": {
+            "type": "string",
+            "default": "UTC"
+          }
+        }
+      },
+      "MonitorScheduleRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorIntervalScheduleRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorCronScheduleRequest"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "interval": "#/components/schemas/MonitorIntervalScheduleRequest",
+            "cron": "#/components/schemas/MonitorCronScheduleRequest"
+          }
+        }
+      },
+      "MonitorEventType": {
+        "type": "string",
+        "enum": [
+          "monitor.changes.detected",
+          "monitor.run.completed",
+          "monitor.paused"
+        ],
+        "description": "`monitor.changes.detected`: a run succeeded with at least one change.\n`monitor.run.completed`: a run ended `succeeded` (with or without\nchanges) or `failed`. `monitor.paused`: the service paused the\nmonitor; your own pause sends nothing. New types may be added; a new\ntype is sent only to webhooks that list it in `events`.\n"
+      },
+      "MonitorWebhookSecret": {
+        "type": "string",
+        "minLength": 38,
+        "maxLength": 94,
+        "pattern": "^whsec_(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+        "description": "Standard Webhooks signing secret: `whsec_` plus the standard (padded)\nbase64 of 24 to 64 bytes; the HMAC key is the decoded bytes.\n"
+      },
+      "MonitorWebhookRequest": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "url"
+            ],
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 2048,
+                "description": "HTTPS endpoint with a public address"
+              },
+              "events": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/components/schemas/MonitorEventType"
+                },
+                "description": "Event types to send. Omitted or empty means\n`[monitor.changes.detected, monitor.paused]`. An unknown type\nreturns 400 with param `webhook.events[N]`, the index of the\nfirst unknown entry.\n"
+              },
+              "secret": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MonitorWebhookSecret"
+                  }
+                ],
+                "description": "Optional signing secret. Without it, create generates one and an\nupdate keeps the current one (or generates one when the monitor\nhad no webhook). A different secret on update rotates: the old one\nalso signs for 24 hours. A secret you send is never returned.\n"
+              }
+            }
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "MonitorWebhook": {
+        "type": "object",
+        "required": [
+          "url",
+          "events"
+        ],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorEventType"
+            },
+            "description": "The subscribed event types, defaults filled in"
+          },
+          "secret": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorWebhookSecret"
+              }
+            ],
+            "description": "Present only in the response that generated it: a create, or an\nupdate that adds a webhook, without a `secret` in the request.\n"
+          }
+        }
+      },
+      "MonitorMetadata": {
+        "type": "object",
+        "maxProperties": 16,
+        "additionalProperties": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "description": "Up to 16 key value pairs; keys 1 to 64 characters, values up to 512 characters (Unicode code points, valid UTF-8). Echoed on every webhook."
+      },
+      "CreateMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "targets",
+          "schedule"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "What counts as worth an alert; each candidate is judged against it"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/MonitorTargets"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/MonitorScheduleRequest"
+          },
+          "webhook": {
+            "anyOf": [
+              {
+                "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MonitorWebhookRequest"
+                  }
+                ],
+                "description": "Optional delivery endpoint; omitted or null sends no events"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/MonitorMetadata"
+          }
+        }
+      },
+      "UpdateMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Any subset of the writable fields. A present key replaces that whole\nfield; an absent key leaves it unchanged. `null` clears an optional\nfield: `goal` becomes `\"\"`, `metadata` becomes `{}`, `webhook` is\nremoved.\n",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "targets": {
+            "$ref": "#/components/schemas/MonitorTargets"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/MonitorScheduleRequest"
+          },
+          "webhook": {
+            "anyOf": [
+              {
+                "type": "object",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MonitorWebhookRequest"
+                  }
+                ],
+                "description": "Replaces the webhook. Without a `secret`, keeps the current one,\nor on a monitor without a webhook generates one and returns it in\n`webhook.secret` of this response. A new `secret` rotates. `null`\nremoves the webhook; runs continue and nothing is sent.\n"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object",
+                "maxProperties": 16,
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 512
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "MonitorRunStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "succeeded",
+          "failed",
+          "skipped"
+        ],
+        "description": "`queued` is a manual run that has not started. `skipped` is a run that did not start, including a queued run cancelled by pausing the monitor. New statuses may be added; treat an unknown one as not finished."
+      },
+      "MonitorLastRun": {
+        "type": "object",
+        "description": "The last finished run",
+        "required": [
+          "id",
+          "status",
+          "change_count",
+          "finished_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MonitorRunStatus"
+          },
+          "change_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "finished_at": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          }
+        }
+      },
+      "Monitor": {
+        "type": "object",
+        "description": "Fields that do not apply are omitted, never null: `webhook`,\n`pause_reason`, `current_run_id`, `next_run_at` and `last_run`.\n",
+        "required": [
+          "id",
+          "object",
+          "name",
+          "goal",
+          "targets",
+          "schedule",
+          "metadata",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Opaque ID with the prefix `mon_`"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "monitor"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string",
+            "description": "`\"\"` when unset"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonitorTarget"
+            }
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/MonitorSchedule"
+          },
+          "webhook": {
+            "$ref": "#/components/schemas/MonitorWebhook"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/MonitorMetadata"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MonitorStatus"
+          },
+          "pause_reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorPauseReason"
+              }
+            ],
+            "description": "Only while `paused`"
+          },
+          "current_run_id": {
+            "type": "string",
+            "description": "The queued or running run"
+          },
+          "next_run_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "Omitted while paused"
+          },
+          "last_run": {
+            "$ref": "#/components/schemas/MonitorLastRun"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          }
+        }
+      },
+      "MonitorList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "has_more"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Monitor"
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Pass the last `data[].id` as `after` for the next page"
+          }
+        }
+      },
+      "DeleteMonitorResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "monitor"
+            ]
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MonitorRunTrigger": {
+        "type": "string",
+        "enum": [
+          "schedule",
+          "manual"
+        ],
+        "description": "What started the run. New triggers may be added; accept unknown values."
+      },
+      "MonitorChangeId": {
+        "type": "string",
+        "maxLength": 64,
+        "description": "Stable opaque ID with the prefix `chg_`. Use it to deduplicate the same finding across runs and webhook deliveries."
+      },
+      "MonitorSearchResultChange": {
+        "type": "object",
+        "description": "A search result new to the query since the last run",
+        "required": [
+          "id",
+          "type",
+          "url",
+          "confidence"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorChangeId"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "search_result"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Omitted when unknown"
+          },
+          "confidence": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Score from 0 to 1 that the change matches `goal`; higher is more\nconfident. Compare scores within one monitor; the scale may be\nrecalibrated.\n"
+          },
+          "snippet": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Text from the result, when the source has it"
+          },
+          "published_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the source reports one"
+          },
+          "last_updated_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "The source's last-updated date, at calendar-day precision, when it has one"
+          }
+        }
+      },
+      "MonitorPageChange": {
+        "type": "object",
+        "description": "A meaningful change to a page target",
+        "required": [
+          "id",
+          "type",
+          "url",
+          "confidence",
+          "diff",
+          "previous_fetched_at",
+          "fetched_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorChangeId"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "page_change"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Omitted when unknown"
+          },
+          "confidence": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Score from 0 to 1 that the change matches `goal`; higher is more\nconfident. Compare scores within one monitor; the scale may be\nrecalibrated.\n"
+          },
+          "diff": {
+            "$ref": "#/components/schemas/MonitorDiff"
+          },
+          "previous_fetched_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the earlier of the two compared snapshots was fetched"
+          },
+          "fetched_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the later snapshot was fetched"
+          }
+        }
+      },
+      "MonitorDiff": {
+        "type": "object",
+        "description": "Text changes between two page checks.",
+        "required": [
+          "unified",
+          "added_lines",
+          "removed_lines",
+          "truncated"
+        ],
+        "properties": {
+          "unified": {
+            "type": "string",
+            "maxLength": 24576,
+            "description": "Unified diff without file headers: `@@ -l,s +l,s @@` hunks with one\ncontext line, each line prefixed with ` `, `-` or `+` and ending in\n`\\n`. Any diff library or viewer reads it. Limited to 24 KiB\n(24,576 UTF-8 bytes).\n"
+          },
+          "added_lines": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "description": "Added lines in the whole diff, also when `unified` was cut"
+          },
+          "removed_lines": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "description": "Removed lines in the whole diff, also when `unified` was cut"
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Whether `unified` was cut to fit the 24 KiB byte limit. It keeps\ncomplete lines where possible; an oversized line can be shortened\nat a UTF-8 character boundary. Its last hunk header counts only\nthe lines shown.\n"
+          }
+        }
+      },
+      "MonitorChange": {
+        "description": "One finding the judge kept. New types may be added; skip changes with an unknown type.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorSearchResultChange"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorPageChange"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "search_result": "#/components/schemas/MonitorSearchResultChange",
+            "page_change": "#/components/schemas/MonitorPageChange"
+          }
+        }
+      },
+      "MonitorPageTargetError": {
+        "type": "object",
+        "description": "A page target that could not be read this run",
+        "required": [
+          "type",
+          "url",
+          "code",
+          "message"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "page"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/MonitorTargetErrorCode"
+          },
+          "status_code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The page's HTTP status; only with `http_status`"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable; may change. Do not parse."
+          }
+        }
+      },
+      "MonitorTargetErrorCode": {
+        "type": "string",
+        "enum": [
+          "invalid_url",
+          "blocked",
+          "no_content",
+          "load_failed",
+          "timeout",
+          "fetch_unavailable",
+          "http_status"
+        ],
+        "description": "Why the page could not be read: the URL is not valid (`invalid_url`), the site blocked the request (`blocked`), the page has no readable text (`no_content`), loading failed (`load_failed`) or timed out (`timeout`), page retrieval is temporarily unavailable (`fetch_unavailable`), or the page returned an error status (`http_status`, with `status_code`). New codes may be added."
+      },
+      "MonitorTargetError": {
+        "description": "A target that could not be read this run; its baseline is kept. New\ntypes may be added; skip errors with an unknown type.\n",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorPageTargetError"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "page": "#/components/schemas/MonitorPageTargetError"
+          }
+        }
+      },
+      "MonitorRunWindow": {
+        "type": "object",
+        "description": "The time range a run covers, `(from, to]`. Before the first successful run, the window starts one schedule period before creation, up to seven days earlier. Later windows normally start where the last successful window ended, subject to the service's lookback limit. The window ends when the run starts.\n",
+        "required": [
+          "from",
+          "to"
+        ],
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          },
+          "to": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          }
+        }
+      },
+      "MonitorRunCounts": {
+        "type": "object",
+        "required": [
+          "candidates",
+          "changes",
+          "errors"
+        ],
+        "properties": {
+          "candidates": {
+            "type": "integer",
+            "format": "int32",
+            "description": "New search results or changed pages before judging"
+          },
+          "changes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errors": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Target fetch failures and candidates that could not be judged."
+          }
+        }
+      },
+      "MonitorRunUsage": {
+        "type": "object",
+        "description": "Usage for the run. Only a `succeeded` run has nonzero usage. A succeeded Search run is billed once per run and reports zero `fetched_urls`; Page monitors report counted `fetched_urls`. Judging is included in the price.",
+        "required": [
+          "fetched_urls",
+          "cost"
+        ],
+        "properties": {
+          "fetched_urls": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Pages a Page monitor run fetched. Zero for a Search monitor run."
+          },
+          "cost": {
+            "$ref": "#/components/schemas/MonitorRunCost"
+          }
+        }
+      },
+      "MonitorRunCost": {
+        "type": "object",
+        "description": "Estimated run cost at list prices: $0.001 per succeeded Search run or counted fetched URL in a succeeded Page run, rounded to 5 decimal places. This is not the amount charged.",
+        "required": [
+          "total_cost",
+          "currency"
+        ],
+        "properties": {
+          "total_cost": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/MonitorCurrency"
+          }
+        }
+      },
+      "MonitorCurrency": {
+        "type": "string",
+        "description": "Currency code for cost values",
+        "enum": [
+          "USD"
+        ]
+      },
+      "MonitorRunFailureCode": {
+        "type": "string",
+        "enum": [
+          "gate_unavailable",
+          "detect_failed",
+          "judge_failed",
+          "source_failed",
+          "notify_failed",
+          "timed_out"
+        ],
+        "description": "Why a run failed: it could not start (`gate_unavailable`), retrieval failed (`detect_failed`), judging failed (`judge_failed`), every source failed (`source_failed`), the notification could not be scheduled (`notify_failed`), or the run timed out (`timed_out`). New codes may be added; treat an unknown one as a failure to retry on schedule."
+      },
+      "MonitorRunError": {
+        "type": "object",
+        "description": "Why a run failed or was skipped: a `failed` run has `code`, a\n`skipped` run has `skip_reason`, the pause reason that refused it.\n",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/MonitorRunFailureCode"
+          },
+          "skip_reason": {
+            "$ref": "#/components/schemas/MonitorPauseReason"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable; may change. Do not parse."
+          }
+        }
+      },
+      "MonitorRun": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "monitor_id",
+          "trigger",
+          "status",
+          "counts",
+          "usage",
+          "changes",
+          "target_errors",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Opaque ID with the prefix `run_`"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "monitor.run"
+            ]
+          },
+          "monitor_id": {
+            "type": "string"
+          },
+          "trigger": {
+            "$ref": "#/components/schemas/MonitorRunTrigger"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MonitorRunStatus"
+          },
+          "window": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorRunWindow"
+              }
+            ],
+            "description": "Omitted while the run is `queued`"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/MonitorRunCounts"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/MonitorRunUsage"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonitorChange"
+            }
+          },
+          "target_errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonitorTargetError"
+            }
+          },
+          "error": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorRunError"
+              }
+            ],
+            "description": "Only on `failed` and `skipped` runs"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/MonitorTimestamp"
+          },
+          "finished_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "Omitted until the run ends"
+          }
+        }
+      },
+      "MonitorRunList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "has_more"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonitorRun"
+            }
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "Pass the last `data[].id` as `after` for the next page"
+          }
+        }
+      },
+      "EventMonitor": {
+        "type": "object",
+        "description": "Enough of the monitor to route an event without a lookup",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "metadata"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MonitorStatus"
+          },
+          "pause_reason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorPauseReason"
+              }
+            ],
+            "description": "Only while `paused`"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The monitor's metadata; `{}` when unset"
+          }
+        }
+      },
+      "PausedEventMonitor": {
+        "type": "object",
+        "description": "The paused monitor; `pause_reason` is always set",
+        "required": [
+          "id",
+          "name",
+          "status",
+          "pause_reason",
+          "metadata"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paused"
+            ]
+          },
+          "pause_reason": {
+            "$ref": "#/components/schemas/MonitorPauseReason"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The monitor's metadata; `{}` when unset"
+          }
+        }
+      },
+      "MonitorEventId": {
+        "type": "string",
+        "maxLength": 64,
+        "description": "Opaque ID with the prefix `evt_`, equal to the `webhook-id` header. The ID stays the same across redeliveries; use it to deduplicate events."
+      },
+      "MonitorEventObject": {
+        "type": "string",
+        "enum": [
+          "event"
+        ]
+      },
+      "MonitorRunEventData": {
+        "type": "object",
+        "required": [
+          "monitor",
+          "run"
+        ],
+        "properties": {
+          "monitor": {
+            "$ref": "#/components/schemas/EventMonitor"
+          },
+          "run": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorRun"
+              }
+            ],
+            "description": "The run that raised the event, the same object get run returns"
+          }
+        }
+      },
+      "MonitorPausedEventData": {
+        "type": "object",
+        "required": [
+          "monitor"
+        ],
+        "properties": {
+          "monitor": {
+            "$ref": "#/components/schemas/PausedEventMonitor"
+          },
+          "run": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorRun"
+              }
+            ],
+            "description": "The run that caused the pause, when a run caused it"
+          }
+        }
+      },
+      "MonitorWebhookTestEventData": {
+        "type": "object",
+        "required": [
+          "monitor"
+        ],
+        "properties": {
+          "monitor": {
+            "$ref": "#/components/schemas/EventMonitor"
+          }
+        }
+      },
+      "MonitorEvent": {
+        "description": "A webhook body; `type` says which. Bodies are never truncated: every\nchange of the run is included. Accept bodies up to 1 MiB. New types\nmay be added; ignore unknown ones.\n",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/MonitorChangesDetectedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorRunCompletedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorPausedEvent"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorWebhookTestEvent"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "monitor.changes.detected": "#/components/schemas/MonitorChangesDetectedEvent",
+            "monitor.run.completed": "#/components/schemas/MonitorRunCompletedEvent",
+            "monitor.paused": "#/components/schemas/MonitorPausedEvent",
+            "monitor.webhook.test": "#/components/schemas/MonitorWebhookTestEvent"
+          }
+        }
+      },
+      "MonitorChangesDetectedEvent": {
+        "type": "object",
+        "description": "A run succeeded with at least one change.",
+        "required": [
+          "id",
+          "object",
+          "type",
+          "timestamp",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorEventId"
+          },
+          "object": {
+            "$ref": "#/components/schemas/MonitorEventObject"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "monitor.changes.detected"
+            ]
+          },
+          "timestamp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the event happened"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MonitorRunEventData"
+          }
+        }
+      },
+      "MonitorRunCompletedEvent": {
+        "type": "object",
+        "description": "A run ended `succeeded`, with or without changes, or `failed`.",
+        "required": [
+          "id",
+          "object",
+          "type",
+          "timestamp",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorEventId"
+          },
+          "object": {
+            "$ref": "#/components/schemas/MonitorEventObject"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "monitor.run.completed"
+            ]
+          },
+          "timestamp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the event happened"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MonitorRunEventData"
+          }
+        }
+      },
+      "MonitorPausedEvent": {
+        "type": "object",
+        "description": "The service paused the monitor (`insufficient_credits`, `org_policy`,\n`webhook_failing`, `source_failing`); a pause you make sends nothing.\nWith reason `webhook_failing` it goes to the failing endpoint, so it\nis best-effort.\n",
+        "required": [
+          "id",
+          "object",
+          "type",
+          "timestamp",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorEventId"
+          },
+          "object": {
+            "$ref": "#/components/schemas/MonitorEventObject"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "monitor.paused"
+            ]
+          },
+          "timestamp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the event happened"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MonitorPausedEventData"
+          }
+        }
+      },
+      "MonitorWebhookTestEvent": {
+        "type": "object",
+        "description": "Sent only by the test endpoint, never by a subscription; `data` has\nno `run`.\n",
+        "required": [
+          "id",
+          "object",
+          "type",
+          "timestamp",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorEventId"
+          },
+          "object": {
+            "$ref": "#/components/schemas/MonitorEventObject"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "monitor.webhook.test"
+            ]
+          },
+          "timestamp": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "When the event happened"
+          },
+          "data": {
+            "$ref": "#/components/schemas/MonitorWebhookTestEventData"
+          }
+        }
+      },
+      "MonitorWebhookTest": {
+        "type": "object",
+        "description": "The outcome of one test send",
+        "required": [
+          "object",
+          "event_id",
+          "delivered",
+          "duration_ms"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "monitor.webhook_test"
+            ]
+          },
+          "event_id": {
+            "type": "string",
+            "description": "The test event's `id` and `webhook-id` header"
+          },
+          "delivered": {
+            "type": "boolean",
+            "description": "The receiver answered 2xx"
+          },
+          "status_code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The receiver's HTTP status; omitted when it never answered"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "description": "Time from sending to the answer or the failure"
+          },
+          "error": {
+            "$ref": "#/components/schemas/MonitorWebhookTestError"
+          }
+        }
+      },
+      "MonitorWebhookTestError": {
+        "type": "string",
+        "enum": [
+          "http_status",
+          "timeout",
+          "network_error",
+          "tls_certificate",
+          "blocked_address",
+          "invalid_url",
+          "send_failed"
+        ],
+        "description": "Why the send failed; omitted when delivered. `http_status`: the\nreceiver answered `status_code` (a 3xx too, since redirects are not\nfollowed). New values may be added.\n"
+      },
+      "MonitorRunInProgressError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "type",
+              "code",
+              "current_run_id"
+            ],
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "run_in_progress"
+                ]
+              },
+              "code": {
+                "type": "integer",
+                "enum": [
+                  409
+                ]
+              },
+              "current_run_id": {
+                "type": "string",
+                "description": "The run already queued or running"
+              }
+            }
+          }
+        }
+      },
+      "MonitorApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "message",
+              "type",
+              "code"
+            ],
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message"
+              },
+              "type": {
+                "$ref": "#/components/schemas/MonitorApiErrorType"
+              },
+              "code": {
+                "type": "integer",
+                "description": "HTTP status code"
+              },
+              "param": {
+                "type": "string",
+                "description": "Parameter that caused the error"
+              }
+            }
+          }
+        }
+      },
+      "MonitorApiErrorType": {
+        "type": "string",
+        "enum": [
+          "invalid_request",
+          "invalid_api_key",
+          "token_expired",
+          "insufficient_quota",
+          "payment_required",
+          "forbidden",
+          "api_product_not_allowed",
+          "not_found",
+          "invalid_state",
+          "conflict",
+          "quota_exceeded",
+          "run_in_progress",
+          "request_rate_limit_exceeded",
+          "internal_error",
+          "bad_gateway",
+          "service_unavailable",
+          "gateway_timeout"
+        ],
+        "description": "Machine-readable error type. Monitors returns `invalid_request`\n(400), `invalid_api_key`, `token_expired` and\n`insufficient_quota` (401), `payment_required` (402),\n`forbidden` and `api_product_not_allowed` (403), `not_found`\n(404), `invalid_state` (409: the monitor's state does not allow\nthe request; change it first), `conflict` (409: the monitor was\nmodified concurrently; retry), `quota_exceeded` (409),\n`run_in_progress` (409), `request_rate_limit_exceeded` (429),\n`internal_error` (500), `bad_gateway` (502), `service_unavailable` (503) and\n`gateway_timeout` (504). New types may be added; act on `code`\nfor an unknown one.\n"
       }
     },
     "securitySchemes": {
@@ -9695,6 +12534,82 @@
           "maxLength": 200
         },
         "description": "Unique key for this create; a repeat returns the original batch"
+      },
+      "MonitorId": {
+        "name": "monitor_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Monitor identifier (mon_...)"
+      },
+      "MonitorRunId": {
+        "name": "run_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Run identifier (run_...)"
+      },
+      "MonitorIdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": "Unique key for this create. A repeat with the same key and the same body returns the monitor that the first request created, in its current state and without the secret; the same key with a different body is a 400."
+      },
+      "MonitorLimit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20
+        },
+        "description": "Maximum number of objects to return. Values above 100 are treated as 100."
+      },
+      "MonitorAfter": {
+        "name": "after",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Id to start after, the last `data[].id` of the previous page"
+      },
+      "MonitorWebhookId": {
+        "name": "webhook-id",
+        "in": "header",
+        "required": true,
+        "description": "The event `id`; the same on every retry",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "MonitorWebhookTimestamp": {
+        "name": "webhook-timestamp",
+        "in": "header",
+        "required": true,
+        "description": "Unix seconds when this attempt was signed; reject one more than 5 minutes from your clock",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9]+$"
+        }
+      },
+      "MonitorWebhookSignature": {
+        "name": "webhook-signature",
+        "in": "header",
+        "required": true,
+        "description": "Space-separated `v1,<base64 HMAC-SHA256 of id.timestamp.body>`\nentries, one per active secret (two for 24 hours after a rotation);\nany match is valid.\n",
+        "schema": {
+          "type": "string"
+        }
       }
     },
     "requestBodies": {
@@ -9758,6 +12673,12 @@
           "type": "integer"
         },
         "description": "When the window resets, in Unix seconds."
+      },
+      "MonitorRetryAfter": {
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "responses": {
@@ -9879,6 +12800,335 @@
       },
       "GatewayTimeout": {
         "description": "The model did not answer in time, after about a minute. The body may be HTML rather than JSON. Retry, or send less input."
+      },
+      "MonitorBadRequest": {
+        "description": "Invalid request or reused idempotency key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorUnauthorized": {
+        "description": "Invalid API key, expired token, or no credits",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorPaymentRequired": {
+        "description": "API credits exhausted",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorForbidden": {
+        "description": "Monitors are not available to this API Group",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorNotFound": {
+        "description": "Monitor not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorInvalidState": {
+        "description": "The monitor's state does not allow this request (`invalid_state`)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorConcurrentUpdate": {
+        "description": "The monitor was modified concurrently (`conflict`); retry",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorTooManyRequests": {
+        "description": "Rate limit exceeded",
+        "headers": {
+          "Retry-After": {
+            "$ref": "#/components/headers/MonitorRetryAfter"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorUnavailable": {
+        "description": "Monitor service unavailable; retry",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorBadGateway": {
+        "description": "The Monitor request failed; retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      },
+      "MonitorGatewayTimeout": {
+        "description": "The monitor service did not answer in time; retry",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MonitorApiError"
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-webhooks": {
+    "monitor.changes.detected": {
+      "post": {
+        "operationId": "monitorChangesDetected",
+        "summary": "A run found changes",
+        "description": "Sent when a run succeeds with at least one change. Subscribed by default.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorWebhookId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookSignature"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorChangesDetectedEvent"
+              },
+              "example": {
+                "id": "evt_5b0d8a91c2e34f7d9a6b1c0e2f4d6a8b",
+                "object": "event",
+                "type": "monitor.changes.detected",
+                "timestamp": "2026-11-12T09:00:41Z",
+                "data": {
+                  "monitor": {
+                    "id": "mon_01JC8ZK3Q4V5W6X7Y8Z9A0B1C2",
+                    "name": "Acme launches",
+                    "status": "active",
+                    "metadata": {
+                      "customer_user": "u_123"
+                    }
+                  },
+                  "run": {
+                    "id": "run_01JC90AB2C3D4E5F6G7H8J9K0M",
+                    "object": "monitor.run",
+                    "monitor_id": "mon_01JC8ZK3Q4V5W6X7Y8Z9A0B1C2",
+                    "trigger": "schedule",
+                    "status": "succeeded",
+                    "window": {
+                      "from": "2026-11-11T09:00:00Z",
+                      "to": "2026-11-12T09:00:00Z"
+                    },
+                    "counts": {
+                      "candidates": 14,
+                      "changes": 1,
+                      "errors": 0
+                    },
+                    "usage": {
+                      "fetched_urls": 0,
+                      "cost": {
+                        "total_cost": 0.001,
+                        "currency": "USD"
+                      }
+                    },
+                    "changes": [
+                      {
+                        "id": "chg_3f2a9b1c7d4e5f60718293a4b5c6d7e8",
+                        "type": "search_result",
+                        "url": "https://techcrunch.com/2026/11/12/acme-launches-widget",
+                        "title": "Acme launches Widget 2",
+                        "confidence": 0.93,
+                        "published_at": "2026-11-12T07:30:00Z"
+                      }
+                    ],
+                    "target_errors": [],
+                    "created_at": "2026-11-12T09:00:00Z",
+                    "finished_at": "2026-11-12T09:00:41Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received; any 2xx ends the delivery"
+          },
+          "default": {
+            "description": "Anything else is retried or ends the delivery; see \"Webhooks\" in the description"
+          }
+        }
+      }
+    },
+    "monitor.run.completed": {
+      "post": {
+        "operationId": "monitorRunCompleted",
+        "summary": "A run finished",
+        "description": "Sent for every run that ends `succeeded`, with or without changes, or `failed`: a heartbeat and a failure signal in one subscription.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorWebhookId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookSignature"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorRunCompletedEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received; any 2xx ends the delivery"
+          },
+          "default": {
+            "description": "Anything else is retried or ends the delivery; see \"Webhooks\" in the description"
+          }
+        }
+      }
+    },
+    "monitor.paused": {
+      "post": {
+        "operationId": "monitorPaused",
+        "summary": "The service paused a monitor",
+        "description": "Sent when the service pauses the monitor; `data.monitor.pause_reason` says why and `data.run` is the run that caused it, when a run caused it. A pause you make sends nothing. Subscribed by default.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorWebhookId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookSignature"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorPausedEvent"
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received; any 2xx ends the delivery"
+          },
+          "default": {
+            "description": "Anything else is retried or ends the delivery; see \"Webhooks\" in the description"
+          }
+        }
+      }
+    },
+    "monitor.webhook.test": {
+      "post": {
+        "operationId": "monitorWebhookTest",
+        "summary": "A webhook test",
+        "description": "Sent only by test a monitor's webhook, once and without retry; `data` carries the monitor and no run. Never subscribed.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MonitorWebhookId"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookTimestamp"
+          },
+          {
+            "$ref": "#/components/parameters/MonitorWebhookSignature"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitorWebhookTestEvent"
+              },
+              "example": {
+                "id": "evt_0f9e8d7c6b5a49382716051f2e3d4c5b",
+                "object": "event",
+                "type": "monitor.webhook.test",
+                "timestamp": "2026-11-12T10:15:00Z",
+                "data": {
+                  "monitor": {
+                    "id": "mon_01JC8ZK3Q4V5W6X7Y8Z9A0B1C2",
+                    "name": "Acme launches",
+                    "status": "active",
+                    "metadata": {
+                      "customer_user": "u_123"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Received; the test reports `delivered`"
+          },
+          "default": {
+            "description": "The test reports `delivered` false with `error` `http_status`"
+          }
+        }
       }
     }
   }
