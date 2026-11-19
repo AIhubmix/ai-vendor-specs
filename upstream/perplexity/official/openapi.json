@@ -103,7 +103,7 @@
     "/v1/embeddings": {
       "post": {
         "summary": "Create Embeddings",
-        "description": "Generate embeddings for a list of texts. Use these embeddings for semantic search, clustering, and other machine learning applications.",
+        "description": "Generate embeddings for texts, pre-chunked documents (pplx-embed-v2), or images (pplx-embed-v2). Use these embeddings for semantic search, clustering, and other machine learning applications.",
         "operationId": "embeddings_v1_embeddings_post",
         "security": [
           {
@@ -656,6 +656,18 @@
                       "object": "model",
                       "created": 0,
                       "owned_by": "anthropic"
+                    },
+                    {
+                      "id": "openai/gpt-6.2-sol",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "openai"
+                    },
+                    {
+                      "id": "openai/gpt-6.2-astra",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "openai"
                     },
                     {
                       "id": "openai/gpt-6-astra",
@@ -3686,7 +3698,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: malformed JSON, a request body over 512 KiB, a null value, a wrong type or out-of-range value, zero URLs or more than 50 (or more than your usage tier allows), a parameter combination that is not allowed, an unknown parameter (unsupported_param), or an unknown format (unsupported_format). Fix the request before you send it again.",
+            "description": "Invalid request: malformed JSON, a request body over 512 KiB, a null value, a wrong type or out-of-range value, zero URLs or more than 50 (or more than your usage tier allows), a parameter combination that is not allowed, an unknown parameter, including an unknown field in criteria (unsupported_param), or an unknown format (unsupported_format). Fix the request before you send it again.",
             "content": {
               "application/json": {
                 "schema": {
@@ -8641,7 +8653,7 @@
         "properties": {
           "input": {
             "title": "Input",
-            "description": "Input text to embed, encoded as a string or array of strings. Maximum 512 texts per request. Each input must not exceed 32K tokens. All inputs in a single request must not exceed 120,000 tokens combined. Empty strings are not allowed.",
+            "description": "Input to embed. pplx-embed-v1 models accept a string or array of strings. pplx-embed-v2 models also accept pre-chunked documents (an array of string arrays) or image objects; a request contains only text or only images. Maximum 512 texts or documents per request. Each text or document must not exceed 32K tokens. All text in a single request must not exceed 120,000 tokens combined. Empty strings are not allowed.",
             "oneOf": [
               {
                 "type": "string",
@@ -8655,6 +8667,47 @@
                 },
                 "minItems": 1,
                 "maxItems": 512
+              },
+              {
+                "type": "array",
+                "title": "Documents",
+                "description": "Pre-chunked documents for pplx-embed-v2 models with input_type document. Each inner array holds one document's chunks in order. Maximum 16,000 chunks per request.",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minItems": 1
+                },
+                "minItems": 1,
+                "maxItems": 512
+              },
+              {
+                "type": "array",
+                "title": "Images",
+                "description": "Images for pplx-embed-v2 models with input_type document. Maximum 96 images and 20 MB of base64 image data per request.",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "image"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "image"
+                      ]
+                    },
+                    "image": {
+                      "type": "string",
+                      "description": "Base64 data URI, for example data:image/png;base64,<BASE64_IMAGE>. JPEG, PNG, and WebP are supported; animated images are not."
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 96
               }
             ]
           },
@@ -8664,13 +8717,37 @@
             "description": "The embedding model to use",
             "enum": [
               "pplx-embed-v1-0.6b",
-              "pplx-embed-v1-4b"
+              "pplx-embed-v1-4b",
+              "pplx-embed-v2-context-0.6b",
+              "pplx-embed-v2-context-9b"
+            ]
+          },
+          "input_type": {
+            "type": "string",
+            "title": "Input Type",
+            "description": "Required for pplx-embed-v2 models. Use query for search queries and document for content you index. Pre-chunked documents and images require document.",
+            "enum": [
+              "query",
+              "document"
+            ]
+          },
+          "num_chunks": {
+            "type": "integer",
+            "title": "Num Chunks",
+            "description": "pplx-embed-v2 image inputs only. Splits each image into this many horizontal regions and returns one embedding per region. Small images can return fewer regions.",
+            "enum": [
+              1,
+              2,
+              4,
+              8,
+              16,
+              32
             ]
           },
           "dimensions": {
             "type": "integer",
             "title": "Dimensions",
-            "description": "Number of dimensions for output embeddings (Matryoshka). Range: 128-1024 for pplx-embed-v1-0.6b, 128-2560 for pplx-embed-v1-4b. Defaults to full dimensions (1024 or 2560).",
+            "description": "Number of dimensions for output embeddings. Range: 128-1024 for pplx-embed-v1-0.6b, 128-2560 for pplx-embed-v1-4b (Matryoshka). pplx-embed-v2-context-0.6b supports 512 or 1024; pplx-embed-v2-context-9b supports 1024 or 2048. Defaults to the model's full dimensions.",
             "minimum": 128,
             "maximum": 2560
           },
@@ -8700,9 +8777,16 @@
           "data": {
             "type": "array",
             "title": "Data",
-            "description": "List of embedding objects",
+            "description": "List of embedding objects. Pre-chunked documents and image inputs with num_chunks above 1 return one contextualized object per input, with chunk embeddings in data.",
             "items": {
-              "$ref": "#/components/schemas/EmbeddingObject"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EmbeddingObject"
+                },
+                {
+                  "$ref": "#/components/schemas/ContextualizedEmbeddingObject"
+                }
+              ]
             }
           },
           "model": {
@@ -13058,7 +13142,16 @@
             "minimum": 1000,
             "maximum": 110000,
             "default": 30000,
-            "description": "Fetch time budget for each URL. URLs are fetched in parallel."
+            "description": "Time budget for the whole request. URLs are fetched in parallel. With criteria, the maximum is 95000, and scoring may add up to 15 seconds."
+          },
+          "criteria": {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 5,
+            "description": "Decision questions to score each page with, keyed by question ID. 1 to 5 questions. IDs must match [A-Za-z0-9_-]{1,64}, and query is reserved. Scoring never filters, reorders, or drops results.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContextCriteriaQuestion"
+            }
           }
         }
       },
@@ -13122,9 +13215,12 @@
           },
           "cost": {
             "$ref": "#/components/schemas/ContextCost"
+          },
+          "criteria": {
+            "$ref": "#/components/schemas/ContextCriteriaUsage"
           }
         },
-        "description": "The number of billed URLs in this request and their cost at list price."
+        "description": "The number of billed URLs in this request, the criteria scoring tokens when the request has criteria, and the cost at list price."
       },
       "ContextCost": {
         "type": "object",
@@ -13132,12 +13228,12 @@
           "total_cost",
           "currency"
         ],
-        "description": "The cost of the request at list price, $0.001 per billed URL. It is not the amount charged.",
+        "description": "The cost of the request at list price: $0.001 per billed URL, plus the Decisions API input token price of criteria.input_tokens when the request has criteria. It is not the amount charged.",
         "properties": {
           "total_cost": {
             "type": "number",
             "format": "double",
-            "description": "fetched_urls multiplied by the list price of $0.001 per URL."
+            "description": "fetched_urls multiplied by $0.001, plus the list price of criteria.input_tokens when the request has criteria, rounded to 5 decimals."
           },
           "currency": {
             "$ref": "#/components/schemas/ContextCurrency"
@@ -13187,6 +13283,22 @@
           },
           "status": {
             "$ref": "#/components/schemas/ContextStatus"
+          },
+          "criteria": {
+            "type": "object",
+            "description": "The answer to each criteria question, keyed by question ID. Only when the request has criteria and status.type is ok; omitted when the page was not scored, and then criteria_error says why if scoring failed.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ContextDecisionNoulAnswer"
+            }
+          },
+          "criteria_error": {
+            "type": "string",
+            "enum": [
+              "timeout",
+              "overloaded",
+              "error"
+            ],
+            "description": "Why scoring failed. Only when the request has criteria, status.type is ok, and criteria is omitted; absent when the page had no text to score. timeout: scoring ran out of time. overloaded: the scoring service was at capacity. error: scoring failed for another reason."
           }
         }
       },
@@ -13343,6 +13455,89 @@
                 "description": "The request ID. Present on errors the Context API returns itself."
               }
             }
+          }
+        }
+      },
+      "ContextCriteriaQuestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "instructions"
+        ],
+        "properties": {
+          "instructions": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "The question to answer or the statement to check, 1 to 1000 characters. It must contain a non-whitespace character."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "noul"
+            ],
+            "description": "The question type. Always noul."
+          },
+          "criteria": {
+            "$ref": "#/components/schemas/ContextCriteriaOutcomes",
+            "description": "Optional descriptions of what makes the answer true and what makes it false."
+          }
+        },
+        "description": "A yes or no question, or a statement to check, about each page."
+      },
+      "ContextCriteriaOutcomes": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "true": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What makes the answer true, 1 to 500 characters. It must contain a non-whitespace character."
+          },
+          "false": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What makes the answer false, 1 to 500 characters. It must contain a non-whitespace character."
+          }
+        },
+        "description": "What counts as true and what counts as false."
+      },
+      "ContextDecisionNoulAnswer": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "noul"
+            ],
+            "description": "Always noul."
+          },
+          "noul": {
+            "type": "number",
+            "format": "double",
+            "description": "The probability of yes or true, from 0 to 1. Values near 0.5 mean the model is unsure."
+          }
+        },
+        "required": [
+          "noul",
+          "type"
+        ],
+        "description": "The answer to a noul question: the probability that the answer is yes or the statement is true."
+      },
+      "ContextCriteriaUsage": {
+        "type": "object",
+        "description": "Token usage for criteria scoring. Present only when the request has criteria and scoring usage was reported.",
+        "required": [
+          "input_tokens"
+        ],
+        "properties": {
+          "input_tokens": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The tokens the decision model read to score the pages (page text plus the questions), billed as Decisions API input tokens."
           }
         }
       },
