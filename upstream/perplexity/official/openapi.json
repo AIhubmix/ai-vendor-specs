@@ -1922,7 +1922,7 @@
         "x-mint": {
           "href": "/api-reference/decisions-post"
         },
-        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, `score`, and `locate` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.3`, `pplx-decider-flash-v1.3`, `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Set `mode` to `web_grounding` to fetch a URL-only state and search the web before the model answers. Use `max_staleness` to control fetched page age. Each search or successful URL fetch is billed. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
+        "description": "Evaluate one or more named questions against the content in `state`. Mix `noul`, `choice`, `score`, and `locate` questions in one request; the response returns one answer per question under the same name, plus the model name and token usage. Set `model` to `pplx-decider-v1.3`, `pplx-decider-flash-v1.3`, `pplx-decider-v1.2` or `pplx-decider-flash-v1.2`, or to the alias `pplx-decider-latest` or `pplx-decider-flash-latest`; a missing or unknown model returns `400`. Set `mode` to `web_grounding` to fetch a URL-only state and search the web before the model answers. Each search or successful URL fetch is billed. Send the key as `Authorization: Bearer <key>`; an `x-api-key` header is not read and returns `401`."
       }
     },
     "/v1/batches": {
@@ -10657,7 +10657,7 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "description": "The decision model: `pplx-decider-v1.3` (27B, $0.02 per million input tokens), `pplx-decider-flash-v1.3` (4B, $0.01 per million input tokens), `pplx-decider-v1.2` (27B, $0.02 per million input tokens) or `pplx-decider-flash-v1.2` (4B, $0.01 per million input tokens). The aliases `pplx-decider-latest` and `perplexity/pplx-decider-latest` select `pplx-decider-v1.3`, and `pplx-decider-flash-latest` and `perplexity/pplx-decider-flash-latest` select `pplx-decider-flash-v1.3`; an alias can move to a newer model over time. `pplx-decider-v1.1-27b` and `pplx-decider-v1-27b` remain accepted and select `pplx-decider-v1.2`. Only the v1.3 models, by name or through the `-latest` aliases, serve `locate` questions. A missing or unknown model returns `400`.",
+            "description": "The decision model: `pplx-decider-v1.3` (27B, $0.02 per million input tokens), `pplx-decider-flash-v1.3` (4B, $0.01 per million input tokens), `pplx-decider-v1.2` (27B, $0.02 per million input tokens) or `pplx-decider-flash-v1.2` (4B, $0.01 per million input tokens). The aliases `pplx-decider-latest` and `perplexity/pplx-decider-latest` select `pplx-decider-v1.3`, and `pplx-decider-flash-latest` and `perplexity/pplx-decider-flash-latest` select `pplx-decider-flash-v1.3`; an alias can move to a newer model over time. `pplx-decider-v1-27b` (27B, $0.02 per million input tokens) remains accepted, and `pplx-decider-v1.1-27b` is an alias of it. Only the v1.3 models, by name or through the `-latest` aliases, serve `locate` questions. A missing or unknown model returns `400`.",
             "example": "pplx-decider-latest"
           },
           "state": {
@@ -10675,7 +10675,7 @@
               }
             ],
             "title": "State",
-            "description": "The content every question in the request refers to: a string, an object, or an array. Images can appear anywhere in `state` as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs and are read in place. Up to 8 images per question. With `mode: \"web_grounding\"`, a single page URL is fetched and replaced with its text before web search. Use `max_staleness` to control the age of the fetched copy.",
+            "description": "The content every question in the request refers to: a string, an object, or an array. Images can appear anywhere in `state` as OpenAI-style `image_url` parts with base64 PNG, JPEG, or WebP data URLs and are read in place. Up to 8 images per question. With `mode: \"web_grounding\"`, a single page URL is fetched and replaced with its text before web search.",
             "example": "The headphones sound great, but the battery stopped charging after two weeks."
           },
           "questions": {
@@ -10699,13 +10699,13 @@
               "web_grounding"
             ],
             "title": "Mode",
-            "description": "Set to `web_grounding` to search the web before the model answers. For a URL-only state, the API first fetches the page and replaces the URL with its text. It then runs one Fast Search per question, up to 100 questions, and adds the top results to `state`. The response lists search evidence in `search_results` and fetched page text in `fetched_results`. If no search returns a result, the model answers from `state`, including any fetched text. Each search or successful URL fetch costs $0.001; fetched text and search evidence count as input tokens. Any other mode value, including an empty string or `null`, returns `400`. See [Web grounding](/docs/decisions/quickstart#web-grounding)."
+            "description": "Set to `web_grounding` to search the web before the model answers. For a URL-only state, the API first fetches the page and replaces the URL with its text. It then runs one Fast Search per question, up to 100 questions, and adds the top results to `state`. The response lists search evidence in `search_results` and fetched page text in `fetched_results`. If no search returns a result, the model answers from `state`, including any fetched text. Each search costs $0.001 and each successful URL fetch costs $0.0005; fetched text and search evidence count as input tokens. Any other mode value, including an empty string or `null`, returns `400`. See [Web grounding](/docs/decisions/decisions#web-grounding)."
           },
           "max_staleness": {
             "type": "integer",
             "minimum": 0,
             "title": "Max Staleness",
-            "description": "Maximum age of the fetched page in seconds since its last crawl. Applies to URL-only state with `mode: \"web_grounding\"`. An older stored copy triggers a fresh crawl before the page text is used. Omit to use a stored copy without an age limit. Ignored without `mode`. Does not filter search results.",
+            "description": "Accepted but currently ignored: it does not check the age of a fetched page or trigger a crawl. A non-negative integer is accepted, so existing requests that send it keep working.",
             "example": 86400,
             "format": "int64"
           }
@@ -10715,7 +10715,7 @@
           "state",
           "questions"
         ],
-        "description": "The content to evaluate and the named questions to ask about it. `mode` and `max_staleness` are optional. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; questions that do not fit together are answered in groups, and each group counts the `state` again. The body must stay under 32 MiB.",
+        "description": "The content to evaluate and the named questions to ask about it. `mode` is optional; `max_staleness` is accepted and ignored. An unknown top-level field returns `400`. The `state` plus any one question must stay under 256K input tokens; questions that do not fit together are answered in groups, and each group counts the `state` again. The body must stay under 32 MiB.",
         "additionalProperties": false
       },
       "DecisionsResponse": {
@@ -10862,13 +10862,43 @@
             "title": "Output Tokens",
             "description": "Output tokens generated for the answers.",
             "example": 3
+          },
+          "tool_calls_details": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DecisionToolCallDetails"
+            },
+            "title": "Tool Calls Details",
+            "description": "Only with `mode: \"web_grounding\"`: billable grounding operations keyed by tool name. `search_web.invocation` counts the distinct searches that returned, including searches with no results. `fetch_url.invocation` counts the URL fetches that returned, including fetches with no page text. Failed, timed-out, and unstarted operations are not counted, and a tool with no billable operations is omitted. The object is omitted when no tool has a billable operation, and without `mode`. Counts are not charges.",
+            "example": {
+              "search_web": {
+                "invocation": 1
+              }
+            }
           }
         },
         "required": [
           "input_tokens",
           "output_tokens"
         ],
-        "description": "Token counts for the request. Input tokens are billed per million at the rate of the selected model: $0.02 for `pplx-decider-v1.3` and `pplx-decider-v1.2`, and $0.01 for `pplx-decider-flash-v1.3` and `pplx-decider-flash-v1.2`. Output tokens are free."
+        "description": "Token counts for the request and, with `mode: \"web_grounding\"`, billable grounding operations. Input tokens are billed per million at the rate of the selected model: $0.02 for `pplx-decider-v1.3` and `pplx-decider-v1.2`, and $0.01 for `pplx-decider-flash-v1.3` and `pplx-decider-flash-v1.2`. Output tokens are free."
+      },
+      "DecisionToolCallDetails": {
+        "type": "object",
+        "title": "DecisionToolCallDetails",
+        "properties": {
+          "invocation": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1,
+            "title": "Invocation",
+            "description": "Billable operations for this tool, after deduplication."
+          }
+        },
+        "required": [
+          "invocation"
+        ],
+        "description": "Billable operations for one grounding tool."
       },
       "Error": {
         "type": "object",
@@ -22311,7 +22341,7 @@
     },
     "responses": {
       "BadRequest": {
-        "description": "The body is not valid JSON, `model` is missing or unknown, a field is unknown or the wrong type, a request limit is exceeded, or an image is not a supported data URL.",
+        "description": "The request is invalid: the body is not valid JSON, `model` is missing or unknown, a top-level field is unknown, a field has the wrong type or is `null` where not allowed, `mode` is not `web_grounding`, a request limit is exceeded (for input tokens, the `state` plus a single question is over the limit), a `locate` question gets non-text `state`, or an image is not a supported data URL. Read `error.message` for the reason and `error.type` for the category; `error.code` is a string, a number, or `null` depending on the error, so do not branch on it. Fix the request before retrying.",
         "content": {
           "application/json": {
             "schema": {
@@ -22334,7 +22364,7 @@
         }
       },
       "Unauthorized": {
-        "description": "The API key is missing or invalid, or it was sent in `x-api-key`. No request id header.",
+        "description": "The API key is missing or invalid, or it was sent in `x-api-key`, which is not read. Send `Authorization: Bearer <PERPLEXITY_API_KEY>` with an active key. No request id header.",
         "content": {
           "application/json": {
             "schema": {
@@ -22369,7 +22399,7 @@
         }
       },
       "PayloadTooLarge": {
-        "description": "The request body is over 32 MiB.",
+        "description": "The request body is over 32 MiB. Send less `state`, or split the content across requests.",
         "content": {
           "application/json": {
             "schema": {
@@ -22392,7 +22422,7 @@
         }
       },
       "TooManyRequests": {
-        "description": "Over the request or token limit. Wait `Retry-After` seconds, then retry.",
+        "description": "Over the request or token limit. Each organization can send 10 requests per second, shared across all models, and each model has per-minute and per-hour token limits in rolling windows. The response carries `Retry-After` in seconds and no `x-ratelimit-*` headers. Wait `Retry-After` seconds, then retry.",
         "content": {
           "application/json": {
             "schema": {
@@ -22427,7 +22457,7 @@
         "description": "The model service is temporarily unavailable. Retry with backoff."
       },
       "GatewayTimeout": {
-        "description": "The model did not answer in time, after about a minute. The body may be HTML rather than JSON. Retry, or send less input."
+        "description": "The model did not answer in time, after about a minute. An image over 2,048 tiles of 32 x 32 pixels also ends here instead of returning `400`. The body may be HTML rather than JSON, and there is no request id header, so check the status before you parse the body. Retry with backoff, send less input, or resize images."
       },
       "MonitorBadRequest": {
         "description": "Invalid request or reused idempotency key",
