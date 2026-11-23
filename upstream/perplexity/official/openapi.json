@@ -4755,6 +4755,11 @@
             ],
             "title": "Last Updated",
             "description": "Date the page was last updated (YYYY-MM-DD)."
+          },
+          "error": {
+            "type": "string",
+            "title": "Error",
+            "description": "Present only on `snapshot_as_of` searches, for a page with no readable copy saved at or before that time. `title` and `snippet` are then empty."
           }
         },
         "type": "object",
@@ -4827,6 +4832,10 @@
                 "default": false,
                 "description": "When `true`, the response includes `server_time`.",
                 "type": "boolean"
+              },
+              "snapshot_as_of": {
+                "description": "Search the web as of this RFC 3339 time with a time zone, such as `2026-11-01T00:00:00Z`. Each result comes from the copy of the page saved at or before this time. It must not be in the future or more than 365 days ago. Supported for the `web` and `fast` search types. Cannot be combined with `search_recency_filter`, the publication date filters, or the last-updated filters.",
+                "type": "string"
               }
             },
             "required": [
@@ -13408,12 +13417,16 @@
             "minimum": 0,
             "maximum": 63072000,
             "default": 172800,
-            "description": "Maximum age of a stored copy to accept, up to 63072000 (two years). 0 always fetches the page live."
+            "description": "Maximum age of a stored copy to accept, up to 63072000 (two years). 0 always fetches the page live. Cannot be combined with snapshot_as_of."
           },
           "cache_only": {
             "type": "boolean",
             "default": false,
-            "description": "When true, answer only from stored copies at most max_age_seconds old and never fetch live. A URL without one has status.type no_content. Requires max_age_seconds above 0."
+            "description": "When true, answer only from stored copies at most max_age_seconds old and never fetch live. A URL without one has status.type no_content. Requires max_age_seconds above 0. Cannot be combined with snapshot_as_of."
+          },
+          "snapshot_as_of": {
+            "type": "string",
+            "description": "Return each URL as stored at or before this RFC 3339 time with a time zone, such as 2026-11-01T00:00:00Z. It must not be in the future or more than 365 days ago. Never fetches live: a URL with no stored copy from before that time has status.type no_content. Cannot be combined with max_age_seconds, cache_only, or if_modified_since."
           },
           "timeout_ms": {
             "type": "integer",
@@ -13655,7 +13668,7 @@
               "cached",
               "live"
             ],
-            "description": "cached: a stored copy, chosen by max_age_seconds or cache_only. live: fetched for this request."
+            "description": "cached: a stored copy, chosen by max_age_seconds, cache_only, or snapshot_as_of. live: fetched for this request."
           },
           "fetched_at": {
             "type": "string",
