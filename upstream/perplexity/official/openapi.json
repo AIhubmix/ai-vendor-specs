@@ -790,6 +790,12 @@
                       "owned_by": "google"
                     },
                     {
+                      "id": "google/gemini-4-neon",
+                      "object": "model",
+                      "created": 0,
+                      "owned_by": "google"
+                    },
+                    {
                       "id": "google/gemini-3.8-flash",
                       "object": "model",
                       "created": 0,
@@ -11808,21 +11814,152 @@
           }
         }
       },
+      "MonitorAgentProfileReference": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "A saved Agent API profile.",
+        "required": [
+          "type",
+          "id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "custom"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "The profile ID, from 1 to 128 characters."
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "The profile version, up to 128 bytes. Omit it to use the latest version."
+          }
+        }
+      },
+      "MonitorAgentFilters": {
+        "type": "object",
+        "required": [
+          "freshness",
+          "include_domains",
+          "exclude_domains"
+        ],
+        "properties": {
+          "freshness": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorFreshness"
+            },
+            "description": "The freshness values for the target. When both values are present, the Agent monitor applies no date filter to the agent's web search."
+          },
+          "include_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorDomain"
+            },
+            "description": "The allowed domains and their subdomains. If this list is empty, only `exclude_domains` can restrict which domains the Agent monitor uses."
+          },
+          "exclude_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorDomain"
+            },
+            "description": "The domains the Agent monitor excludes, including their subdomains."
+          }
+        }
+      },
+      "MonitorAgentFiltersRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "If either domain list is not empty, the service removes sources that the lists do not allow. An update needs at least one allowed source.",
+        "properties": {
+          "freshness": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/MonitorFreshness"
+            },
+            "description": "Use only `published` to filter the agent's web search by publication date. Use only `updated` to filter it by last-updated date. The service applies no date filter if the field is absent, empty, or contains both values."
+          },
+          "include_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string"
+            },
+            "description": "Allow up to 20 domains and their subdomains. Use bare host names such as `example.com`, without a scheme, path, or port."
+          },
+          "exclude_domains": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string"
+            },
+            "description": "Exclude up to 20 domains and their subdomains. Use bare host names such as `example.com`, without a scheme, path, or port. Do not put the same domain in both lists."
+          }
+        }
+      },
+      "MonitorAgentTarget": {
+        "title": "Agent target",
+        "type": "object",
+        "description": "An Agent monitor runs the task in `input` on each run. A run with no saved state is a first check. A first check can save at most one update about the current state. Later runs can save up to five updates.",
+        "required": [
+          "type",
+          "input",
+          "filters"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "agent"
+            ]
+          },
+          "input": {
+            "type": "string",
+            "description": "The task for each run."
+          },
+          "effort": {
+            "type": "string",
+            "description": "The Agent API effort. The service omits this field when the target uses a `profile`."
+          },
+          "profile": {
+            "$ref": "#/components/schemas/MonitorAgentProfileReference"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/MonitorAgentFilters"
+          }
+        }
+      },
       "MonitorTarget": {
-        "description": "One thing a monitor watches. Today a monitor has exactly one `search`\ntarget, or 1 to 10 `page` targets with distinct URLs. New types may\nbe added; skip targets with an unknown type.\n",
+        "description": "A target for the monitor. Skip targets with a type you do not recognize.",
         "oneOf": [
           {
             "$ref": "#/components/schemas/MonitorSearchTarget"
           },
           {
             "$ref": "#/components/schemas/MonitorPageTarget"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorAgentTarget"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
             "search": "#/components/schemas/MonitorSearchTarget",
-            "page": "#/components/schemas/MonitorPageTarget"
+            "page": "#/components/schemas/MonitorPageTarget",
+            "agent": "#/components/schemas/MonitorAgentTarget"
           }
         }
       },
@@ -11863,6 +12000,41 @@
           }
         }
       },
+      "MonitorAgentTargetRequest": {
+        "title": "Agent target",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "input"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "agent"
+            ]
+          },
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "The task for each run, from 1 to 4,000 characters."
+          },
+          "effort": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^(low|medium|high)(@[A-Za-z0-9._-]+)?$",
+            "description": "Set the effort to one of these values:\n\n- `low`\n- `medium`\n- `high`\n\nYou can add `@latest` or `@<version>` to any value. If you omit `effort` and `profile`, the service uses `low`. Do not send both `effort` and `profile`."
+          },
+          "profile": {
+            "$ref": "#/components/schemas/MonitorAgentProfileReference"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/MonitorAgentFiltersRequest"
+          }
+        }
+      },
       "MonitorTargetRequest": {
         "oneOf": [
           {
@@ -11870,13 +12042,17 @@
           },
           {
             "$ref": "#/components/schemas/MonitorPageTargetRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorAgentTargetRequest"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
             "search": "#/components/schemas/MonitorSearchTargetRequest",
-            "page": "#/components/schemas/MonitorPageTargetRequest"
+            "page": "#/components/schemas/MonitorPageTargetRequest",
+            "agent": "#/components/schemas/MonitorAgentTargetRequest"
           }
         }
       },
@@ -11887,7 +12063,7 @@
         "items": {
           "$ref": "#/components/schemas/MonitorTargetRequest"
         },
-        "description": "Exactly one `search` target, or 1 to 10 `page` targets with distinct URLs"
+        "description": "Use one of these target configurations:\n\n- One Search target.\n- One Agent target.\n- One to 10 Page targets with distinct URLs.\n\nDo not mix target types."
       },
       "MonitorIntervalSchedule": {
         "title": "Interval schedule",
@@ -12114,6 +12290,7 @@
       "CreateMonitorRequest": {
         "type": "object",
         "additionalProperties": false,
+        "description": "Use a single target type for the monitor. An Agent monitor takes exactly one Agent target.",
         "required": [
           "name",
           "targets",
@@ -12128,7 +12305,7 @@
           "goal": {
             "type": "string",
             "maxLength": 2000,
-            "description": "What counts as worth an alert; each candidate is judged against it"
+            "description": "Describe the changes you want the monitor to report. The goal is separate from the Search query or Agent task."
           },
           "targets": {
             "$ref": "#/components/schemas/MonitorTargets"
@@ -12160,7 +12337,7 @@
       "UpdateMonitorRequest": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Any subset of the writable fields. A present key replaces that whole\nfield; an absent key leaves it unchanged. `null` clears an optional\nfield: `goal` becomes `\"\"`, `metadata` becomes `{}`, `webhook` is\nremoved.\n",
+        "description": "Send only the fields you want to replace. The service keeps the fields you omit. Send `null` to clear `goal`, `metadata`, or `webhook`. When you replace an Agent target, repeat the task and the options you want to keep.",
         "properties": {
           "name": {
             "type": "string",
@@ -12168,6 +12345,7 @@
             "maxLength": 256
           },
           "goal": {
+            "description": "Replace the goal without changing the Search query or Agent task. The service returns an empty string after you clear the goal.",
             "anyOf": [
               {
                 "type": "string",
@@ -12285,10 +12463,11 @@
           },
           "goal": {
             "type": "string",
-            "description": "`\"\"` when unset"
+            "description": "The changes you want the monitor to report. The service returns an empty string if you do not set a goal."
           },
           "targets": {
             "type": "array",
+            "description": "The targets for one monitor. An Agent monitor has exactly one target.",
             "items": {
               "$ref": "#/components/schemas/MonitorTarget"
             }
@@ -12545,21 +12724,102 @@
           }
         }
       },
+      "MonitorAgentSource": {
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The URL of the source."
+          },
+          "title": {
+            "type": "string",
+            "description": "The source title, if available."
+          },
+          "published_at": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonitorTimestamp"
+              }
+            ],
+            "description": "The publication date of the source, if available."
+          }
+        }
+      },
+      "MonitorAgentUpdateChange": {
+        "title": "Agent update",
+        "type": "object",
+        "description": "An update that the Agent monitor saved.",
+        "required": [
+          "id",
+          "type",
+          "title",
+          "confidence",
+          "text",
+          "sources"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/MonitorChangeId"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "agent_update"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "The URL of the first source. The service omits this field if `sources` is empty."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "The update title, up to 200 characters."
+          },
+          "confidence": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "The confidence score, from 0 to 1. Compare scores within one monitor."
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "The text of the update, up to 1,000 characters."
+          },
+          "sources": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/MonitorAgentSource"
+            },
+            "description": "Up to five sources for the update. The list can be empty."
+          }
+        }
+      },
       "MonitorChange": {
-        "description": "One finding the judge kept. New types may be added; skip changes with an unknown type.",
+        "description": "A change that the monitor saved. Skip changes with a type you do not recognize.",
         "oneOf": [
           {
             "$ref": "#/components/schemas/MonitorSearchResultChange"
           },
           {
             "$ref": "#/components/schemas/MonitorPageChange"
+          },
+          {
+            "$ref": "#/components/schemas/MonitorAgentUpdateChange"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
             "search_result": "#/components/schemas/MonitorSearchResultChange",
-            "page_change": "#/components/schemas/MonitorPageChange"
+            "page_change": "#/components/schemas/MonitorPageChange",
+            "agent_update": "#/components/schemas/MonitorAgentUpdateChange"
           }
         }
       },
@@ -12651,7 +12911,7 @@
           "candidates": {
             "type": "integer",
             "format": "int32",
-            "description": "New search results or changed pages before judging"
+            "description": "The number of results, page changes, or Agent updates the monitor considered for this run."
           },
           "changes": {
             "type": "integer",
@@ -12666,7 +12926,7 @@
       },
       "MonitorRunUsage": {
         "type": "object",
-        "description": "Usage for the run. Only a `succeeded` run has nonzero usage. A succeeded Search run is billed once per run and reports zero `fetched_urls`; Page monitors report counted `fetched_urls`. Judging is included in the price.",
+        "description": "Search and Page runs report nonzero usage only when they succeed. A successful Search run counts as one run for billing. A successful Page run counts each fetched URL that qualifies. An Agent run can report an Agent API cost even if the run fails.",
         "required": [
           "fetched_urls",
           "cost"
@@ -12675,7 +12935,7 @@
           "fetched_urls": {
             "type": "integer",
             "format": "int32",
-            "description": "Counted fetched URLs in a succeeded Page run; zero for Search runs and for runs that did not succeed."
+            "description": "The number of counted URLs that a successful Page run fetched. This value is zero for all other runs."
           },
           "cost": {
             "$ref": "#/components/schemas/MonitorRunCost"
@@ -12684,7 +12944,7 @@
       },
       "MonitorRunCost": {
         "type": "object",
-        "description": "Estimated run cost at list prices: $0.001 per succeeded Search run or counted fetched URL in a succeeded Page run, rounded to 5 decimal places. This is not the amount charged.",
+        "description": "The service estimates the cost at list prices and rounds it to 5 decimal places. This estimate is not the amount charged. A successful Search run costs $0.001 at list prices. A successful Page run costs $0.001 per counted fetched URL at list prices. An Agent run reports only the [Agent API](/docs/getting-started/pricing#agent-api-pricing) cost at list prices, if available.",
         "required": [
           "total_cost",
           "currency"
@@ -13121,7 +13381,7 @@
       "MonitorCreatedEvent": {
         "title": "monitor.created",
         "type": "object",
-        "description": "Sent once, when the monitor's first run succeeds. `data.run.changes` are the results the Search target already had when you created the monitor; a Page target saves its baseline and lists none. Later runs leave these out and report only what is new. Not subscribed by default. It replaces `monitor.changes.detected` and `monitor.run.completed` for that run.",
+        "description": "The service sends this event only for the first successful run. For Search, `data.run.changes` lists the initial results. Page monitors save a baseline and report no changes. For an Agent monitor, `data.run.changes` can contain one update about the current state. This event replaces `monitor.changes.detected` and `monitor.run.completed` for that run. The default subscription does not include this event.",
         "required": [
           "id",
           "object",
