@@ -4760,12 +4760,7 @@
               }
             ],
             "title": "Last Updated",
-            "description": "Date the page was last updated (YYYY-MM-DD)."
-          },
-          "error": {
-            "type": "string",
-            "title": "Error",
-            "description": "Present only on `snapshot_as_of` searches, for a page with no readable copy saved at or before that time. `title` and `snippet` are then empty."
+            "description": "Date the page was last updated (YYYY-MM-DD). Omitted on `snapshot_as_of` searches."
           }
         },
         "type": "object",
@@ -4840,7 +4835,7 @@
                 "type": "boolean"
               },
               "snapshot_as_of": {
-                "description": "Search the web as of this RFC 3339 time with a time zone, such as `2026-11-01T00:00:00Z`. Each result comes from the copy of the page saved at or before this time. It must not be in the future or more than 365 days ago. Supported for the `web` and `fast` search types. Cannot be combined with `search_recency_filter`, the publication date filters, or the last-updated filters.",
+                "description": "Search the web as of this RFC 3339 time with a time zone, such as `2026-11-01T00:00:00Z`. Each result comes from the copy of the page saved at or before this time. It must not be in the future or more than 365 days ago. Cannot be combined with `search_recency_filter`, the publication date filters, the last-updated filters, or `search_type` `people`. A page that can't be shown as of this time is omitted, so the response can have fewer than `max_results` results, or none.",
                 "type": "string"
               }
             },
@@ -13686,14 +13681,14 @@
           },
           "snapshot_as_of": {
             "type": "string",
-            "description": "Return each URL as stored at or before this RFC 3339 time with a time zone, such as 2026-11-01T00:00:00Z. It must not be in the future or more than 365 days ago. Never fetches live: a URL with no stored copy from before that time has status.type no_content. Cannot be combined with max_age_seconds, cache_only, or if_modified_since."
+            "description": "Return each URL as stored at or before this RFC 3339 time with a time zone, such as 2026-11-01T00:00:00Z. It must not be in the future or more than 365 days ago. Never fetches live: a URL with no stored copy from before that time has status.type no_content. Cannot be combined with max_age_seconds, cache_only, if_modified_since, or the html and links formats."
           },
           "timeout_ms": {
             "type": "integer",
             "minimum": 1000,
             "maximum": 110000,
-            "default": 30000,
-            "description": "Time budget for fetching the pages. URLs are fetched in parallel, and a URL that does not finish in time has status.type crawl_timeout while the rest keep their content. The response can take slightly longer than this budget. With criteria, the maximum is 95000, and scoring may add up to 15 seconds."
+            "default": 110000,
+            "description": "Time budget for fetching the pages. URLs are fetched in parallel, and a URL that does not finish in time has status.type crawl_timeout while the rest keep their content. The response can take slightly longer than this budget. With criteria, scoring may add up to 15 seconds."
           },
           "criteria": {
             "type": "object",
