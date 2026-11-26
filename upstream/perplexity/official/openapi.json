@@ -7978,6 +7978,15 @@
               "fetch_url"
             ],
             "type": "string"
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "snapshot_as_of": {
+                "type": "string",
+                "description": "Fetch each page as of this RFC 3339 time with a time zone, such as 2026-11-01T00:00:00Z. It must not be in the future or more than 365 days ago."
+              }
+            }
           }
         },
         "required": [
@@ -8041,6 +8050,15 @@
           },
           {
             "$ref": "#/components/schemas/DateFilters"
+          },
+          {
+            "properties": {
+              "snapshot_as_of": {
+                "type": "string",
+                "description": "Search the web as of this RFC 3339 time with a time zone, such as 2026-11-01T00:00:00Z. It must not be in the future or more than 365 days ago. Cannot be combined with search_recency_filter, the publication date filters, or the last updated filters."
+              }
+            },
+            "type": "object"
           }
         ],
         "title": "WebSearchFilters"
@@ -13928,7 +13946,7 @@
           "fetched_at": {
             "type": "string",
             "format": "date-time",
-            "description": "When the returned content was fetched."
+            "description": "When the returned content was fetched. Omitted when snapshot_as_of is set."
           },
           "last_modified": {
             "type": "string",
